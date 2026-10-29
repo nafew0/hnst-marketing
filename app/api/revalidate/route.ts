@@ -1,8 +1,4 @@
 import { type NextRequest, NextResponse } from 'next/server'
-
-import { revalidate as sanityRevalidate } from '@/integrations/sanity/revalidate'
-import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalidate'
-
 // Single webhook endpoint for every integration that revalidates cached
 // content. Each provider owns its handler in its integration folder and gets
 // one guard + dispatch pair here, so `setup:project` strips a dropped provider
@@ -16,30 +12,7 @@ import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalida
 // A request with no provider's signal gets the 404 below without its body
 // being read. What a provider's request can cost before rejection is noted at
 // its guard.
-export async function POST(request: NextRequest) {
-  // Shopify webhooks identify themselves with an `x-shopify-topic` header and
-  // always carry a `secret` query param. The handler compares the secret in
-  // constant time before it reads the body.
-  const isShopifyWebhook =
-    request.headers.has('x-shopify-topic') ||
-    request.nextUrl.searchParams.has('secret')
-
-  if (isShopifyWebhook) {
-    return shopifyRevalidate(request)
-  }
-
-  // Sanity signs its webhook body and sends the signature in this header
-  // (`sanity-webhook-signature`, the name `next-sanity/webhook`'s parseBody
-  // reads); the handler validates it. It reads the whole body (up to the
-  // platform's request body cap) and HMACs it before a wrong signature is
-  // rejected, with no wait and no revalidation. Cost: anyone can make this
-  // route read and hash a body that size as often as they like.
-  const isSanityWebhook = request.headers.has('sanity-webhook-signature')
-
-  if (isSanityWebhook) {
-    return sanityRevalidate(request)
-  }
-
+export async function POST(_request: NextRequest) {
   return NextResponse.json(
     { data: null, error: 'No webhook handler configured' },
     { status: 404 }

@@ -1,8 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useEffectEvent, useRef, useSyncExternalStore } from 'react'
 
-import { useCurrentSheet } from '@/dev/theatre'
-import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
 import type { PointerMoveHandler } from '@/webgl/hooks/use-pointer-input'
 import {
   getContextGeneration,
@@ -16,7 +14,6 @@ export function useFlowmapSim(
   resolution = 128,
   subscribePointerMove?: ((handler: PointerMoveHandler) => () => void) | null
 ) {
-  const sheet = useCurrentSheet()
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
 
@@ -97,35 +94,6 @@ export function useFlowmapSim(
     if (!flowmap) return
     flowmap.material.uniforms.uAspect.value = size.width / size.height
   }, [size, gl, resolution, contextGeneration])
-
-  useTheatre(
-    sheet,
-    'flowmap',
-    {
-      falloff: { value: 0.2, range: [0, 1], nudgeMultiplier: 0.01 },
-      dissipation: { value: 0.98, range: [0, 1], nudgeMultiplier: 0.01 },
-    },
-    {
-      onValuesChange: ({
-        falloff,
-        dissipation,
-      }: {
-        falloff: number
-        dissipation: number
-      }) => {
-        const flowmap = flowmapRef.current
-        if (!flowmap) return
-        flowmap.falloff = falloff
-        flowmap.dissipation = dissipation
-        holdUntilFaded(dissipation)
-      },
-      // Re-subscribes when the instance is rebuilt so Theatre re-applies its
-      // current values to the new Flowmap. A ref's identity never changes, so
-      // listing `flowmapRef` would never re-subscribe and the initial values
-      // would be dropped.
-      deps: [gl, resolution, contextGeneration],
-    }
-  )
 
   useFrame(() => {
     const flowmap = flowmapRef.current

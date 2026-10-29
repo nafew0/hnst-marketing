@@ -1,8 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useEffectEvent, useRef, useSyncExternalStore } from 'react'
 
-import { useCurrentSheet } from '@/dev/theatre'
-import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
 import type { PointerMoveHandler } from '@/webgl/hooks/use-pointer-input'
 import {
   getContextGeneration,
@@ -16,7 +14,6 @@ export function useFluidSim(
   resolution = 128,
   subscribePointerMove?: ((handler: PointerMoveHandler) => () => void) | null
 ) {
-  const sheet = useCurrentSheet()
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
 
@@ -80,47 +77,6 @@ export function useFluidSim(
     if (!fluid) return
     fluid.splatMaterial.uniforms.uAspect.value = size.width / size.height
   }, [size, gl, resolution, contextGeneration])
-
-  useTheatre(
-    sheet,
-    'fluid simulation',
-    {
-      density: { value: 0.98, range: [0, 1], nudgeMultiplier: 0.01 },
-      velocity: { value: 1, range: [0, 1], nudgeMultiplier: 0.01 },
-      pressure: { value: 0.5, range: [0, 1], nudgeMultiplier: 0.01 },
-      curl: { value: 0, range: [0, 100], nudgeMultiplier: 1 },
-      radius: { value: 0.5, range: [0, 1], nudgeMultiplier: 0.01 },
-    },
-    {
-      onValuesChange: ({
-        density,
-        velocity,
-        pressure,
-        curl,
-        radius,
-      }: {
-        density: number
-        velocity: number
-        pressure: number
-        curl: number
-        radius: number
-      }) => {
-        const fluid = fluidRef.current
-        if (!fluid) return
-        fluid.curlStrength = curl
-        fluid.densityDissipation = density
-        fluid.velocityDissipation = velocity
-        fluid.pressureDissipation = pressure
-        fluid.radius = radius
-        holdUntilFaded(fluid)
-      },
-      // Re-subscribes when the instance is rebuilt so Theatre re-applies its
-      // current values to the new Fluid. A ref's identity never changes, so
-      // listing `fluidRef` would never re-subscribe and the initial values
-      // would be dropped.
-      deps: [gl, resolution, contextGeneration],
-    }
-  )
 
   // Real frame delta, so apparent speed is independent of refresh rate.
   useFrame((_, delta) => {

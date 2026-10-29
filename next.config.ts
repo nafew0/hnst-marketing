@@ -131,17 +131,13 @@ const nextConfig: NextConfig = {
     // Not `cssChunking: 'graph'`: measured 11 stylesheets against the
     // default's 9 for identical total bytes.
     optimizePackageImports: [
-      '@react-three/drei',
-      '@react-three/fiber',
       'animejs',
-      'three',
       '@base-ui/react',
       'lenis',
       'zustand',
-      '@sanity/client',
-      '@sanity/image-url',
-      '@sanity/asset-utils',
-      '@portabletext/react',
+      '@react-three/drei',
+      '@react-three/fiber',
+      'three',
     ],
   },
   devIndicators: false,
@@ -151,12 +147,7 @@ const nextConfig: NextConfig = {
     // resizes through a loader (`components/ui/image/sanity-loader.ts`)
     // stays out: the optimizer never fetches from it, and allowing it would
     // let anyone resize any image on that host here, on this project's bill.
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'cdn.shopify.com',
-      },
-    ],
+    remotePatterns: [],
     minimumCacheTTL: 60 * 60 * 24 * 30,
     // 90: everything the optimizer encodes. 80: images resized by the CDN
     // loader in `components/ui/image`, which sends `quality` to the CDN, not

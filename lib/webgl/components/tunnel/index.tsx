@@ -4,7 +4,6 @@ import { useContextBridge } from '@react-three/drei'
 import { TransformContext } from 'hamo'
 import { Fragment, type PropsWithChildren, useId } from 'react'
 
-import { SheetContext } from '@/lib/dev/theatre'
 import { useCanvas } from '@/webgl/components/canvas'
 
 /**
@@ -18,7 +17,7 @@ import { useCanvas } from '@/webgl/components/canvas'
 export function WebGLTunnel({ children }: PropsWithChildren) {
   const { WebGLTunnel } = useCanvas()
 
-  const ContextBridge = useContextBridge(TransformContext, SheetContext)
+  const ContextBridge = useContextBridge(TransformContext)
   const uuid = useId()
 
   if (!WebGLTunnel) return

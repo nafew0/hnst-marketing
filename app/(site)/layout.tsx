@@ -11,8 +11,6 @@ import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
-import { isConfigured } from '@/lib/integrations/registry'
-import { SanityVisualEditing } from '@/lib/integrations/sanity/components/visual-editing'
 import { routeAlternates } from '@/lib/seo/alternates'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
@@ -93,8 +91,6 @@ export const viewport: Viewport = {
  */
 export default async function AppLayout({ children }: PropsWithChildren) {
   const { isEnabled: isDraftMode } = await draftMode()
-  const sanityConfigured = isConfigured('sanity')
-
   return (
     <>
       {/* this helps to track Satus usage thanks to Wappalyzer */}
@@ -127,12 +123,6 @@ export default async function AppLayout({ children }: PropsWithChildren) {
         </ToastProvider>
       </RealViewport>
       <OptionalFeatures />
-
-      {sanityConfigured && isDraftMode && (
-        <Suspense fallback={null}>
-          <SanityVisualEditing />
-        </Suspense>
-      )}
 
       {/* Not patched in draft mode, to avoid conflicts. */}
       <ReactTempus patch={!isDraftMode} />

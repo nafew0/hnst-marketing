@@ -5,16 +5,9 @@ import { useEffect, useState } from 'react'
 
 import { Cmdo } from './cmdo'
 import Orchestra from './orchestra'
-
-const Studio = dynamic(
-  () => import('./theatre/studio').then(({ Studio }) => Studio),
-  { ssr: false }
-)
-
 const Stats = dynamic(() => import('./stats').then(({ Stats }) => Stats), {
   ssr: false,
 })
-
 const GridDebugger = dynamic(
   () => import('./grid').then(({ GridDebugger }) => GridDebugger),
   { ssr: false }
@@ -40,8 +33,7 @@ const ReactScan = dynamic(
 )
 
 export function OrchestraTools() {
-  const { stats, grid, studio, dev, minimap, screenshot, reactScan } =
-    useOrchestra()
+  const { grid, dev, minimap, screenshot, reactScan, stats } = useOrchestra()
 
   useEffect(() => {
     document.documentElement.classList.toggle('dev', Boolean(dev))
@@ -54,11 +46,11 @@ export function OrchestraTools() {
   return (
     <>
       <Cmdo />
-      {studio && <Studio />}
-      {stats && <Stats />}
+
       {grid && <GridDebugger />}
       {minimap && <ScrollTriggerDebugger />}
       {reactScan && <ReactScan />}
+      {stats && <Stats />}
     </>
   )
 }

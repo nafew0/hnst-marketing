@@ -11,7 +11,6 @@ import cn from 'clsx'
 import { useWindowSize } from 'hamo'
 import { Suspense, useEffect, useState } from 'react'
 
-import { SheetProvider } from '@/lib/dev/theatre'
 import { bumpContextGeneration } from '@/lib/webgl/store'
 import { FlowmapProvider } from '@/webgl/components/flowmap-provider'
 import { PostProcessing } from '@/webgl/components/postprocessing'
@@ -197,26 +196,24 @@ export function WebGLCanvas({
         // still gets pointer events via `eventSource`.
         style={{ pointerEvents: 'none' }}
       >
-        <SheetProvider id="webgl">
-          <OrthographicCamera
-            makeDefault
-            position={[0, 0, 5000]}
-            near={0.001}
-            far={10000}
-            zoom={1}
-          />
-          <RAF render={render} />
-          <AdaptiveDpr factor={dprFactor} onFactor={setDprFactor} />
-          <ContextLossHandler />
-          <WakeOnChange tunnel={WebGLTunnel} />
-          <FlowmapProvider {...(simTypes && { simTypes })}>
-            {postprocessing && <PostProcessing />}
-            <Suspense>
-              <WebGLTunnel.Out />
-            </Suspense>
-          </FlowmapProvider>
-          <Preload all />
-        </SheetProvider>
+        <OrthographicCamera
+          makeDefault
+          position={[0, 0, 5000]}
+          near={0.001}
+          far={10000}
+          zoom={1}
+        />
+        <RAF render={render} />
+        <AdaptiveDpr factor={dprFactor} onFactor={setDprFactor} />
+        <ContextLossHandler />
+        <WakeOnChange tunnel={WebGLTunnel} />
+        <FlowmapProvider {...(simTypes && { simTypes })}>
+          {postprocessing && <PostProcessing />}
+          <Suspense>
+            <WebGLTunnel.Out />
+          </Suspense>
+        </FlowmapProvider>
+        <Preload all />
       </Canvas>
       <DOMTunnel.Out />
     </div>
