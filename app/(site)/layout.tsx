@@ -1,26 +1,26 @@
-import { Analytics } from '@vercel/analytics/next'
 import { TransformProvider } from 'hamo'
 import type { Metadata, Viewport } from 'next'
 import { draftMode } from 'next/headers'
-import Script from 'next/script'
 import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
+import { DeviceTierProvider } from '@/components/motion/device-tier'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
+import { ApiMocks } from '@/lib/contracts/mocks/api-mocks'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { routeAlternates } from '@/lib/seo/alternates'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
+import { SITE } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
-import AppData from '@/package.json'
 
-const APP_NAME = AppData.name
-const APP_DEFAULT_TITLE = 'Satūs'
-const APP_TITLE_TEMPLATE = '%s - Satūs'
-const APP_DESCRIPTION = AppData.description
+const APP_NAME = SITE.name
+const APP_DEFAULT_TITLE = SITE.name
+const APP_TITLE_TEMPLATE = `%s | ${SITE.name}`
+const APP_DESCRIPTION = SITE.description
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_BASE_URL),
@@ -68,9 +68,7 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
   },
-  authors: [
-    { name: 'darkroom.engineering', url: 'https://darkroom.engineering' },
-  ],
+  authors: [{ name: SITE.name, url: SITE.url }],
 }
 
 if (env.NEXT_PUBLIC_FACEBOOK_APP_ID) {
@@ -93,18 +91,13 @@ export default async function AppLayout({ children }: PropsWithChildren) {
   const { isEnabled: isDraftMode } = await draftMode()
   return (
     <>
-      {/* this helps to track Satus usage thanks to Wappalyzer */}
-      <Script
-        id="satus-version"
-        async
-      >{`window.satusVersion = '${AppData.version}';`}</Script>
       {/* On every page, not just home: deep pages are landed on directly far more often. */}
       <JsonLd data={organizationSchema()} />
       <JsonLd data={websiteSchema()} />
       <Suspense fallback={null}>
         <Link
           href="#main-content"
-          className="focus:top-4 focus:left-4 focus:rounded focus:px-4 focus:py-2 sr-only focus:not-sr-only focus:fixed focus:z-9999 focus:bg-black focus:text-white focus:ring-2 focus:ring-white focus:outline-none"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-gap focus:left-gap focus:z-9999 focus:rounded-full focus:bg-gold focus:dr-px-16 focus:dr-py-8 focus:text-void focus:ring-2 focus:ring-starlight focus:outline-none"
         >
           Skip to main content
         </Link>
@@ -117,18 +110,16 @@ export default async function AppLayout({ children }: PropsWithChildren) {
               They are included in the <Wrapper> component used by each page.
               See: components/layout/wrapper/index.tsx
             */}
-            {children}
+            <DeviceTierProvider>{children}</DeviceTierProvider>
           </TransformProvider>
           <ToastViewport />
         </ToastProvider>
       </RealViewport>
       <OptionalFeatures />
+      <ApiMocks />
 
       {/* Not patched in draft mode, to avoid conflicts. */}
       <ReactTempus patch={!isDraftMode} />
-      {/* Vercel-hosted deployments only — the injected /_vercel/insights
-          script 404s on self-hosted or CI `next start`. */}
-      {process.env.VERCEL_ENV && <Analytics />}
     </>
   )
 }

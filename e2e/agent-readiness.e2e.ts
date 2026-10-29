@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
-const DEVELOPER_RESOURCE_URL = 'https://github.com/darkroomengineering/satus'
+// The concrete next step in SITE.agentGuidance (lib/seo/site.ts).
+const AGENT_NEXT_STEP = 'Discovery Call'
 const NEXT_VARY_FIELDS = [
   'rsc',
   'next-router-state-tree',
@@ -68,9 +69,7 @@ test.describe('agent-readable HTML', () => {
       const response = await page.goto('/')
       expect(response?.status()).toBe(200)
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
-      await expect(page.getByRole('heading', { level: 1 })).toContainText(
-        'Satūs'
-      )
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(/\S{3}/)
       expect(
         (await page.locator('body').innerText()).trim().length
       ).toBeGreaterThanOrEqual(500)
@@ -103,11 +102,9 @@ test.describe('Markdown content negotiation', () => {
       if (htmlVary.includes(field)) expect(markdownVary).toContain(field)
     }
 
-    expect(body).toMatch(/^# Home \| Satūs/m)
+    expect(body).toMatch(/^# Home \| HONEST Marketing/m)
     expect(body).toContain('## When to use')
     expect(body).toContain('## How to use')
-    expect(body).toContain('## Developer resources')
-    expect(body).toContain(DEVELOPER_RESOURCE_URL)
   })
 
   test('honors qualities and rejects requests for unsupported representations', async ({
@@ -181,7 +178,7 @@ test.describe('Markdown content negotiation', () => {
       expect(response.headers()['content-type'], path).toBe(
         'text/markdown; charset=utf-8'
       )
-      expect(await response.text(), path).toMatch(/^# .+ \| Satūs/m)
+      expect(await response.text(), path).toMatch(/^# .+ \| HONEST Marketing/m)
     }
   })
 
@@ -242,10 +239,10 @@ test.describe('machine-readable discovery files', () => {
     const llmsBody = await llms.text()
     expect(llms.status()).toBe(200)
     expect(llms.headers()['content-type']).toContain('text/plain')
-    expect(llmsBody).toContain('# Satūs')
+    expect(llmsBody).toContain('# HONEST Marketing')
     expect(llmsBody).toContain('## When to use')
     expect(llmsBody).toContain('## How to use')
-    expect(llmsBody).toContain(DEVELOPER_RESOURCE_URL)
+    expect(llmsBody).toContain(AGENT_NEXT_STEP)
 
     const ai = await request.get('/ai')
     const aiBody = await ai.text()
@@ -253,7 +250,7 @@ test.describe('machine-readable discovery files', () => {
     expect(ai.headers()['content-type']).toContain('text/html')
     expect(aiBody).toContain('When to use')
     expect(aiBody).toContain('How to use')
-    expect(aiBody).toContain(DEVELOPER_RESOURCE_URL)
+    expect(aiBody).toContain(AGENT_NEXT_STEP)
 
     const sitemap = await request.get('/sitemap.xml')
     const sitemapBody = await sitemap.text()

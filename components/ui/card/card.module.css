@@ -1,0 +1,44 @@
+@layer components {
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(16px);
+    padding: mobile-vw(24px);
+    border: 1px solid color-mix(in oklab, var(--color-gold) 22%, transparent);
+    border-radius: mobile-vw(20px);
+    background: linear-gradient(
+      in oklab 160deg,
+      var(--color-void-2),
+      var(--color-void)
+    );
+    color: var(--color-starlight);
+    transition: border-color var(--duration-fast) var(--ease-out-expo);
+
+    @media (--desktop) {
+      gap: desktop-vw(20px);
+      padding: desktop-vw(36px);
+      border-radius: desktop-vw(24px);
+    }
+  }
+
+  /* Featured card (the Founder Package): gold edge and a nebula glow. */
+  .featured {
+    border-color: var(--color-gold);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-gold) 35%, transparent),
+      0 24px 80px -32px var(--color-nebula-glow);
+  }
+
+  .interactive {
+    @media (--hover) {
+      &:hover {
+        border-color: color-mix(in oklab, var(--color-gold) 70%, transparent);
+      }
+    }
+
+    &:focus-within {
+      border-color: var(--color-gold);
+    }
+  }
+}

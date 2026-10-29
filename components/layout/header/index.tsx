@@ -1,76 +1,103 @@
 'use client'
 
+import { Dialog } from '@base-ui/react/dialog'
 import cn from 'clsx'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
-import { getLinkIntent, Link } from '@/components/ui/link'
+import { Button } from '@/components/ui/button'
+import { Link } from '@/components/ui/link'
+import { Logo } from '@/components/ui/logo'
+import { bookCall, primaryNav } from '@/lib/navigation'
 
 import s from './header.module.css'
 
-// `newTab` forces new-tab behavior for a relative href. Absolute http(s)
-// hrefs, like the GitHub link, get new-tab and the arrow indicator
-// automatically via isExternalHref.
-type NavLink = { href: string; label: string; newTab?: boolean }
-
-const LINKS: NavLink[] = [
-  { href: '/', label: 'home' },
-  {
-    href: 'https://github.com/darkroomengineering/satus',
-    label: 'github',
-  },
-]
-
+/**
+ * Fixed top bar. Desktop: inline nav + gold "Book a call". Mobile: a
+ * full-screen drawer on Base UI Dialog (focus trap, Escape, scroll lock,
+ * focus returns to the toggle). The drawer closes on navigation.
+ */
 export function Header() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuPath, setMenuPath] = useState(pathname)
+  // Close on route change, during render (no effect needed).
+  if (pathname !== menuPath) {
+    setMenuPath(pathname)
+    setMenuOpen(false)
+  }
 
   return (
     <header className={s.header}>
-      <div className={s.brand}>
-        <span>Satūs</span>
-        <span className={s.brandPath}>{pathname}</span>
+      <div className={cn(s.bar, 'dr-layout-block')}>
+        <Link href="/" aria-label="HONEST Marketing home" className={s.home}>
+          <Logo title={false} className={s.logo} />
+        </Link>
+
+        <nav aria-label="Primary" className="desktop-only">
+          <ul className={s.navList}>
+            {primaryNav.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={pathname === item.href ? 'page' : undefined}
+                  className={cn(s.navLink, 'link uppercase')}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="desktop-only">
+          <Button href={bookCall.href}>{bookCall.label}</Button>
+        </div>
+
+        <Dialog.Root open={menuOpen} onOpenChange={setMenuOpen}>
+          <Dialog.Trigger
+            aria-label="Open menu"
+            className={cn(s.menuToggle, 'mobile-only link uppercase')}
+          >
+            Menu
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Backdrop className={s.backdrop} />
+            <Dialog.Popup className={s.drawer} data-theme="dark">
+              <div className={s.drawerTop}>
+                <Dialog.Title className="sr-only">Menu</Dialog.Title>
+                <Logo title="HONEST Marketing" className={s.logo} />
+                <Dialog.Close
+                  aria-label="Close menu"
+                  className={cn(s.menuToggle, 'link uppercase')}
+                >
+                  Close
+                </Dialog.Close>
+              </div>
+              <nav aria-label="Primary">
+                <ul className={s.drawerList}>
+                  {primaryNav.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={
+                          pathname === item.href ? 'page' : undefined
+                        }
+                        className={cn(s.drawerLink, 'h2')}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <Button href={bookCall.href} size="lg" className="w-full">
+                {bookCall.label}
+              </Button>
+            </Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
-
-      <button
-        aria-expanded={menuOpen}
-        aria-controls="header-nav"
-        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-        className={s.menuToggle}
-        onClick={() => setMenuOpen((prev) => !prev)}
-        type="button"
-      >
-        {menuOpen ? '✕ close' : '≡ menu'}
-      </button>
-
-      <ul className={cn(s.navList, menuOpen && s.navListOpen)} id="header-nav">
-        {LINKS.map((link) => {
-          const { isExternal: opensNewTab, isActive } = getLinkIntent(
-            link.href,
-            pathname,
-            { newTab: link.newTab }
-          )
-
-          return (
-            <li key={link.href} className={s.navItem}>
-              <span className={cn(s.chevron, isActive && s.chevronActive)}>
-                ›
-              </span>
-              <Link
-                className={cn(
-                  s.navLink,
-                  isActive ? s.navLinkActive : s.navLinkDim
-                )}
-                href={link.href}
-                newTab={link.newTab}
-              >
-                {link.label}
-                {opensNewTab && '↗'}
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
     </header>
   )
 }
