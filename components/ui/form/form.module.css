@@ -16,12 +16,12 @@
 
     &.submitted {
       pointer-events: none;
-      background: var(--color-green);
+      background: var(--color-success);
     }
 
     &.error {
       pointer-events: none;
-      background: var(--color-white);
+      background: var(--color-danger);
     }
 
     &.pending {
@@ -42,13 +42,13 @@
       transform: translate(-50%, -50%);
       width: 100%;
       height: 100%;
-      background-color: var(--color-black);
+      background-color: var(--color-gold);
       clip-path: circle(0%);
     }
 
     @media (--hover) {
       &:hover {
-        color: var(--color-white);
+        color: var(--color-void);
 
         &::before {
           @media (--motion-ok) {
@@ -72,7 +72,7 @@
     }
 
     .error {
-      color: var(--color-white);
+      color: var(--color-danger);
     }
   }
 }

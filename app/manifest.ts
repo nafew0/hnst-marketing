@@ -10,8 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: AppData.description,
     start_url: '/',
     display: 'standalone',
-    background_color: themes.red.primary,
-    theme_color: themes.red.primary,
+    background_color: themes.dark.primary,
+    theme_color: themes.dark.primary,
     // `sizes` must match each file's real pixel dimensions: a browser trusts
     // it and nothing validates it. One entry per file.
     icons: [

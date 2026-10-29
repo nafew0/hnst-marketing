@@ -40,6 +40,7 @@ body {
   overscroll-behavior: none;
   background-color: var(--color-primary);
   color: var(--color-secondary);
+  font-family: var(--next-font-body), system-ui, sans-serif;
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;

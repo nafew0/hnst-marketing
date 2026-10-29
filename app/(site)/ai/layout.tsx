@@ -19,7 +19,7 @@ import type { PropsWithChildren } from 'react'
  */
 export default function AiLayout({ children }: PropsWithChildren) {
   return (
-    <div className="max-w-3xl px-6 py-16 text-sm leading-relaxed mx-auto min-h-dvh font-mono">
+    <div className="mx-auto min-h-dvh dr-max-w-768 dr-px-24 dr-py-64 caption font-mono">
       {/* Skip-link target; this route bypasses <Wrapper>, which normally provides the id. */}
       <main id="main-content">{children}</main>
     </div>
