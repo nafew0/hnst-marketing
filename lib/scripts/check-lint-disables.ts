@@ -69,10 +69,15 @@ function sourceFiles(): string[] {
     console.error('check:disables: `git ls-files` failed — is this a git repo?')
     process.exit(1)
   }
-  return result.stdout
-    .toString()
-    .split('\n')
-    .filter((path) => SOURCE_PATTERN.test(path))
+  return (
+    result.stdout
+      .toString()
+      .split('\n')
+      .filter((path) => SOURCE_PATTERN.test(path))
+      // public/ holds generated, vendored files (mockServiceWorker.js from
+      // `msw init`) that ship their own lint header; oxlint ignores them too.
+      .filter((path) => !path.startsWith('public/'))
+  )
 }
 
 async function main(): Promise<void> {
