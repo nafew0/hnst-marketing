@@ -73,7 +73,7 @@ P1 forked Satus v3 and kept its conventions instead of re-creating the plan's or
   - Any 2xx counts as success. **No react-hook-form:** use Satus `<Form>` and its fields, with `zodToValidator()` for client checks.
 - **Mocks:** set `NEXT_PUBLIC_API_MOCKS=1` to turn on the MSW worker (`public/mockServiceWorker.js`).
   - Magic values reach the error paths: a `taken@…` email gives 409, `@ghl-down.test` gives 202 queued, `@ratelimit.test` gives 429, and altcha `fail` gives 400. They are listed in `lib/contracts/mocks/handlers.ts`.
-- **Env names are frozen** in `lib/env.ts` and `.env.example`: `DATABASE_URL`, `PAYLOAD_SECRET`, `GHL_PIT`, `GHL_LOCATION_ID`, `GHL_CALENDAR_ID`, `GHL_PIPELINE_ID`, `GHL_WORKFLOW_SECRET`, `ALTCHA_HMAC_KEY` and `NEXT_PUBLIC_API_MOCKS`. Read them through `import { env } from '@/lib/env'`.
+- **Env names are frozen** in `lib/env.ts` and `.env.example`: `DATABASE_URL`, `PAYLOAD_SECRET`, `GHL_PIT`, `GHL_LOCATION_ID`, `GHL_CALENDAR_ID`, `GHL_PIPELINE_ID`, `GHL_STAGE_NEW_ID`, `GHL_STAGE_CALL_BOOKED_ID`, `GHL_WORKFLOW_SECRET`, `ALTCHA_HMAC_KEY` and `NEXT_PUBLIC_API_MOCKS`. Read them through `import { env } from '@/lib/env'`.
 
 ### E. Motion and 3D
 

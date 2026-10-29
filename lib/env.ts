@@ -38,6 +38,10 @@ const envSchema = z.object({
   GHL_LOCATION_ID: z.string().min(1).optional(),
   GHL_CALENDAR_ID: z.string().min(1).optional(),
   GHL_PIPELINE_ID: z.string().min(1).optional(),
+  // "Website Leads" stage ids: new leads land in New; a booking moves the
+  // opportunity to Call Booked (P5).
+  GHL_STAGE_NEW_ID: z.string().min(1).optional(),
+  GHL_STAGE_CALL_BOOKED_ID: z.string().min(1).optional(),
   // Path secret for POST /api/webhooks/ghl-workflow/:key.
   GHL_WORKFLOW_SECRET: z.string().min(24).optional(),
   // ALTCHA proof-of-work signing key (self-hosted captcha).

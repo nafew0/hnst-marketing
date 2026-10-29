@@ -52,7 +52,12 @@ export const sampleBooking: BookingInput = {
 
 export const sampleOffers: OffersResponse = {
   packages: [
-    { tier: 'basic-diy', price: 500, turnaround: 'Self-paced course' },
+    {
+      tier: 'basic-diy',
+      price: 500,
+      value: 1500,
+      turnaround: 'Self-paced course',
+    },
     { tier: 'executive', price: 2500, value: 7500, turnaround: '14–21 days' },
     { tier: 'founder', price: 5000, value: 15000, turnaround: '7–14 days' },
     { tier: 'diamond', price: 25000, turnaround: '21–28 days' },
