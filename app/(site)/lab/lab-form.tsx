@@ -26,7 +26,11 @@ export function LabForm() {
     formData: FormData
   ): Promise<FormState> {
     const field = (name: string) => String(formData.get(name) ?? '')
-    idempotencyKeyRef.current ??= newIdempotencyKey()
+    // Plain `if`, not `??=`: React Compiler cannot lower `??=` and would
+    // skip optimizing the whole component.
+    if (idempotencyKeyRef.current === null) {
+      idempotencyKeyRef.current = newIdempotencyKey()
+    }
     const result = await api.submitLead(
       {
         type: 'contact',

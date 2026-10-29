@@ -15,17 +15,12 @@ import s from './header.module.css'
 /**
  * Fixed top bar. Desktop: inline nav + gold "Book a call". Mobile: a
  * full-screen drawer on Base UI Dialog (focus trap, Escape, scroll lock,
- * focus returns to the toggle). The drawer closes on navigation.
+ * focus returns to the toggle). Its links close it as they navigate.
  */
 export function Header() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [menuPath, setMenuPath] = useState(pathname)
-  // Close on route change, during render (no effect needed).
-  if (pathname !== menuPath) {
-    setMenuPath(pathname)
-    setMenuOpen(false)
-  }
+  const closeMenu = () => setMenuOpen(false)
 
   return (
     <header className={s.header}>
@@ -84,6 +79,7 @@ export function Header() {
                           pathname === item.href ? 'page' : undefined
                         }
                         className={cn(s.drawerLink, 'h2')}
+                        onClick={closeMenu}
                       >
                         {item.label}
                       </Link>
@@ -91,7 +87,12 @@ export function Header() {
                   ))}
                 </ul>
               </nav>
-              <Button href={bookCall.href} size="lg" className="w-full">
+              <Button
+                href={bookCall.href}
+                size="lg"
+                className="w-full"
+                onClick={closeMenu}
+              >
                 {bookCall.label}
               </Button>
             </Dialog.Popup>
