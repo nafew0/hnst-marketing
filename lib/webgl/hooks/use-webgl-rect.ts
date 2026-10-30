@@ -51,11 +51,15 @@ export interface WebGLTransform {
  *   moves under a `TransformProvider`, so its transform counts once, here.
  * @param onUpdate - The transform object is reused between calls: copy out of
  *   it, don't keep it.
+ * @param pinTrack - For an element pinned with `position: sticky; top: 0`: the
+ *   rect of its tall parent. hamo's `useRect` measures a sticky element where
+ *   it would sit unpinned, so the pinned top is worked out from the scroll.
  * @returns A function that re-runs `onUpdate` on demand.
  */
 export function useWebGLRect(
   rect: Rect,
-  onUpdate?: (transform: WebGLTransform) => void
+  onUpdate?: (transform: WebGLTransform) => void,
+  pinTrack?: Rect
 ): () => void {
   const { width, height } = useWindowSize()
   const lenis = useLenis()
@@ -93,7 +97,14 @@ export function useWebGLRect(
     // translate, half-extents with the provider's scale (applied about the
     // centre). x is viewport-relative on a vertically scrolling page.
     const centerX = rect.left + rect.width / 2 + translate.x
-    const centerY = rect.top + rect.height / 2 + translate.y
+    const top =
+      pinTrack?.top !== undefined && pinTrack.height !== undefined
+        ? Math.min(
+            Math.max(scroll, pinTrack.top),
+            pinTrack.top + pinTrack.height - rect.height
+          )
+        : rect.top
+    const centerY = top + rect.height / 2 + translate.y
     const halfWidth = (rect.width * scale.x) / 2
     const halfHeight = (rect.height * scale.y) / 2
 

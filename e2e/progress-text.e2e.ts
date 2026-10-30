@@ -1,9 +1,23 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
+// The statement sits under S3, a long way down the homepage: start a screen
+// above it, as a visitor arriving there would.
+const startAboveStatement = (page: Page) =>
+  page
+    .locator('[aria-hidden="true"]', { hasText: 'all by hand' })
+    .evaluate((element) => {
+      window.scrollTo(
+        0,
+        element.getBoundingClientRect().top +
+          window.scrollY -
+          window.innerHeight
+      )
+    })
+
 const wordOpacities = (page: Page) =>
   page
-    .locator('[aria-hidden="true"]', { hasText: 'You own everything' })
+    .locator('[aria-hidden="true"]', { hasText: 'all by hand' })
     .locator('[class*="word"]')
     .evaluateAll((words) =>
       words.map((word) => Number(getComputedStyle(word).opacity))
@@ -21,6 +35,8 @@ test('homepage manifesto words reveal across the scroll to the page bottom', asy
     .toBeGreaterThan(3)
   expect(new Set(await wordOpacities(page))).toEqual(new Set([0.5]))
 
+  await startAboveStatement(page)
+  await page.waitForTimeout(300)
   await page.mouse.move(640, 400)
   const samples: number[][] = []
   for (let i = 0; i < 40; i++) {
@@ -68,7 +84,7 @@ test('with reduced motion, the manifesto fades once when it scrolls into view', 
   expect(new Set(await wordOpacities(page))).toEqual(new Set([0.5]))
 
   await page
-    .locator('[aria-hidden="true"]', { hasText: 'You own everything' })
+    .locator('[aria-hidden="true"]', { hasText: 'all by hand' })
     .scrollIntoViewIfNeeded()
   await expect
     .poll(async () => new Set(await wordOpacities(page)))

@@ -1,7 +1,7 @@
 'use client'
 
 import { type RootState, useFrame } from '@react-three/fiber'
-import { useEffect, useState } from 'react'
+import { type RefObject, useEffect, useState } from 'react'
 import {
   HalfFloatType,
   Mesh,
@@ -19,10 +19,11 @@ import { brand } from '@/brand.config'
 
 import { brandColor } from './color'
 import { FBM_5, FULLSCREEN_VERTEX, SIMPLEX_3D } from './glsl'
+import type { PointerField } from './pointer-field'
 
 // Domain-warped fbm (5 octaves): one warp field q, then the density sampled
-// through it. Three fbm calls per pixel keep the full-view pass at 60 fps; a
-// second warp level (five calls) looked the same at this drift speed.
+// through it, plus one low-frequency call that places the clouds. Rendered at a
+// third of the resolution, so the full-view pass holds 60 fps.
 const FRAGMENT = /* glsl */ `
 uniform float uTime;
 uniform float uDensity;
@@ -30,33 +31,62 @@ uniform float uAspect;
 uniform vec2 uParallax;
 uniform float uLight;
 uniform vec2 uLightPos;
+uniform vec2 uPointer;
+uniform float uHover;
+uniform float uPulse;
+uniform vec2 uPulsePos;
 uniform vec3 uVoid;
-uniform vec3 uDeep;
-uniform vec3 uHaze;
+uniform vec3 uTeal;
 uniform vec3 uGlow;
-uniform vec3 uTint;
+uniform vec3 uRose;
+uniform vec3 uHot;
 varying vec2 vUv;
 ${SIMPLEX_3D}
 ${FBM_5}
 void main() {
-  vec2 p = (vUv - 0.5) * vec2(uAspect, 1.0) * 1.1 + uParallax;
+  vec2 aspect = vec2(uAspect, 1.0);
+  vec2 p = (vUv - 0.5) * aspect * 1.1 + uParallax;
   float t = uTime;
-  // The warp field is sampled at half frequency so cloud edges stay soft.
+
+  // The gas leans away from the pointer, and a click sends a ring through it.
+  vec2 fromPointer = (vUv - uPointer) * aspect;
+  p += fromPointer * exp(-dot(fromPointer, fromPointer) * 12.0) * 0.14 * uHover;
+  vec2 fromPulse = (vUv - uPulsePos) * aspect;
+  float pulseRadius = length(fromPulse);
+  float ring = exp(-pow((pulseRadius - uPulse * 1.5) * 6.0, 2.0)) * (1.0 - uPulse);
+  p += fromPulse / max(pulseRadius, 0.001) * ring * 0.16;
+
   vec2 q = vec2(fbm(vec3(p * 0.5, t)), fbm(vec3(p * 0.5 + vec2(5.2, 1.3), t)));
   float f = fbm(vec3(p + 2.4 * q, t * 0.7));
-  // fbm sits around 0.5: below ~0.42 is open void, the bright tail is the gas.
-  float density = clamp((f - 0.42) * 2.6 * uDensity, 0.0, 1.0);
 
-  vec3 color = mix(uVoid, uDeep, smoothstep(0.02, 0.32, density));
-  color = mix(color, uHaze, smoothstep(0.22, 0.66, density));
-  color = mix(color, uGlow, smoothstep(0.58, 1.0, density) * 0.9);
-  // Lavender light along the thin edges of each cloud.
-  float edge = smoothstep(0.16, 0.0, abs(density - 0.42)) * smoothstep(0.2, 0.8, q.x);
-  color += uTint * edge * 0.28;
-  // "Light from behind": a soft core that brightens the gas when the arc flares.
-  vec2 aspect = vec2(uAspect, 1.0);
-  float d = distance(vUv * aspect, uLightPos * aspect);
-  color += uGlow * uLight * exp(-d * 3.5) * (0.5 + density);
+  // Clouds with open space around them: one body of gas around uLightPos and a
+  // few stray wisps, instead of a ceiling of purple over the whole frame.
+  vec2 fromCore = (vUv - uLightPos) * aspect;
+  // Sized by the shorter side, so a phone gets a cloud and not a full screen.
+  float short_ = min(uAspect, 1.0);
+  float body = exp(-dot(fromCore, fromCore) * 5.2 / (short_ * short_));
+  float stray = smoothstep(0.54, 0.78, fbm(vec3(p * 0.42 + 7.0, t * 0.3))) * 0.3 * short_;
+  float presence = clamp(body + stray, 0.0, 1.0);
+  float density = clamp((f - 0.44 + q.x * 0.1) * 2.1 * uDensity, 0.0, 1.0) * presence;
+
+  // Teal at the thin edges, violet through the body, rose and white at the core.
+  vec3 color = uVoid;
+  color = mix(color, uTeal * 0.3, smoothstep(0.01, 0.24, density));
+  color = mix(color, uGlow * 0.5, smoothstep(0.2, 0.46, density));
+  color = mix(color, uRose * 0.72, smoothstep(0.42, 0.72, density));
+  color = mix(color, uHot * 0.9, smoothstep(0.74, 1.0, density) * 0.7);
+  // Fine mottling, so large areas never read as a flat fill.
+  color *= 0.78 + 0.44 * fbm(vec3(p * 3.4 + q, t * 0.4));
+
+  // Dark dust lanes cut through the bright gas.
+  float lane = pow(1.0 - abs(snoise(vec3(p * 2.1 + q * 1.8, t * 0.5))), 7.0);
+  color *= 1.0 - lane * 0.85 * smoothstep(0.2, 0.55, density);
+
+  // "Light from behind" at the core, and a soft glow that follows the pointer.
+  float d = length(fromCore);
+  color += uGlow * uLight * exp(-d * 3.5) * (0.3 + density);
+  color += mix(uTeal, uRose, density) * exp(-dot(fromPointer, fromPointer) * 16.0) * (0.06 + density) * 0.3 * uHover;
+  color += uHot * ring * 0.035;
 
   gl_FragColor = vec4(color, 1.0);
 }
@@ -145,11 +175,15 @@ function createMaterial() {
       uParallax: { value: new Vector2() },
       uLight: { value: 0 },
       uLightPos: { value: new Vector2(0.7, 0.62) },
+      uPointer: { value: new Vector2(0.5, 0.5) },
+      uHover: { value: 0 },
+      uPulse: { value: 1 },
+      uPulsePos: { value: new Vector2(0.5, 0.5) },
       uVoid: { value: brandColor('void-deep') },
-      uDeep: { value: brandColor('nebula-deep') },
-      uHaze: { value: brandColor('nebula-haze') },
+      uTeal: { value: brandColor('nebula-teal') },
       uGlow: { value: brandColor('nebula-glow') },
-      uTint: { value: brandColor('nebula-tint') },
+      uRose: { value: brandColor('nebula-rose') },
+      uHot: { value: brandColor('starlight') },
     },
     vertexShader: FULLSCREEN_VERTEX,
     fragmentShader: FRAGMENT,
@@ -164,6 +198,7 @@ interface NebulaSettings {
   light: number
   lightPosition: readonly [number, number]
   parallax: boolean
+  field: PointerField | undefined
 }
 
 const pointerTarget = new Vector2()
@@ -188,6 +223,13 @@ function step(
     pointerTarget.set(state.pointer.x * 0.03, state.pointer.y * 0.03)
     uniforms.uParallax?.value.lerp(pointerTarget, Math.min(1, delta * 2))
   }
+  const { field } = settings
+  if (field) {
+    uniforms.uPointer?.value.set(field.x, field.y)
+    uniforms.uPulsePos?.value.set(field.pulseX, field.pulseY)
+    if (uniforms.uHover) uniforms.uHover.value = field.hover
+    if (uniforms.uPulse) uniforms.uPulse.value = field.pulse
+  }
 }
 
 export interface NebulaGasProps {
@@ -201,6 +243,8 @@ export interface NebulaGasProps {
   lightPosition?: readonly [number, number]
   /** Mouse parallax (desktop). Default true. */
   parallax?: boolean
+  /** Makes the gas react to hover and clicks. */
+  fieldRef?: RefObject<PointerField>
 }
 
 /**
@@ -214,6 +258,7 @@ export function NebulaGas({
   light = 0,
   lightPosition = DEFAULT_LIGHT_POSITION,
   parallax = true,
+  fieldRef,
 }: NebulaGasProps) {
   const [gas] = useState(createGas)
   useEffect(() => () => disposeGas(gas), [gas])
@@ -225,6 +270,7 @@ export function NebulaGas({
       light,
       lightPosition,
       parallax,
+      field: fieldRef?.current,
     })
   })
 

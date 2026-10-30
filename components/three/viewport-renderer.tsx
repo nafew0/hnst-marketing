@@ -280,6 +280,7 @@ async function capture(
 }
 
 interface ViewportRendererProps {
+  pinTrack?: Rect | undefined
   id: string
   rect: Rect
   camera: SceneCamera
@@ -311,6 +312,7 @@ export function ViewportRenderer({
   exposure,
   onFirstFrame,
   captureRef,
+  pinTrack,
   children,
 }: ViewportRendererProps) {
   const [viewport] = useState(() =>
@@ -337,18 +339,22 @@ export function ViewportRenderer({
     }
   }, [captureRef, viewport])
 
-  useWebGLRect(rect, (transform) => {
-    place(viewport, transform)
-    const mesh = meshRef.current
-    if (mesh) {
-      mesh.position.set(transform.position.x, transform.position.y, 0)
-      mesh.scale.set(transform.scale.x, transform.scale.y, 1)
-      mesh.visible = transform.isVisible
-      mesh.updateMatrix()
-    }
-    if (animate && transform.isVisible) lease.acquire()
-    else lease.release()
-  })
+  useWebGLRect(
+    rect,
+    (transform) => {
+      place(viewport, transform)
+      const mesh = meshRef.current
+      if (mesh) {
+        mesh.position.set(transform.position.x, transform.position.y, 0)
+        mesh.scale.set(transform.scale.x, transform.scale.y, 1)
+        mesh.visible = transform.isVisible
+        mesh.updateMatrix()
+      }
+      if (animate && transform.isVisible) lease.acquire()
+      else lease.release()
+    },
+    pinTrack
+  )
 
   useFrame((state) => {
     stateRef.current = state

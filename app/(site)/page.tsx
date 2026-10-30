@@ -1,12 +1,10 @@
 import { Wrapper } from '@/components/layout/wrapper'
-import { Hero } from '@/components/sections/signature/hero'
-import { Manifesto } from '@/components/sections/signature/manifesto'
+import { HomeSections } from '@/components/sections/signature/home-sections'
 
 export default function Home() {
   return (
     <Wrapper theme="dark" lenis={{}} safariEdges>
-      <Hero />
-      <Manifesto />
+      <HomeSections />
     </Wrapper>
   )
 }

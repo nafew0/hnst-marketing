@@ -8,7 +8,7 @@ import { Image } from '@/components/ui/image'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 
 import { useDeviceTier } from './device-tier'
-import { type FrameManifest, frameManifestSchema } from './frame-manifest'
+import type { FrameManifest } from './frame-manifest'
 import { decodeFrame, FrameStore } from './frame-store'
 import { useScrollProgress } from './use-scroll-progress'
 
@@ -16,6 +16,10 @@ import s from './scroll-sequence.module.css'
 
 /** Canvas resolution ceiling: frames are 1280w (desktop) / 720w (mobile). */
 const MAX_DPR = 1.5
+/** zod stays out of the first load: only a film near the screen needs it. */
+const loadManifestSchema = () =>
+  import('./frame-manifest').then((mod) => mod.frameManifestSchema)
+const BLEND_STEPS = 16
 
 interface Player {
   store: FrameStore
@@ -44,12 +48,26 @@ function drawCover(
 function render(player: Player, canvas: HTMLCanvasElement | null) {
   const context = canvas?.getContext('2d')
   if (!canvas || !context) return
-  const target = Math.round(player.progress * (player.store.length - 1))
-  player.store.seek(target)
+  const position = player.progress * (player.store.length - 1)
+  const target = Math.floor(position)
+  player.store.seek(Math.round(position))
   const frame = player.store.nearest(target)
-  if (!frame || frame.index === player.drawn) return
-  player.drawn = frame.index
+  if (!frame) return
+  // Quantized: a blend step too small to see isn't worth a redraw.
+  const blend = Math.round((position - target) * BLEND_STEPS) / BLEND_STEPS
+  const drawn = frame.index + blend
+  if (drawn === player.drawn) return
+  player.drawn = drawn
+  context.globalAlpha = 1
   drawCover(context, frame.bitmap, canvas.width, canvas.height)
+  // A dissolve into the next frame: soft material then reads as motion, so a
+  // short frame set scrubs smoothly over a long scroll.
+  const next = player.store.nearest(target + 1)
+  if (frame.index === target && blend > 0 && next?.index === target + 1) {
+    context.globalAlpha = blend
+    drawCover(context, next.bitmap, canvas.width, canvas.height)
+    context.globalAlpha = 1
+  }
 }
 
 interface ScrollSequenceProps {
@@ -63,6 +81,16 @@ interface ScrollSequenceProps {
   className?: string
   /** Captions over the film. */
   children?: ReactNode
+  /**
+   * How far from the screen the frames start to download. Lower it for a film
+   * right under the fold, or every visit pays for frames at load.
+   */
+  loadMargin?: string
+  /**
+   * Holds the poster back until `loadMargin` too. For a film close enough to
+   * the fold that a lazy image would still load with the page.
+   */
+  deferPoster?: boolean
 }
 
 /**
@@ -77,15 +105,17 @@ export function ScrollSequence({
   variant,
   className,
   children,
+  loadMargin = '100% 0px',
+  deferPoster = false,
 }: ScrollSequenceProps) {
   const { state } = useDeviceTier()
   const { isMobile, dpr = 1 } = useDeviceDetection()
   const live = state?.motionMedia === true
   const chosen = variant ?? (isMobile ? 'mobile' : 'desktop')
 
-  // Frames download once the film is within a viewport of the screen.
+  // Frames download once the film is close to the screen.
   const [setNearRef, near] = useIntersectionObserver({
-    rootMargin: '100% 0px',
+    rootMargin: loadMargin,
     once: true,
   })
   const loading = live && near?.isIntersecting === true
@@ -99,9 +129,10 @@ export function ScrollSequence({
     if (!loading) return
     let cancelled = false
     void fetch(manifestUrl)
-      .then(async (response) =>
-        frameManifestSchema.safeParse(await response.json())
-      )
+      .then(async (response) => {
+        const schema = await loadManifestSchema()
+        return schema.safeParse(await response.json())
+      })
       .then((parsed) => {
         if (!cancelled && parsed.success) setManifest(parsed.data)
       })
@@ -118,8 +149,11 @@ export function ScrollSequence({
     const player: Player = {
       store: new FrameStore(manifest[chosen], decodeFrame, (index) => {
         // A newly decoded frame closer to the playhead replaces the stand-in.
-        const target = Math.round(player.progress * (manifest.frames - 1))
-        if (Math.abs(index - target) < Math.abs(player.drawn - target)) {
+        const target = player.progress * (manifest.frames - 1)
+        if (
+          Math.abs(index - target) < 1 ||
+          Math.abs(index - target) < Math.abs(player.drawn - target)
+        ) {
           player.drawn = -1
           render(player, canvasRef.current)
         }
@@ -169,13 +203,15 @@ export function ScrollSequence({
       <div ref={setStageRef} className={s.stage}>
         {/* Image fill needs a relative/absolute parent; sticky doesn't count. */}
         <div className="absolute inset-0">
-          <Image
-            src={poster}
-            alt={alt}
-            fill
-            sizes="100vw"
-            className="object-cover"
-          />
+          {(!deferPoster || near?.isIntersecting === true) && (
+            <Image
+              src={poster}
+              alt={alt}
+              fill
+              sizes="100vw"
+              className="object-cover"
+            />
+          )}
         </div>
         {live && manifest && (
           <canvas

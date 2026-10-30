@@ -4,8 +4,19 @@ export { DuneTerrain } from './dune-terrain'
 export { Emblem3D } from './emblem-3d'
 export { goldMaterial, smokedGlassMaterial, tuneGold } from './gold-material'
 export { GoldGlintPlane } from './gold-glint-plane'
-export { GoldenPlatter, type PlatterState } from './golden-platter'
+export {
+  GoldenPlatter,
+  type PlatterLabelPoint,
+  type PlatterState,
+} from './golden-platter'
 export { NebulaGas } from './nebula-gas'
+export { PlanetRim } from './planet-rim'
+export {
+  createPointerField,
+  type PointerField,
+  pulseAt,
+  stepPointerField,
+} from './pointer-field'
 export { readTriangles } from './scene-stats'
 export { Starfield } from './starfield'
 export { StudioLights } from './studio-lights'

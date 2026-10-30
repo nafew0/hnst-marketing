@@ -1,6 +1,7 @@
 'use client'
 
 import type { TextSplitter } from 'animejs'
+import { useIntersectionObserver } from 'hamo'
 import { type RefObject, useEffect } from 'react'
 
 import { brand } from '@/brand.config'
@@ -22,6 +23,11 @@ interface UseSplitRevealOptions {
  * mask. The text is server-rendered and readable before anime.js arrives;
  * the split happens after load, so it never delays LCP.
  *
+ * `onScroll` starts it when the element enters the viewport. It is an observer
+ * and not anime's `onScroll`, whose initial state hides the text: a visitor
+ * jumping past the entry point (a link, a restored scroll, a pinned section)
+ * would be left with an invisible headline.
+ *
  * Reduced motion: no split, no movement; the text simply stays visible.
  * Static after mount: remount with a `key` to change the text.
  */
@@ -34,10 +40,17 @@ export function useSplitReveal(
   }: UseSplitRevealOptions = {}
 ) {
   const prefersReducedMotion = usePreferredReducedMotion()
+  const [setObserved, entry] = useIntersectionObserver({ once: true })
+  const inView = entry?.isIntersecting === true
+  const ready = !onScroll || inView
+
+  useEffect(() => {
+    if (onScroll) setObserved(ref.current)
+  }, [onScroll, ref, setObserved])
 
   useEffect(() => {
     const element = ref.current
-    if (!element || prefersReducedMotion) return
+    if (!element || prefersReducedMotion || !ready) return
 
     let split: TextSplitter | undefined
     let cancelled = false
@@ -56,9 +69,6 @@ export function useSplitReveal(
           duration: brand.motion.durSlow,
           ease: brand.motion.ease,
           delay: anime.stagger(stagger, { start: delay }),
-          autoplay: onScroll
-            ? anime.onScroll({ target: element, enter: 'bottom top' })
-            : true,
         })
       )
     })
@@ -67,5 +77,5 @@ export function useSplitReveal(
       cancelled = true
       split?.revert()
     }
-  }, [ref, prefersReducedMotion, delay, stagger, onScroll])
+  }, [ref, prefersReducedMotion, delay, stagger, ready])
 }
