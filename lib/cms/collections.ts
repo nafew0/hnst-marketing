@@ -11,8 +11,9 @@ import {
   legalPublished,
 } from '@/lib/cms/access'
 import { blocks } from '@/lib/cms/blocks'
+import { cmsEnvironment } from '@/lib/cms/environment'
+import { contentHooks, settingsHooks } from '@/lib/cms/revalidate'
 import { tierSchema } from '@/lib/contracts'
-import { env } from '@/lib/env'
 const slug: Field = {
   name: 'slug',
   type: 'text',
@@ -72,6 +73,7 @@ export const Packages: CollectionConfig = {
   admin: { useAsTitle: 'name' },
   access: contentAccess,
   versions: drafts,
+  hooks: contentHooks,
   fields: [
     {
       name: 'tier',
@@ -120,6 +122,7 @@ export const LegalDocs: CollectionConfig = {
   admin: { useAsTitle: 'title' },
   access: { ...contentAccess, read: legalPublished },
   versions: drafts,
+  hooks: contentHooks,
   fields: [
     { name: 'title', type: 'text', required: true },
     slug,
@@ -139,6 +142,7 @@ export const FAQs: CollectionConfig = {
   slug: 'faqs',
   access: contentAccess,
   versions: drafts,
+  hooks: contentHooks,
   admin: { useAsTitle: 'question' },
   fields: [
     { name: 'question', type: 'text', required: true },
@@ -156,6 +160,7 @@ export const Pages: CollectionConfig = {
   slug: 'pages',
   access: contentAccess,
   versions: drafts,
+  hooks: contentHooks,
   admin: { useAsTitle: 'title' },
   fields: [
     { name: 'title', type: 'text', required: true },
@@ -181,10 +186,7 @@ export const Media: CollectionConfig = {
     delete: isAdmin,
   },
   upload: {
-    staticDir:
-      env.NODE_ENV === 'production'
-        ? '/srv/media/uploads'
-        : path.resolve('media'),
+    staticDir: cmsEnvironment.MEDIA_DIR ?? path.resolve('media'),
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
     imageSizes: [{ name: 'thumbnail', width: 400 }],
   },
@@ -205,6 +207,7 @@ const links: Field[] = [
 ]
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
+  hooks: settingsHooks,
   access: { read: () => true, update: isEditor },
   fields: [
     { name: 'companyLegalName', type: 'text' },

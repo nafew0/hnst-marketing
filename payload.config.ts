@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import path from 'node:path'
 
 import { postgresAdapter } from '@payloadcms/db-postgres'
@@ -15,10 +16,9 @@ import {
   Users,
 } from '@/lib/cms/collections'
 import { APP_BASE_URL, env } from '@/lib/env'
-if (!env.PAYLOAD_SECRET || !env.DATABASE_URL)
-  throw new Error('CMS requires PAYLOAD_SECRET and DATABASE_URL')
 export default buildConfig({
-  secret: env.PAYLOAD_SECRET,
+  // Importable during unconfigured builds; requests are guarded separately.
+  secret: env.PAYLOAD_SECRET ?? randomBytes(32).toString('base64url'),
   serverURL: APP_BASE_URL,
   routes: { admin: '/admin', api: '/api/cms' },
   admin: {
@@ -30,7 +30,10 @@ export default buildConfig({
   editor: lexicalEditor(),
   sharp,
   db: postgresAdapter({
-    pool: { connectionString: env.DATABASE_URL },
+    pool: {
+      connectionString:
+        env.DATABASE_URL ?? 'postgres://127.0.0.1/cms-unconfigured',
+    },
     migrationDir: path.resolve('lib/cms/migrations'),
   }),
   typescript: {

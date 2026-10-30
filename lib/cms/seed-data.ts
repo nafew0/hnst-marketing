@@ -13,7 +13,7 @@ export const packageSeeds: RequiredDataFromCollectionSlug<'packages'>[] = [
     highlight: false,
     ctaLabel: 'Explore Basic DIY',
     ctaType: 'contact',
-    _status: 'published',
+    _status: 'draft',
     deliverables: [
       {
         title: 'HonestU course',
@@ -40,7 +40,7 @@ export const packageSeeds: RequiredDataFromCollectionSlug<'packages'>[] = [
     highlight: false,
     ctaLabel: 'Explore Executive',
     ctaType: 'contact',
-    _status: 'published',
+    _status: 'draft',
     deliverables: [
       {
         title: 'Brand Bible & Research Lab',
@@ -70,7 +70,7 @@ export const packageSeeds: RequiredDataFromCollectionSlug<'packages'>[] = [
     highlight: true,
     ctaLabel: 'Explore the Founder Package',
     ctaType: 'contact',
-    _status: 'published',
+    _status: 'draft',
     deliverables: [
       {
         title: 'Your complete foundation',
@@ -104,7 +104,7 @@ export const packageSeeds: RequiredDataFromCollectionSlug<'packages'>[] = [
     highlight: false,
     ctaLabel: 'Explore Diamond',
     ctaType: 'contact',
-    _status: 'published',
+    _status: 'draft',
     deliverables: [
       {
         title: 'In-person collaboration',

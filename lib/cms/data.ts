@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache'
 import { draftMode, headers } from 'next/headers'
 import { getPayload } from 'payload'
 import { cache } from 'react'
@@ -76,12 +77,16 @@ export const getLegal = cache(async (slug: string) => {
   })
   return result.docs[0] ?? null
 })
-export const getSettings = cache(async () => {
-  const cms = await getCms()
-  return cms
-    ? cms.findGlobal({ slug: 'site-settings', overrideAccess: false })
-    : null
-})
+export const getSettings = unstable_cache(
+  async () => {
+    const cms = await getCms()
+    return cms
+      ? cms.findGlobal({ slug: 'site-settings', overrideAccess: false })
+      : null
+  },
+  ['honest-settings'],
+  { tags: ['honest-cms'], revalidate: 3600 }
+)
 export const getFaqs = cache(async () => {
   const ctx = await readContext()
   if (!ctx) return []

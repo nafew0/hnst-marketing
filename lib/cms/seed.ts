@@ -13,6 +13,7 @@ export async function seed() {
     })
     if (!existing.totalDocs)
       await cms.create({
+        context: { skipRevalidation: true },
         collection: 'legal-docs',
         data: {
           slug,
@@ -32,7 +33,12 @@ export async function seed() {
       where: { tier: { equals: data.tier } },
       limit: 1,
     })
-    if (!existing.totalDocs) await cms.create({ collection: 'packages', data })
+    if (!existing.totalDocs)
+      await cms.create({
+        context: { skipRevalidation: true },
+        collection: 'packages',
+        data,
+      })
   }
   const questions = [
     'How does the process begin?',
@@ -54,6 +60,7 @@ export async function seed() {
     })
     if (!existing.totalDocs)
       await cms.create({
+        context: { skipRevalidation: true },
         collection: 'faqs',
         data: {
           question,
@@ -124,6 +131,7 @@ export async function seed() {
     })
     if (!existing.totalDocs)
       await cms.create({
+        context: { skipRevalidation: true },
         collection: 'pages',
         data: {
           title: page.title,
@@ -137,6 +145,7 @@ export async function seed() {
   const settings = await cms.findGlobal({ slug: 'site-settings' })
   if (!settings.consentTexts?.email)
     await cms.updateGlobal({
+      context: { skipRevalidation: true },
       slug: 'site-settings',
       data: {
         companyLegalName: 'Honest Media Group LLC DBA Honest Marketing',

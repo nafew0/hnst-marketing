@@ -9,7 +9,6 @@ import { DeviceTierProvider } from '@/components/motion/device-tier'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
-import { getSettings } from '@/lib/cms/data'
 import { ApiMocks } from '@/lib/contracts/mocks/api-mocks'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
@@ -22,9 +21,6 @@ import { themes } from '@/lib/styles/colors'
 import '@/lib/styles/css/index.css'
 
 import { fontsVariable } from '@/lib/styles/fonts'
-
-// Editorial updates and consent settings must take effect without a rebuild.
-export const dynamic = 'force-dynamic'
 
 const APP_NAME = SITE.name
 const APP_DEFAULT_TITLE = SITE.name
@@ -85,19 +81,18 @@ if (env.NEXT_PUBLIC_FACEBOOK_APP_ID) {
 }
 
 export const viewport: Viewport = {
-  // Matches the server-rendered `data-theme="dark"` in app/layout.tsx; <Theme>
+  // Matches the server-rendered `data-theme="dark"` in this site layout; <Theme>
   // rewrites it per route.
   themeColor: themes.dark.primary,
   colorScheme: 'normal',
 }
 
 /**
- * App-wide providers, metadata and analytics for every route except /studio,
- * which sits outside this group so Studio doesn't pull in the rAF loop,
+ * App-wide providers, metadata and analytics for every route except /admin,
+ * which sits outside this group so Payload doesn't pull in the rAF loop,
  * toasts, Visual Editing or JSON-LD.
  */
 export default async function AppLayout({ children }: PropsWithChildren) {
-  const settings = await getSettings()
   const { isEnabled: isDraftMode } = await draftMode()
   return (
     <html
@@ -134,7 +129,7 @@ export default async function AppLayout({ children }: PropsWithChildren) {
         </RealViewport>
         <OptionalFeatures />
         <ApiMocks />
-        <PrivacyControls trackingId={settings?.ghlTrackingId ?? ''} />
+        <PrivacyControls />
 
         {/* Not patched in draft mode, to avoid conflicts. */}
         <ReactTempus patch={!isDraftMode} />

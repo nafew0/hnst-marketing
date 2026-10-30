@@ -7,10 +7,15 @@ import {
   REST_PUT,
 } from '@payloadcms/next/routes'
 
+import { env } from '@/lib/env'
 import config from '@/payload.config'
-export const GET = REST_GET(config)
-export const POST = REST_POST(config)
-export const DELETE = REST_DELETE(config)
-export const PATCH = REST_PATCH(config)
-export const PUT = REST_PUT(config)
-export const OPTIONS = REST_OPTIONS(config)
+function unavailable() {
+  return Response.json({ error: 'CMS unavailable' }, { status: 503 })
+}
+const configured = Boolean(env.PAYLOAD_SECRET && env.DATABASE_URL)
+export const GET = configured ? REST_GET(config) : unavailable
+export const POST = configured ? REST_POST(config) : unavailable
+export const DELETE = configured ? REST_DELETE(config) : unavailable
+export const PATCH = configured ? REST_PATCH(config) : unavailable
+export const PUT = configured ? REST_PUT(config) : unavailable
+export const OPTIONS = configured ? REST_OPTIONS(config) : unavailable
