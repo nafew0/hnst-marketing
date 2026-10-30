@@ -76,13 +76,8 @@
   margin: -35vmax 0 0 -35vmax;
   border: 1px solid var(--color-gold);
   border-radius: 50%;
-  box-shadow:
-    0 0 40px color-mix(in oklab, var(--color-gold) 50%, transparent),
-    inset 0 0 40px
-      color-mix(in oklab, var(--color-nebula-teal) 40%, transparent);
   opacity: 0;
   pointer-events: none;
-  will-change: transform, opacity;
 }
 
 /* The logo: original artwork, 3D by CSS. The filter stack extrudes it in the
@@ -137,13 +132,9 @@
 }
 
 .emblemLogo {
-  filter: drop-shadow(0.5px 0.5px 0 var(--color-gold-metal-2))
-    drop-shadow(0.75px 0.75px 0 var(--color-gold-metal-1))
-    drop-shadow(0.75px 0.75px 0 var(--color-gold-metal-1))
-    drop-shadow(1px 1.5px 0 var(--color-gold-metal-1))
-    drop-shadow(
-      0 8px 18px color-mix(in oklab, var(--color-void-deep) 80%, transparent)
-    );
+  filter: drop-shadow(0.75px 0.75px 0 var(--color-gold-metal-2))
+    drop-shadow(1px 1px 0 var(--color-gold-metal-1))
+    drop-shadow(1px 1.5px 0 var(--color-gold-metal-1));
 }
 
 /* The same artwork, brightened and seen through a moving slit: light crossing
@@ -273,7 +264,6 @@
 @keyframes emblem-in {
   from {
     opacity: 0.01;
-    filter: blur(6px);
   }
 }
 
