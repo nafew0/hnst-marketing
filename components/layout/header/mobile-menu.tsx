@@ -1,0 +1,76 @@
+'use client'
+
+import { Dialog } from '@base-ui/react/dialog'
+import cn from 'clsx'
+import { useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Link } from '@/components/ui/link'
+import { Logo } from '@/components/ui/logo'
+import { bookCall, primaryNav } from '@/lib/navigation'
+
+import s from './header.module.css'
+
+export interface MobileMenuProps {
+  pathname: string
+  defaultOpen: boolean
+}
+
+/**
+ * Full-screen drawer on Base UI Dialog: focus trap, Escape, scroll lock, focus
+ * returns to the toggle. Its links close it as they navigate.
+ */
+export function MobileMenu({ pathname, defaultOpen }: MobileMenuProps) {
+  const [menuOpen, setMenuOpen] = useState(defaultOpen)
+  const closeMenu = () => setMenuOpen(false)
+
+  return (
+    <Dialog.Root open={menuOpen} onOpenChange={setMenuOpen}>
+      <Dialog.Trigger
+        aria-label="Open menu"
+        className={cn(s.menuToggle, 'mobile-only link uppercase')}
+      >
+        Menu
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Backdrop className={s.backdrop} />
+        <Dialog.Popup className={s.drawer} data-theme="dark">
+          <div className={s.drawerTop}>
+            <Dialog.Title className="sr-only">Menu</Dialog.Title>
+            <Logo title="HONEST Marketing" className={s.logo} />
+            <Dialog.Close
+              aria-label="Close menu"
+              className={cn(s.menuToggle, 'link uppercase')}
+            >
+              Close
+            </Dialog.Close>
+          </div>
+          <nav aria-label="Primary">
+            <ul className={s.drawerList}>
+              {primaryNav.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={pathname === item.href ? 'page' : undefined}
+                    className={cn(s.drawerLink, 'h2')}
+                    onClick={closeMenu}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <Button
+            href={bookCall.href}
+            size="lg"
+            className="w-full"
+            onClick={closeMenu}
+          >
+            {bookCall.label}
+          </Button>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}

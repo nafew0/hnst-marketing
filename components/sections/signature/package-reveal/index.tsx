@@ -12,7 +12,6 @@ import type { PackageFacts } from '@/components/sections/signature/copy'
 import { useLazyWorld } from '@/components/three/use-lazy-world'
 import { Button } from '@/components/ui/button'
 import type { OffersResponse } from '@/lib/contracts'
-import { api } from '@/lib/contracts/client'
 
 import { withOffers } from './offers'
 import { type GlintWorldProps, PackageCard } from './package-card'
@@ -20,6 +19,10 @@ import { type GlintWorldProps, PackageCard } from './package-card'
 import s from './package-reveal.module.css'
 
 export type { PackageFacts as PackageRevealItem } from '@/components/sections/signature/copy'
+
+// With zod and the contract schemas, the API client is the largest thing this
+// section could put in the first load, and it's only needed near the section.
+const loadApi = () => import('@/lib/contracts/client').then((mod) => mod.api)
 
 const loadGlint = () => import('./glint-world').then((mod) => mod.GlintWorld)
 
@@ -67,11 +70,13 @@ export function PackageReveal({
   useEffect(() => {
     if (!shouldFetch) return
     let cancelled = false
-    void api.getOffers().then((result) => {
-      if (cancelled) return
-      if (result.ok) setOffers(result.data)
-      setSettled(true)
-    })
+    void loadApi()
+      .then((api) => api.getOffers())
+      .then((result) => {
+        if (cancelled) return
+        if (result.ok) setOffers(result.data)
+        setSettled(true)
+      })
     return () => {
       cancelled = true
     }

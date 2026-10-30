@@ -12,6 +12,9 @@ import s from './scroll-film.module.css'
 
 const MANIFEST_URL = '/posters/film/manifest.json'
 
+/** Starts once the visitor is on the way out of the hero, not on every load. */
+const LOAD_MARGIN = '40% 0px'
+
 /** The last stretch dissolves into S3's dunes, pinned right behind the film. */
 const DISSOLVE_START = 0.93
 
@@ -73,6 +76,8 @@ export function FilmTrack({ chapters }: { chapters: readonly Chapter[] }) {
           manifestUrl={MANIFEST_URL}
           poster={first?.still ?? ''}
           alt=""
+          loadMargin={LOAD_MARGIN}
+          deferPoster
           className={cn(s.filmTrack)}
         >
           <div ref={captionsRef} className={cn(s.captions, 'dr-layout-block')}>

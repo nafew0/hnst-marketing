@@ -17,15 +17,24 @@ const loadHeroWorld = () => import('./hero-world').then((mod) => mod.HeroWorld)
 /** The fade to S2 starts this far through the hero's exit. */
 const FADE_START = 0.3
 
-/** Tier 0–1 picture: the scene's own still, art-directed for each layout. */
+/**
+ * Tier 0–1 picture: the scene's own still, art-directed for each layout. Served
+ * as rendered: at this size the optimizer's output is larger than the file.
+ */
 function HeroPoster() {
   return (
     <div className={s.sky}>
       <div className="absolute inset-0 desktop-only">
-        <Image src="/posters/hero.webp" alt="" fill sizes="100vw" />
+        <Image src="/posters/hero.webp" alt="" fill sizes="100vw" unoptimized />
       </div>
       <div className="absolute inset-0 mobile-only">
-        <Image src="/posters/hero-mobile.webp" alt="" fill sizes="100vw" />
+        <Image
+          src="/posters/hero-mobile.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          unoptimized
+        />
       </div>
     </div>
   )
