@@ -1,0 +1,38 @@
+/* Scope overrides to the widget so its unlayered defaults cannot win. */
+#cc-main {
+  --cc-font-family: var(--next-font-body);
+  --cc-bg: var(--color-void);
+  --cc-primary-color: var(--color-starlight);
+  --cc-secondary-color: var(--color-silver);
+  --cc-btn-primary-bg: var(--color-gold);
+  --cc-btn-primary-color: var(--color-void);
+  --cc-btn-primary-border-color: var(--color-gold);
+  --cc-btn-primary-hover-bg: var(--color-starlight);
+  --cc-btn-primary-hover-color: var(--color-void);
+  --cc-btn-primary-hover-border-color: var(--color-starlight);
+  --cc-btn-secondary-bg: var(--color-void-2);
+  --cc-btn-secondary-color: var(--color-starlight);
+  --cc-btn-secondary-border-color: var(--color-silver);
+  --cc-btn-secondary-hover-bg: var(--color-nebula-deep);
+  --cc-btn-secondary-hover-color: var(--color-starlight);
+  --cc-btn-secondary-hover-border-color: var(--color-gold);
+  --cc-link-color: var(--color-gold);
+  --cc-separator-border-color: var(--color-silver);
+  --cc-toggle-on-bg: var(--color-gold);
+  --cc-toggle-on-knob-bg: var(--color-void);
+  --cc-toggle-off-bg: var(--color-silver);
+  --cc-toggle-off-knob-bg: var(--color-void);
+  --cc-toggle-readonly-bg: var(--color-silver);
+  --cc-toggle-readonly-knob-bg: var(--color-void);
+  --cc-toggle-readonly-knob-icon-color: var(--color-starlight);
+  --cc-cookie-category-block-bg: var(--color-void-2);
+  --cc-cookie-category-block-border: var(--color-silver);
+  --cc-cookie-category-block-hover-bg: var(--color-nebula-deep);
+  --cc-cookie-category-block-hover-border: var(--color-gold);
+  --cc-cookie-category-expanded-block-hover-bg: var(--color-void-2);
+  --cc-footer-bg: var(--color-void-2);
+  --cc-footer-color: var(--color-silver);
+  --cc-footer-border-color: var(--color-silver);
+  --cc-modal-border-radius: 16px;
+  --cc-btn-border-radius: 8px;
+}

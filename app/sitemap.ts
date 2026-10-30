@@ -8,8 +8,10 @@ import { BASE_URL } from '@/lib/seo/site'
  * `/llms.txt` and `/ai` so they can't drift. The design doesn't link `/ai`, so
  * crawlers only discover it here.
  *
- * CMS routes (`getCmsRoutes`) are appended when Sanity is configured.
+ * Published Payload routes are appended when the CMS is configured.
  */
+export const revalidate = 300
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cmsRoutes = await getCmsRoutes()
 

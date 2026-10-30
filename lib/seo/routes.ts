@@ -36,19 +36,74 @@ export interface CmsRoutesResult {
 }
 
 /**
- * No CMS is wired, so there are no CMS routes and no outage to report —
- * callers degrade to `STATIC_ROUTES` only.
+ * Enumerate published Payload routes. An unavailable CMS returns a degraded
+ * result so callers can distinguish an outage from an empty collection.
  */
 async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
-  return { routes: [], degraded: false }
+  const { getCms } = await import('@/lib/cms/data')
+  try {
+    const cms = await getCms()
+    if (!cms) return { routes: [], degraded: false }
+    const [packages, legal, pages] = await Promise.all([
+      cms.find({
+        collection: 'packages',
+        where: { _status: { equals: 'published' } },
+        overrideAccess: false,
+        limit: 4,
+      }),
+      cms.find({
+        collection: 'legal-docs',
+        where: {
+          and: [
+            { _status: { equals: 'published' } },
+            { status: { equals: 'published' } },
+          ],
+        },
+        overrideAccess: false,
+        limit: 100,
+      }),
+      cms.find({
+        collection: 'pages',
+        where: {
+          and: [
+            { _status: { equals: 'published' } },
+            { slug: { in: ['packages', 'contact', 'link-in-bio'] } },
+          ],
+        },
+        overrideAccess: false,
+        limit: 10,
+      }),
+    ])
+    return {
+      routes: [
+        ...packages.docs.map((p) => ({
+          path: `/packages/${p.tier}`,
+          label: p.name,
+          lastModified: new Date(p.updatedAt),
+        })),
+        ...legal.docs.map((p) => ({
+          path: `/legal/${p.slug}`,
+          label: p.title,
+          lastModified: new Date(p.updatedAt),
+        })),
+        ...pages.docs.map((p) => ({
+          path: `/${p.slug}`,
+          label: p.title,
+          lastModified: new Date(p.updatedAt),
+        })),
+      ],
+      degraded: false,
+    }
+  } catch {
+    return { routes: [], degraded: true }
+  }
 }
 
 /** Routes for sitemap.xml, llms.txt and `/ai`: none without a CMS. */
 export async function getCmsRoutes(
   load: () => Promise<CmsRoutesResult> = fetchCmsRoutesResult
 ): Promise<ContentRoute[]> {
-  void load
-  return []
+  return (await load()).routes
 }
 
 /** Accessor for the Markdown handler; never degraded without a CMS. */

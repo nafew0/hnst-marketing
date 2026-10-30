@@ -27,6 +27,7 @@ import {
  * reflect exactly what the kept code loads, so no "just in case" origins.
  */
 export type CspDirective =
+  | 'worker-src'
   | 'script-src'
   | 'style-src'
   | 'img-src'
