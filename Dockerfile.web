@@ -1,0 +1,26 @@
+# Build with Bun, run the Next.js standalone server on Node as a non-root user.
+FROM oven/bun:1.4.4 AS deps
+WORKDIR /app
+COPY package.json bun.lock bunfig.toml ./
+# --ignore-scripts: `prepare` needs lib/scripts and git, neither present yet.
+RUN bun install --frozen-lockfile --ignore-scripts
+
+FROM oven/bun:1.4.4 AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN bun run build
+
+FROM node:24-alpine AS run
+WORKDIR /app
+ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+RUN addgroup -S app && adduser -S app -G app
+COPY --from=build --chown=app:app /app/.next/standalone ./
+COPY --from=build --chown=app:app /app/.next/static ./.next/static
+COPY --from=build --chown=app:app /app/public ./public
+USER app
+EXPOSE 3000
+CMD ["node", "server.js"]

@@ -1,0 +1,20 @@
+# SITE_ADDRESS (for example staging.hnst.marketing) gets automatic HTTPS and
+# Caddy's HTTP->HTTPS redirect. Plain HTTP is served only to 127.0.0.1, for
+# deploy.sh's health check: a catch-all :80 block would serve the public site
+# over HTTP instead of redirecting.
+(site) {
+	handle_path /media/* {
+		root * /srv/media
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+	reverse_proxy web:3000
+}
+
+http://127.0.0.1 {
+	import site
+}
+
+{$SITE_ADDRESS:localhost} {
+	import site
+}
