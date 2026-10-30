@@ -1,90 +1,219 @@
 name: CI
 permissions:
   contents: read
+
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
   pull_request:
-    branches: [main, dev]
+    branches: [main]
+  # sanity-client-v8.yml opens its PR with GITHUB_TOKEN, which fires no
+  # pull_request run, so it dispatches CI on the PR branch instead.
   workflow_dispatch:
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: hnst
-          POSTGRES_PASSWORD: hnst
-          POSTGRES_DB: hnst
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U hnst"
-          --health-interval 5s --health-timeout 5s --health-retries 10
-    env:
-      DATABASE_URL: postgres://hnst:hnst@127.0.0.1:5432/hnst
-      NEXT_PUBLIC_BASE_URL: http://localhost:3003
-      P3_BASE_URL: http://localhost:3003
-      ERROR_REPORT_TOKEN: leakcheck-ERROR_REPORT_TOKEN
-      SANITY_API_READ_TOKEN: leakcheck-SANITY_API_READ_TOKEN
-      SANITY_REVALIDATE_SECRET: leakcheck-SANITY_REVALIDATE_SECRET
-      SHOPIFY_STOREFRONT_ACCESS_TOKEN: leakcheck-SHOPIFY_STOREFRONT_ACCESS_TOKEN
-      SHOPIFY_REVALIDATE_SECRET: leakcheck-SHOPIFY_REVALIDATE_SECRET
-      HUBSPOT_ACCESS_TOKEN: leakcheck-HUBSPOT_ACCESS_TOKEN
-      MAILCHIMP_API_KEY: leakcheck-MAILCHIMP_API_KEY
-      CLOUDFLARE_TURNSTILE_SECRET_KEY: leakcheck-CLOUDFLARE_TURNSTILE_SECRET_KEY
-      GHL_PIT: leakcheck-GHL_PIT
-      GHL_WORKFLOW_SECRET: leakcheck-GHL_WORKFLOW_SECRET
-      PAYLOAD_SECRET: leakcheck-PAYLOAD_SECRET-padding-to-32-characters
-      ALTCHA_HMAC_KEY: leakcheck-ALTCHA_HMAC_KEY-padding-to-32-characters
+    timeout-minutes: 20
+
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # CI holds no dotenvx key, so it builds without the encrypted env files,
+      # with every integration off. Keeping the key out of Actions keeps it
+      # away from dependency code in Dependabot and fork PRs. Cost: CI never
+      # builds with real config; the Vercel preview build is that check.
+      # lib/env-files.test.ts reads the committed files from git, so it still
+      # runs on them.
+      - name: Drop encrypted env files
+        run: rm -f .env .env.development .env.production
+
+      # test:oxlint-plugin (run via `bun run check`) invokes `node` directly on
+      # each ruletest file, so the runner's node must meet the engines floor
+      # (>=24.20.0, the current LTS; native type-stripping of .ts files is unflagged).
+      - name: Build and check
+        uses: darkroomengineering/.github/actions/bun-web-ci@a75b42e03f56b5ca5b2808ac4f1b06c81998fbc6
+        env:
+          PRERENDER_MANIFEST_REQUIRED: '1'
         with:
-          node-version-file: .nvmrc
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+          node-version-file: .node-version
+          oxlint-annotations: 'true'
+
+      # Every package resolves to as few versions as its ranges allow. A
+      # Dependabot PR that leaves a duplicate fails here; run `bun dedupe` on
+      # its branch and push. Cost: those PRs no longer auto-merge on their own.
+      - name: bun dedupe --check
+        run: bun dedupe --check
+
+      # Advisory — a starter intentionally exports things nothing imports (see
+      # doctor.config.ts's deadCode note), so findings here are signal for
+      # humans to review, not a merge gate.
+      - name: deslop (advisory)
+        continue-on-error: true
+        run: bun run deslop
+
+      # A moderate or higher advisory fails CI. Fix it by updating within the
+      # declared ranges or with a scoped `overrides` entry in package.json (see
+      # the Security entries in CHANGELOG.md). Low advisories are counted but
+      # not listed here, since some have no fixed release; plain `bun audit`
+      # lists them.
+      - name: bun audit
+        # Two Payload transitive advisories have no compatible fix yet:
+        # - GHSA-x8rm-f576-gq67 graphql-scalars PhoneNumber ReDoS: Payload's
+        #   GraphQL schema has no PhoneNumber scalar. Fix is 2.x, a major Payload
+        #   does not support.
+        # - GHSA-67mh-4wv8-2f99 esbuild <=0.24 dev-server CORS: only drizzle-kit's
+        #   migration CLI uses this esbuild; it never runs a dev server.
+        # Re-check both on every Payload upgrade and drop the ignore once fixed.
+        run: bun audit --audit-level=moderate --ignore=GHSA-x8rm-f576-gq67 --ignore=GHSA-67mh-4wv8-2f99
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history so the gate below can diff against the PR base branch.
+          fetch-depth: 0
+
+      # CI holds no dotenvx key, so it builds without the encrypted env files,
+      # with every integration off. Keeping the key out of Actions keeps it
+      # away from dependency code in Dependabot and fork PRs. Cost: CI never
+      # builds with real config; the Vercel preview build is that check.
+      # lib/env-files.test.ts reads the committed files from git, so it still
+      # runs on them.
+      - name: Drop encrypted env files
+        run: rm -f .env .env.development .env.production
+
+      # `e2e` is a REQUIRED branch-protection check, so this job must always
+      # report a conclusion — it may skip its expensive body, it must never be
+      # skipped at trigger level. This is why the gate lives HERE, as a step,
+      # rather than as a `paths:`/`paths-ignore:` filter on the workflow
+      # trigger: a trigger-level filter would leave the required `e2e` check
+      # stuck as "expected" forever on any PR that doesn't touch a matched
+      # path, permanently blocking merge.
+      #
+      # Semantics: a conservative SKIP-list, not a run-list — defaults to run.
+      #   - `push` (main): always run. Post-merge safety beats savings.
+      #   - `pull_request`: diff against the merge-base; run unless EVERY
+      #     changed file is one that cannot affect a rendered page. A change
+      #     to this workflow file itself always forces a run, so the gate
+      #     proves itself on the PR that edits it.
+      - name: Decide whether UI could have changed
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Fetch the base explicitly instead of trusting the checkout to have
+          # created origin/<base> — a fork that trims fetch-depth for checkout
+          # speed would otherwise hit "unknown revision" here, and under the
+          # runner's bash -e that turns a docs-only PR's required check red.
+          # Any failure in the pipeline fails OPEN: e2e runs.
+          if ! git fetch --quiet origin -- "${{ github.base_ref }}"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! changed_files=$(git diff --name-only "FETCH_HEAD...HEAD"); then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -z "$changed_files" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          run=false
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            case "$file" in
+              .github/workflows/ci.yml)
+                run=true
+                ;;
+              *.md | docs/* | plans/* | .claude/* | .cursor/* | .vscode/* | .github/* | LICENSE | .editorconfig | .gitattributes | .gitignore | lefthook.yml | SECURITY.md)
+                # Safe — cannot affect a rendered page.
+                ;;
+              *)
+                run=true
+                ;;
+            esac
+          done <<<"$changed_files"
+
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        if: steps.gate.outputs.run == 'true'
         with:
           bun-version-file: package.json
-      - name: Prepare isolated CI environment
-        run: |
-          rm -f .env .env.development .env.production
-      - run: bun install --frozen-lockfile
-      - name: Seed disposable CMS
-        run: |
-          bun run seed
-          bun e2e/p3-setup.ts
-      - name: Quality gate
-        run: bun run check
-      - name: Production build (mocks disabled)
-        run: bun run build
-      - name: Verify server secrets stay out of browser output
-        run: bunx playwright test --config e2e/p3.config.ts --project chromium --grep 'server secrets'
-      - name: Install browsers
-        run: bunx playwright install --with-deps chromium webkit
-      - name: Production Lighthouse budgets
-        run: |
-          bunx next start --port 3003 > /tmp/hnst-production.log 2>&1 &
-          PROD_PID=$!
-          trap 'kill "$PROD_PID"' EXIT
-          for attempt in $(seq 1 60); do curl -sf http://localhost:3003/packages > /dev/null && break; sleep 2; done
-          bunx lhci autorun --config=e2e/p3-lighthouse.cjs
-      - name: Browser checks against mock API
-        run: |
-          NEXT_PUBLIC_API_MOCKS=1 bunx next dev --port 3003 > /tmp/hnst-browser.log 2>&1 &
-          DEV_PID=$!
-          trap 'kill "$DEV_PID"' EXIT
-          for attempt in $(seq 1 60); do curl -sf http://localhost:3003/packages > /dev/null && break; sleep 2; done
-          bunx playwright test --config e2e/p3.config.ts --project chromium --project webkit
-      - name: Upload diagnostics
-        if: failure()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          name: p3-diagnostics
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      # This job runs its own `next build` (playwright.config.ts webServer in
+      # CI), so it needs the same .next/cache step as the ci job — that path
+      # includes Turbopack's persistent build cache (.next/cache/turbopack).
+      - name: Cache Next.js build
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
+
+      - name: Install Playwright browsers
+        if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        run: bunx playwright install --with-deps chromium
+
+      # playwright.config.ts boots the prod server itself in CI (webServer),
+      # so no separate server step is needed here.
+      - name: Run e2e tests
+        if: steps.gate.outputs.run == 'true'
+        run: bun run test:e2e
+        # e2e/secrets-in-bundle.e2e.ts fails if a server secret in lib/env.ts is missing here.
+        env:
+          ERROR_REPORT_TOKEN: leakcheck-ERROR_REPORT_TOKEN
+          SANITY_API_READ_TOKEN: leakcheck-SANITY_API_READ_TOKEN
+          SANITY_REVALIDATE_SECRET: leakcheck-SANITY_REVALIDATE_SECRET
+          SHOPIFY_STOREFRONT_ACCESS_TOKEN: leakcheck-SHOPIFY_STOREFRONT_ACCESS_TOKEN
+          SHOPIFY_REVALIDATION_SECRET: leakcheck-SHOPIFY_REVALIDATION_SECRET
+          HUBSPOT_ACCESS_TOKEN: leakcheck-HUBSPOT_ACCESS_TOKEN
+          MAILCHIMP_API_KEY: leakcheck-MAILCHIMP_API_KEY
+          CLOUDFLARE_TURNSTILE_SECRET_KEY: leakcheck-CLOUDFLARE_TURNSTILE_SECRET_KEY
+          # HONEST. Padded where lib/env.ts sets a minimum length.
+          GHL_PIT: leakcheck-GHL_PIT
+          GHL_WORKFLOW_SECRET: leakcheck-GHL_WORKFLOW_SECRET
+          PAYLOAD_SECRET: leakcheck-PAYLOAD_SECRET-padding-to-32
+          ALTCHA_HMAC_KEY: leakcheck-ALTCHA_HMAC_KEY-padding-to-32
+
+      - name: Upload Playwright report
+        if: failure() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
           path: |
+            playwright-report/
             test-results/
-            .lighthouseci/
           retention-days: 7
+
+      - name: Report gate result
+        if: steps.gate.outputs.run != 'true'
+        run: echo 'e2e skipped, no UI-affecting changes'

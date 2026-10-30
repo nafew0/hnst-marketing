@@ -27,7 +27,8 @@ pre-commit:
 
 commit-msg:
   commands:
-    # {1} is the path git passes to the hook: the message file.
+    # {1} is the path git passes to the hook: the message file. Quoted: in a
+    # worktree it is absolute, and this checkout's path contains a space.
     conventional:
       run: bun lib/scripts/check-commit-msg.ts "{1}"
 
