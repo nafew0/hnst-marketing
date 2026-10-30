@@ -5,6 +5,8 @@ export default defineConfig({
   workers: 1,
   timeout: 60000,
   use: {
+    userAgent:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
     baseURL: process.env.P3_BASE_URL ?? 'http://localhost:3003',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',

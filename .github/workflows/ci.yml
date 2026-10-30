@@ -217,3 +217,66 @@ jobs:
       - name: Report gate result
         if: steps.gate.outputs.run != 'true'
         run: echo 'e2e skipped, no UI-affecting changes'
+
+  p3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: hnst
+          POSTGRES_PASSWORD: hnst
+          POSTGRES_DB: hnst_p3_review
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U hnst"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://hnst:hnst@127.0.0.1:5432/hnst_p3_review
+      NEXT_PUBLIC_BASE_URL: http://localhost:3003
+      P3_BASE_URL: http://localhost:3003
+      PAYLOAD_SECRET: disposable-ci-payload-secret-at-least-32-characters
+      ALTCHA_HMAC_KEY: disposable-ci-altcha-key-at-least-32-characters
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version-file: package.json
+      - name: Prepare disposable CMS and integration schemas
+        run: |
+          rm -f .env .env.development .env.production
+          bun install --frozen-lockfile
+          bunx payload migrate
+          bun scripts/migrate.ts
+          NODE_ENV=production bun run seed
+          NODE_ENV=production bun e2e/p3-setup.ts
+      - run: bunx playwright install --with-deps chromium webkit
+      - name: Production build, real API and CMS checks (no GHL worker)
+        run: |
+          bun run build
+          bunx next start --port 3003 > /tmp/p3-production.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          for attempt in $(seq 1 60); do curl -sf http://localhost:3003/packages > /dev/null && break; sleep 2; done
+          P3_REAL_API=1 bunx playwright test --config e2e/p3.config.ts --project chromium --grep 'real ALTCHA|editor updates|admin manages'
+          bunx @lhci/cli@0.15.1 autorun --config=e2e/p3-lighthouse.cjs
+      - name: Mock forms, accessibility and consent in Chromium, WebKit and mobile
+        run: |
+          NEXT_PUBLIC_API_MOCKS=1 bunx next dev --port 3003 > /tmp/p3-mocks.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          for attempt in $(seq 1 60); do curl -sf http://localhost:3003/packages > /dev/null && break; sleep 2; done
+          P3_MOCKS_TESTS=1 bunx playwright test --config e2e/p3.config.ts --project chromium --project webkit --project mobile
+      - name: Upload P3 diagnostics
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: p3-diagnostics
+          path: |
+            test-results/
+            .lighthouseci/
+          retention-days: 7
