@@ -72,6 +72,9 @@ function fakeGhl(failNotes: number) {
     async listProducts() {
       return []
     },
+    async applyIntent() {
+      return 'missing'
+    },
   }
   return { calls, seen, client }
 }

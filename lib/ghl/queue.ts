@@ -4,6 +4,12 @@ import { z } from 'zod'
 import { env } from '@/lib/env'
 
 import {
+  BOOKING_DLQ,
+  BOOKING_EXPIRE_SECONDS,
+  BOOKING_QUEUE,
+  BOOKING_RETRY_LIMIT,
+  EVENTS_FLUSH_CRON,
+  EVENTS_FLUSH_QUEUE,
   LEAD_DLQ,
   LEAD_EXPIRE_SECONDS,
   LEAD_QUEUE,
@@ -53,6 +59,23 @@ async function openBoss(databaseUrl: string): Promise<PgBoss> {
     policy: 'exclusive',
     expireInSeconds: LEAD_EXPIRE_SECONDS,
   })
+  await ensureQueue(boss, BOOKING_DLQ, { retryLimit: 0 })
+  await ensureQueue(boss, BOOKING_QUEUE, {
+    retryLimit: BOOKING_RETRY_LIMIT,
+    retryDelay: 2,
+    retryBackoff: true,
+    retryDelayMax: 120,
+    deadLetter: BOOKING_DLQ,
+    policy: 'exclusive',
+    expireInSeconds: BOOKING_EXPIRE_SECONDS,
+  })
+  await ensureQueue(boss, EVENTS_FLUSH_QUEUE, {
+    retryLimit: 2,
+    retryDelay: 30,
+    retryBackoff: true,
+    policy: 'exclusive',
+    expireInSeconds: 300,
+  })
   return boss
 }
 
@@ -66,6 +89,30 @@ export async function enqueueLead(
     LEAD_QUEUE,
     { outboxId: ref },
     { singletonKey: idempotencyKey }
+  )
+}
+
+/** Finishes a booking that returned 202. The singleton key is the Idempotency-Key. */
+export async function enqueueBooking(
+  ref: string,
+  idempotencyKey: string
+): Promise<void> {
+  const boss = await getBoss()
+  await boss.send(
+    BOOKING_QUEUE,
+    { outboxId: ref },
+    { singletonKey: idempotencyKey }
+  )
+}
+
+/** One flush every five minutes. A missed tick is skipped; the next one catches up. */
+export async function scheduleEventFlush(): Promise<void> {
+  const boss = await getBoss()
+  await boss.schedule(
+    EVENTS_FLUSH_QUEUE,
+    EVENTS_FLUSH_CRON,
+    {},
+    { tz: 'UTC', missed: 'skip', singletonKey: 'ghl-events-flush' }
   )
 }
 

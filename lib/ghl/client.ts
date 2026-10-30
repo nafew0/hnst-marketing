@@ -15,7 +15,8 @@ import {
   type CustomFieldKey,
 } from './constants'
 import { GhlRequestError, retryDelayMs } from './errors'
-import { appointmentBody } from './payloads'
+import { mergeSignals } from './intent'
+import { appointmentBody, readAppointmentTimes } from './payloads'
 import type {
   AppointmentRequest,
   ContactRequest,
@@ -23,6 +24,7 @@ import type {
   CustomValue,
   FreeSlotQuery,
   GhlClient,
+  IntentWrite,
   OpportunityRequest,
   ProductSummary,
 } from './types'
@@ -32,6 +34,7 @@ export interface GhlOptions {
   locationId: string
   pipelineId: string
   stageNewId: string
+  stageCallBookedId: string | null
   calendarId: string | null
 }
 
@@ -55,7 +58,52 @@ const opportunitySchema = z.object({
 })
 
 const slotDaySchema = z.object({ slots: z.array(z.string()) })
-const slotsSchema = z.record(z.string(), slotDaySchema)
+/**
+ * Free-slot payloads mix date keys with a string `traceId`. A record that
+ * requires every value to be a day rejects the whole calendar. Keep the days.
+ */
+const slotsSchema = z.record(
+  z.string(),
+  z.union([slotDaySchema, z.string(), z.number(), z.boolean(), z.null()])
+)
+
+const searchedContactSchema = z.object({
+  id: z.string().min(1).optional(),
+  email: z.string().optional(),
+})
+const searchResponseSchema = z.object({
+  contacts: z.array(searchedContactSchema).optional(),
+})
+const fieldTextSchema = z.union([z.string(), z.number()])
+const loadedFieldSchema = z.object({
+  id: z.string().optional(),
+  value: fieldTextSchema.optional(),
+  field_value: fieldTextSchema.optional(),
+})
+const loadedContactSchema = z.object({
+  contact: z
+    .object({
+      tags: z.array(z.string()).optional(),
+      customFields: z.array(loadedFieldSchema).optional(),
+    })
+    .optional(),
+})
+
+function fieldText(field: z.infer<typeof loadedFieldSchema>): string {
+  const parsed = fieldTextSchema.safeParse(field.value ?? field.field_value)
+  return parsed.success ? String(parsed.data) : ''
+}
+
+function unionTags(current: string[], extra: string[]): string[] {
+  const seen = new Set(current)
+  const tags = [...current]
+  for (const tag of extra) {
+    if (seen.has(tag)) continue
+    seen.add(tag)
+    tags.push(tag)
+  }
+  return tags
+}
 
 function delay(ms: number) {
   return new Promise<void>((resolve) => {
@@ -195,11 +243,18 @@ export function createGhlClient(options: GhlOptions): GhlClient & GhlAdmin {
   }
 
   async function upsertOpportunity(input: OpportunityRequest) {
+    let stageId = options.stageNewId
+    if (input.stage === 'call-booked') {
+      if (!options.stageCallBookedId) {
+        throw new GhlRequestError('Call Booked stage id is not set', 0, null)
+      }
+      stageId = options.stageCallBookedId
+    }
     const followers: string[] = []
     const body = {
       locationId: options.locationId,
       pipelineId: options.pipelineId,
-      pipelineStageId: options.stageNewId,
+      pipelineStageId: stageId,
       contactId: input.contactId,
       name: input.name,
       status: 'open',
@@ -242,8 +297,11 @@ export function createGhlClient(options: GhlOptions): GhlClient & GhlAdmin {
       )
     }
     const slots: Record<string, string[]> = {}
-    for (const [day, value] of Object.entries(parsed.data))
-      slots[day] = value.slots
+    for (const [day, value] of Object.entries(parsed.data)) {
+      const dayParsed = slotDaySchema.safeParse(value)
+      if (!dayParsed.success) continue
+      slots[day] = dayParsed.data.slots
+    }
     return slots
   }
 
@@ -255,22 +313,63 @@ export function createGhlClient(options: GhlOptions): GhlClient & GhlAdmin {
         null
       )
     }
-    const body = appointmentBody({
+    const appointment = {
       calendarId: options.calendarId,
       locationId: options.locationId,
       contactId: input.contactId,
       startTime: input.startTime,
       title: input.title,
+    }
+    const body = input.description
+      ? appointmentBody({ ...appointment, description: input.description })
+      : appointmentBody(appointment)
+    const payload: unknown = await call(() =>
+      sdk.calendars.createAppointment(body)
+    )
+    const created = z
+      .object({
+        id: z.string().min(1),
+        startTime: z.string().min(1).optional(),
+        endTime: z.string().min(1).optional(),
+      })
+      .safeParse(payload)
+    if (!created.success) {
+      throw new GhlRequestError('Appointment response had no id', 0, null)
+    }
+    let fetchedStart: string | null = null
+    let fetchedEnd: string | null = null
+    if (!created.data.endTime) {
+      const eventId = created.data.id
+      const loaded: unknown = await call(() =>
+        sdk.calendars.getAppointment({ eventId })
+      )
+      const event = z
+        .object({
+          event: z
+            .object({
+              startTime: z.string().min(1).optional(),
+              endTime: z.string().min(1).optional(),
+            })
+            .optional(),
+        })
+        .safeParse(loaded)
+      fetchedStart = event.success
+        ? (event.data.event?.startTime ?? null)
+        : null
+      fetchedEnd = event.success ? (event.data.event?.endTime ?? null) : null
+    }
+    const times = readAppointmentTimes({
+      id: created.data.id,
+      startTime: created.data.startTime ?? null,
+      endTime: created.data.endTime ?? null,
+      fetchedStart,
+      fetchedEnd,
+      fallbackStart: input.startTime,
     })
-    const created = await call(() => sdk.calendars.createAppointment(body))
-    if (!created.endTime) {
+    if (!times) {
       throw new GhlRequestError('Appointment response had no end time', 0, null)
     }
-    return {
-      appointmentId: created.id,
-      start: created.startTime ?? input.startTime,
-      end: created.endTime,
-    }
+    return times
   }
 
   async function getCustomValues(): Promise<CustomValue[]> {
@@ -368,6 +467,71 @@ export function createGhlClient(options: GhlOptions): GhlClient & GhlAdmin {
     return ensured
   }
 
+  /**
+   * Search is a read. The contact update is the one write for this flush.
+   * The SDK's advanced search body is an empty type in this version, so this
+   * uses the query parameter it still types. Cost: a deprecated endpoint,
+   * replaced when the SDK types the search body.
+   */
+  async function applyIntent(
+    input: IntentWrite
+  ): Promise<'written' | 'missing'> {
+    const listed = await call(() =>
+      sdk.contacts.getContacts({
+        locationId: options.locationId,
+        query: input.email,
+        limit: 20,
+      })
+    )
+    const found = searchResponseSchema.safeParse(listed)
+    if (!found.success) {
+      throw new GhlRequestError('Contact search did not match', 0, null)
+    }
+    const wanted = input.email.toLowerCase()
+    const hit = found.data.contacts?.find(
+      (contact) => contact.email?.toLowerCase() === wanted && contact.id
+    )
+    const contactId = hit?.id
+    if (!contactId) return 'missing'
+
+    const loaded = await call(() => sdk.contacts.getContact({ contactId }))
+    const contact = loadedContactSchema.safeParse(loaded)
+    if (!contact.success || !contact.data.contact) {
+      throw new GhlRequestError('Contact read did not match', 0, null)
+    }
+    const ids = await fieldMap()
+    const fieldId = ids.get('intent_signals')
+    if (!fieldId) {
+      throw new GhlRequestError(
+        'Missing GoHighLevel custom field contact.intent_signals. Run scripts/ghl-setup.ts.',
+        0,
+        null
+      )
+    }
+    const current = contact.data.contact
+    const previousTags = current.tags ?? []
+    const existingSignal =
+      current.customFields?.find((field) => field.id === fieldId) ?? null
+    const previousSignals = existingSignal ? fieldText(existingSignal) : ''
+    const signals = mergeSignals(previousSignals, input.signals)
+    const tags = unionTags(previousTags, input.tags)
+    const unchanged =
+      signals === previousSignals &&
+      input.tags.every((tag) => previousTags.includes(tag))
+    if (unchanged) return 'written'
+
+    await call(() =>
+      sdk.contacts.updateContact(
+        { contactId },
+        {
+          tags,
+          customFields: [{ id: fieldId, field_value: signals }],
+        }
+      )
+    )
+    return 'written'
+  }
+
   return {
     upsertContact,
     addNote,
@@ -377,6 +541,7 @@ export function createGhlClient(options: GhlOptions): GhlClient & GhlAdmin {
     createAppointment,
     getCustomValues,
     listProducts,
+    applyIntent,
     ensureFields,
     ensureTags,
   }
