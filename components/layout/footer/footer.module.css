@@ -1,53 +1,99 @@
 .footer {
-  padding: var(--safe);
-  padding-top: calc(var(--safe) * 1.5);
-  padding-bottom: calc(var(--safe) * 1.5);
-  font-family: var(--next-font-mono);
-  font-size: calc((10 * 100) / var(--device-width) * 1vw);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-top: 1px solid var(--line);
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc((16 * 100) / var(--device-width) * 1vw);
+  position: relative;
+  padding-block: mobile-vw(56px) mobile-vw(32px);
+  background: var(--color-void-deep);
+  color: var(--color-starlight);
 
   @media (--desktop) {
-    font-size: calc((11 * 100) / var(--device-width) * 1vw);
+    padding-block: desktop-vw(96px) desktop-vw(40px);
+  }
+}
+
+.horizon {
+  position: absolute;
+  inset: 0 0 auto;
+  translate: 0 -50%;
+  height: mobile-vw(40px);
+
+  @media (--desktop) {
+    height: desktop-vw(80px);
+  }
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(48px);
+
+  @media (--desktop) {
     flex-direction: row;
-    align-items: flex-end;
     justify-content: space-between;
+    gap: var(--gap);
+  }
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: mobile-vw(24px);
+
+  @media (--desktop) {
+    gap: desktop-vw(28px);
+  }
+}
+
+.home {
+  display: block;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 4px;
   }
 }
 
 .logo {
-  transition: opacity var(--duration-fast) var(--ease-out-expo);
+  width: mobile-vw(200px);
 
-  @media (--hover) {
-    &:hover {
-      opacity: 0.65;
-    }
+  @media (--desktop) {
+    width: desktop-vw(260px);
   }
 }
 
-.links {
+.columns {
   display: flex;
-  align-items: center;
-  gap: 0.6em;
+  gap: mobile-vw(48px);
+
+  @media (--desktop) {
+    gap: desktop-vw(96px);
+  }
 }
 
-.separator {
-  opacity: 0.3;
+.list {
+  display: flex;
+  flex-direction: column;
 }
 
 .link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   transition: color var(--duration-fast) var(--ease-out-expo);
 
   @media (--hover) {
     &:hover {
-      color: var(--color-contrast);
-      text-decoration: none;
+      color: var(--color-gold);
     }
+  }
+}
+
+.legal {
+  margin-top: mobile-vw(48px);
+  padding-top: mobile-vw(20px);
+  border-top: 1px solid color-mix(in oklab, var(--color-gold) 18%, transparent);
+
+  @media (--desktop) {
+    margin-top: desktop-vw(80px);
+    padding-top: desktop-vw(24px);
   }
 }

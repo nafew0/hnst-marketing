@@ -17,7 +17,7 @@
 	--gap: calc(((16 * 100) / var(--device-width)) * 1vw);
 	--safe: calc(((16 * 100) / var(--device-width)) * 1vw);
 
-	--header-height: calc(((58 * 100) / var(--device-width)) * 1vw);
+	--header-height: calc(((64 * 100) / var(--device-width)) * 1vw);
 
 	--layout-width: calc(100vw - (2 * var(--safe)));
 	--column-width: calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns));
@@ -27,10 +27,10 @@
     --device-height: 816;
 
     --columns: 12;
-		--gap: calc(((16 * 100) / var(--device-width)) * 1vw);
-		--safe: calc(((16 * 100) / var(--device-width)) * 1vw);
+		--gap: calc(((24 * 100) / var(--device-width)) * 1vw);
+		--safe: calc(((40 * 100) / var(--device-width)) * 1vw);
 
-    --header-height: calc(((98 * 100) / var(--device-width)) * 1vw);
+    --header-height: calc(((88 * 100) / var(--device-width)) * 1vw);
 	}
 }
   

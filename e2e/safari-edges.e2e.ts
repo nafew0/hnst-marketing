@@ -114,8 +114,8 @@ test('safari edge strips stay pinned, page-colored and tap-through on the homepa
     contentType: 'image/png',
   })
 
-  // Back at the top, the header stays tappable under the strips: the menu
-  // toggle, then (on mobile, behind that toggle) the home link.
+  // Back at the top, the header stays tappable under the strips: the home
+  // link and the menu toggle, which opens the menu dialog.
   await page.evaluate(() => window.scrollTo(0, 0))
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
   const banner = page.getByRole('banner')
@@ -129,11 +129,11 @@ test('safari edge strips stay pinned, page-colored and tap-through on the homepa
       )
       return hit !== null && el.contains(hit)
     })
+  const homeLink = banner.getByRole('link', { name: 'HONEST Marketing home' })
+  expect(await hitsTarget(homeLink), 'home link receives taps').toBe(true)
   expect(await hitsTarget(toggle), 'menu toggle receives taps').toBe(true)
   await toggle.click()
-  const homeLink = banner.getByRole('link', { name: 'home', exact: true })
-  await expect(homeLink).toBeVisible()
-  expect(await hitsTarget(homeLink), 'home link receives taps').toBe(true)
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible()
 
   await testInfo.attach('edge-measurements', {
     body: JSON.stringify(
@@ -146,8 +146,8 @@ test('safari edge strips stay pinned, page-colored and tap-through on the homepa
 })
 
 test('a Wrapper without safariEdges renders no strips', async ({ page }) => {
-  // `/sanity` uses <Wrapper theme="light"> with no safariEdges prop.
-  await page.goto('/sanity')
+  // `/lab` renders <Wrapper> with no safariEdges prop.
+  await page.goto('/lab')
   await page.waitForLoadState('load')
   await expect(page.getByRole('banner')).toBeVisible()
   await expect(page.locator('[data-edge]')).toHaveCount(0)

@@ -1,0 +1,27 @@
+# Local development database only (P1). The full stack (web, worker, caddy,
+# uptime-kuma) lives in deploy/ and is owned by P2.
+#
+#   bun run db:up     # start
+#   bun run db:down   # stop (data stays in the volume)
+#
+# DATABASE_URL=postgres://hnst:hnst@localhost:5432/hnst
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hnst
+      POSTGRES_PASSWORD: hnst
+      POSTGRES_DB: hnst
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hnst -d hnst']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

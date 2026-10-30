@@ -21,6 +21,9 @@ const STUDIO_CONTENT_SECURITY_POLICY = composeCsp({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Self-hosted on HONEST's VM (Docker): a standalone server bundle with only
+  // the files `next start` needs, copied into the runtime image.
+  output: 'standalone',
   reactCompiler: true,
   poweredByHeader: false,
   typedRoutes: true,

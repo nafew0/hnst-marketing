@@ -45,12 +45,10 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     await page.goto('/this-route-does-not-exist-view-transition')
     await page
       .getByRole('banner')
-      .getByRole('link', { name: 'home', exact: true })
+      .getByRole('link', { name: 'HONEST Marketing home' })
       .click()
     await expect(page).toHaveURL('/')
-    await expect(
-      page.getByRole('heading', { name: 'Satūs', exact: true })
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await expect
       .poll(() =>
         page.evaluate(
@@ -72,21 +70,17 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     ).toBeVisible()
     const home = page
       .getByRole('banner')
-      .getByRole('link', { name: 'home', exact: true })
+      .getByRole('link', { name: 'HONEST Marketing home' })
     await home.click()
     await expect(page).toHaveURL('/')
-    await expect(
-      page.getByRole('heading', { name: 'Satūs', exact: true })
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
     // Return again immediately: navigation must remain usable while a prior
     // snapshot animation may still be running, including cached history.
     await page.goBack()
     await home.click()
     await expect(page).toHaveURL('/')
-    await expect(
-      page.getByRole('heading', { name: 'Satūs', exact: true })
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await expect
       .poll(() =>
         page.evaluate(
@@ -98,9 +92,11 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       .toBe(true)
     await page.setViewportSize({ width: 390, height: 844 })
     await page.getByRole('button', { name: 'Open menu', exact: true }).click()
+    // The mobile menu is a modal dialog with its own close button.
+    await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible()
     await expect(
       page.getByRole('button', { name: 'Close menu', exact: true })
-    ).toHaveAttribute('aria-expanded', 'true')
+    ).toBeVisible()
     expect(runtimeErrors).toEqual([])
   })
 }

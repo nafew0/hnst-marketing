@@ -3,13 +3,13 @@ import { expect, test } from '@playwright/test'
 
 const wordOpacities = (page: Page) =>
   page
-    .locator('[aria-hidden="true"]', { hasText: 'only cleanup' })
+    .locator('[aria-hidden="true"]', { hasText: 'You own everything' })
     .locator('[class*="word"]')
     .evaluateAll((words) =>
       words.map((word) => Number(getComputedStyle(word).opacity))
     )
 
-test('homepage outro words reveal across the scroll to the page bottom', async ({
+test('homepage manifesto words reveal across the scroll to the page bottom', async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 1280, height: 800 })
@@ -54,7 +54,7 @@ test('homepage outro words reveal across the scroll to the page bottom', async (
   })
 })
 
-test('with reduced motion, the outro fades once when it scrolls into view', async ({
+test('with reduced motion, the manifesto fades once when it scrolls into view', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -68,7 +68,7 @@ test('with reduced motion, the outro fades once when it scrolls into view', asyn
   expect(new Set(await wordOpacities(page))).toEqual(new Set([0.5]))
 
   await page
-    .locator('[aria-hidden="true"]', { hasText: 'only cleanup' })
+    .locator('[aria-hidden="true"]', { hasText: 'You own everything' })
     .scrollIntoViewIfNeeded()
   await expect
     .poll(async () => new Set(await wordOpacities(page)))

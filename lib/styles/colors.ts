@@ -1,34 +1,15 @@
-const colors = {
-  black: 'oklch(0 0 0)',
-  white: 'oklch(1 0 0)',
-  // Lightness 0.592 is the narrow band (peak 4.583:1) where one red clears WCAG
-  // AA (4.5:1) as text on both black and white: almost no slack. Check
-  // `lib/styles/scripts/contrast.test.ts` before changing it.
-  red: 'oklch(0.592 0.2339 27.95)',
-  blue: 'oklch(0.5731 0.2145 258.25)',
-  green: 'oklch(0.8763 0.2278 152.55)',
-} as const
+import { brand } from '@/brand.config'
 
-const themeNames = ['light', 'dark', 'red'] as const
+// The palette and themes are defined in brand.config.ts (HONEST Marketing).
+// Do not author colours here: edit brand.config.ts and run
+// `bun run setup:styles`, which generates the CSS variables and Tailwind
+// theme from these exports.
+const colors = brand.palette
+
+const themeNames = ['dark', 'light', 'frontier'] as const
 const colorNames = ['primary', 'secondary', 'contrast'] as const
 
-const themes = {
-  light: {
-    primary: colors.white,
-    secondary: colors.black,
-    contrast: colors.red,
-  },
-  dark: {
-    primary: colors.black,
-    secondary: colors.white,
-    contrast: colors.red,
-  },
-  red: {
-    primary: colors.red,
-    secondary: colors.black,
-    contrast: colors.white,
-  },
-} as const satisfies Themes
+const themes = brand.themes satisfies Themes
 
 export { colors, themeNames, themes }
 

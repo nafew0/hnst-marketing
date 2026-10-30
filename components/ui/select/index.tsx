@@ -116,7 +116,7 @@ function Select<T extends string = string>({
       )}
       <BaseSelect.Trigger
         className={cn(
-          'h-10 min-w-36 gap-3 rounded-md pr-3 pl-3.5 flex items-center justify-between border select-none',
+          'flex dr-h-40 dr-min-w-144 items-center justify-between dr-gap-12 dr-rounded-6 border dr-pr-12 dr-pl-14 select-none',
           s.trigger,
           className
         )}
@@ -134,7 +134,7 @@ function Select<T extends string = string>({
             {options.map(({ value, label, disabled }) => (
               <BaseSelect.Item
                 className={cn(
-                  'gap-2 py-2 pr-4 pl-2.5 grid items-center outline-none select-none',
+                  'grid items-center dr-gap-8 dr-py-8 dr-pr-16 dr-pl-10 outline-none select-none',
                   s.option
                 )}
                 value={value}

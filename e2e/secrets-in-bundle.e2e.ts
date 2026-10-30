@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test'
 // every spec gets a 401.
 const SECRETS = [
   ...readFileSync('lib/env.ts', 'utf8').matchAll(
-    /^\s+([A-Z][A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|_KEY)):/gm
+    /^\s+([A-Z][A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|_KEY|_PIT)):/gm
   ),
 ]
   .map((match) => match[1] ?? '')
@@ -28,8 +28,10 @@ function browserFiles(): string[] {
 }
 
 test('server secrets never reach browser-delivered build output', async () => {
+  // A prefix, not equality: some schemas need a minimum length, so ci.yml
+  // pads those values (`leakcheck-PAYLOAD_SECRET-…`).
   const unset = SECRETS.filter(
-    (name) => process.env[name] !== `leakcheck-${name}`
+    (name) => !process.env[name]?.startsWith(`leakcheck-${name}`)
   )
   test.skip(
     !process.env.CI && unset.length === SECRETS.length,

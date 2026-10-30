@@ -23,9 +23,8 @@ describe('buildMarkdownDocument', () => {
 
     expect(document.status).toBe(200)
     expect(document.contentType).toBe('text/markdown; charset=utf-8')
-    expect(document.body).toMatch(/^# Home \| Satūs/m)
+    expect(document.body).toMatch(/^# Home \| HONEST Marketing/m)
     expect(document.body).toContain('## When to use')
-    expect(document.body).toContain('## Developer resources')
   })
 
   it('returns a recoverable Markdown 404 for a path outside static and CMS routes', async () => {

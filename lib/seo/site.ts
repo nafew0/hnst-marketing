@@ -65,56 +65,45 @@ export const BASE_URL = APP_BASE_URL.replace(/\/+$/, '')
  * every value before launch, in phrasing that doesn't go stale.
  */
 export const SITE: SiteFacts = {
-  name: 'Satūs',
-  alternateNames: ['Satus'],
+  name: 'HONEST Marketing',
+  alternateNames: ['HNST Marketing', 'Honest Marketing'],
   url: BASE_URL,
-  // `bun run handoff` deletes `app/icon.png` as Satus branding; point this at
-  // the project's own logo or the Organization schema advertises a 404.
+  // Replace with the HONEST emblem PNG before launch (P9), or the
+  // Organization schema advertises the starter icon.
   logo: `${BASE_URL}/icon.png`,
+  // DRAFT copy, pending Founder sign-off (P9 owns final SEO copy).
   description:
-    'Satūs is a Next.js starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, and production-ready integrations.',
-  areaServed: 'Worldwide',
-  services: [],
-  knowsAbout: [],
-  sameAs: ['https://darkroom.engineering'],
+    'HONEST Marketing delivers complete marketing packages (brand bible, market research, campaign, website, email and a 30-day content plan) produced with AI and reviewed by people, for founders who want it done in days, not months.',
+  areaServed: 'United States',
+  services: [
+    'Complete marketing packages',
+    'Brand bible and positioning',
+    'Market research',
+    'Campaign strategy',
+    'Website copy and build',
+    'Email marketing sequences',
+    '30-day social content plans',
+  ],
+  knowsAbout: [
+    'Marketing strategy',
+    'Brand positioning',
+    'AI-assisted content production',
+    'Lead generation',
+    'GoHighLevel',
+  ],
+  sameAs: [],
   agentGuidance: {
     whenToUse: [
       {
-        name: 'Start a production Next.js site',
+        name: 'Get a complete marketing package',
         description:
-          'Use Satūs when a new project needs a Next.js 16 and React 19 baseline with strict TypeScript, accessible UI primitives, and production checks already configured.',
-      },
-      {
-        name: 'Add optional commerce or content integrations',
-        description:
-          'Use Satūs when a site may need Sanity, Shopify, HubSpot, Mailchimp, or Turnstile without making those services mandatory for a fresh clone.',
+          'Use HONEST Marketing when a founder or small business needs brand, research, campaign, website, email and social content delivered together as one package instead of hiring separate vendors.',
       },
     ],
     howToUse: [
-      'Clone or deploy the Satūs repository, then follow the README setup steps.',
-      'Read AGENTS.md and ARCHITECTURE.md before changing project conventions or integration boundaries.',
-      'Run bun run check before committing changes.',
+      'Compare the packages and their turnaround times, then book a free Discovery Call from the homepage.',
     ],
   },
-  developerResources: [
-    {
-      name: 'Satūs source repository',
-      description: 'Source code, releases, and issue tracker for the starter.',
-      url: 'https://github.com/darkroomengineering/satus',
-    },
-    {
-      name: 'Satūs setup guide',
-      description:
-        'Installation, local development, and deployment instructions.',
-      url: 'https://github.com/darkroomengineering/satus#readme',
-    },
-    {
-      name: 'Satūs architecture',
-      description:
-        'Project structure, design decisions, and customization boundaries.',
-      url: 'https://github.com/darkroomengineering/satus/blob/main/ARCHITECTURE.md',
-    },
-  ],
 }
 
 /** "a, b, and c" — prose-friendly list for entity copy. */

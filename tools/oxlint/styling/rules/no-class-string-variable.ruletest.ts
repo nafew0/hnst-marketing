@@ -28,8 +28,8 @@ tester.run('styling/no-class-string-variable', noClassStringVariableRule, {
     "const result = format('flex items-center')",
     "function label() { return 'Read more about the block' }",
     "const label = () => 'Read more'",
-    'function A() { return <Tabs.Tab className={(state) => (state.active ? "bg-black text-white" : "opacity-50 uppercase")} /> }',
-    'function A() { return <Tabs.Tab className={function (state) { return state.active ? "bg-black text-white" : "opacity-50 uppercase" }} /> }',
+    'function A() { return <Tabs.Tab className={(state) => (state.active ? "bg-void text-starlight" : "opacity-50 uppercase")} /> }',
+    'function A() { return <Tabs.Tab className={function (state) { return state.active ? "bg-void text-starlight" : "opacity-50 uppercase" }} /> }',
   ],
   invalid: [
     {
@@ -70,7 +70,7 @@ tester.run('styling/no-class-string-variable', noClassStringVariableRule, {
     },
     {
       name: 'ternary',
-      code: "const cls = active ? 'bg-black text-white' : 'bg-white text-black'",
+      code: "const cls = active ? 'bg-void text-starlight' : 'bg-starlight text-void'",
       errors: [error, error],
     },
     {
@@ -90,7 +90,7 @@ tester.run('styling/no-class-string-variable', noClassStringVariableRule, {
     },
     {
       name: 'nested map',
-      code: "const styles = { button: { primary: 'bg-black text-white' } }",
+      code: "const styles = { button: { primary: 'bg-void text-starlight' } }",
       errors: [error],
     },
     {
@@ -105,7 +105,7 @@ tester.run('styling/no-class-string-variable', noClassStringVariableRule, {
     },
     {
       name: 'returned from a function',
-      code: "function buttonClass(variant) { return variant === 'primary' ? 'bg-black text-white' : 'bg-white text-black' }",
+      code: "function buttonClass(variant) { return variant === 'primary' ? 'bg-void text-starlight' : 'bg-starlight text-void' }",
       errors: [error, error],
     },
     {
@@ -120,12 +120,12 @@ tester.run('styling/no-class-string-variable', noClassStringVariableRule, {
     },
     {
       name: 'helper passed to className',
-      code: "const tabClass = (state) => state.active ? 'bg-black text-white' : 'bg-white text-black'; function A() { return <Tabs.Tab className={tabClass} /> }",
+      code: "const tabClass = (state) => state.active ? 'bg-void text-starlight' : 'bg-starlight text-void'; function A() { return <Tabs.Tab className={tabClass} /> }",
       errors: [error, error],
     },
     {
       name: 'callback on another prop',
-      code: 'function A() { return <List render={(item) => item.active ? "bg-black text-white" : "bg-white text-black"} /> }',
+      code: 'function A() { return <List render={(item) => item.active ? "bg-void text-starlight" : "bg-starlight text-void"} /> }',
       errors: [error, error],
     },
   ],

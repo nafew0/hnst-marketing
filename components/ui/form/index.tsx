@@ -81,7 +81,8 @@ export function Form<T = unknown>({
     setIsDismissed(false)
     const result = await action(prevState, formData)
 
-    if (result.status === 200) {
+    // Any 2xx: the /api/v1 writes answer 201 (booked) and 202 (queued).
+    if (result.status >= 200 && result.status < 300) {
       onSuccess?.(result)
     } else if (result.status >= 400) {
       onError?.(result)
@@ -181,7 +182,8 @@ export function SubmitButton({
 }: SubmitButtonProps) {
   const { state } = useFormContext()
   const { isReady, isPending, formState } = state
-  const isSuccess = formState?.status === 200
+  const isSuccess =
+    formState !== null && formState.status >= 200 && formState.status < 300
   const isError = formState?.status && formState.status >= 400
 
   let buttonText: ReactNode = children ?? defaultText
@@ -234,7 +236,7 @@ export function Messages({ className, ...props }: MessagesProps) {
   return (
     <div className={cn(s.messages, className)} {...props}>
       {allErrors.map((message) => (
-        <p className={cn('p-xs', s.error)} key={message}>
+        <p className={cn('caption', s.error)} key={message}>
           {message}
         </p>
       ))}

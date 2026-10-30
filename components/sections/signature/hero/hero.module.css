@@ -1,0 +1,238 @@
+.hero {
+  position: relative;
+  display: flex;
+  min-height: max(100svh, mobile-vw(640px));
+  align-items: center;
+  overflow: clip;
+  padding-block: calc(var(--header-height) + mobile-vw(24px)) mobile-vw(96px);
+  background: var(--color-void);
+  color: var(--color-starlight);
+  isolation: isolate;
+
+  @media (--desktop) {
+    min-height: max(100svh, desktop-vw(760px));
+    padding-block: calc(var(--header-height) + desktop-vw(40px))
+      desktop-vw(140px);
+  }
+}
+
+/* Nebula "infinity cloud": glow core, plum haze and deep shadow, all from
+   brand.config.ts. Calm on the left (desktop) / top (mobile) for the text. */
+.sky {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(
+      in oklab 60% 55% at 78% 30%,
+      color-mix(in oklab, var(--color-nebula-glow) 55%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      in oklab 45% 40% at 92% 62%,
+      color-mix(in oklab, var(--color-nebula-tint) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      in oklab 80% 70% at 60% 45%,
+      var(--color-nebula-haze),
+      transparent 75%
+    ),
+    radial-gradient(
+      in oklab 120% 90% at 70% 20%,
+      var(--color-nebula-deep),
+      var(--color-void) 70%
+    );
+
+  @media (--mobile) {
+    background:
+      radial-gradient(
+        in oklab 90% 45% at 70% 78%,
+        color-mix(in oklab, var(--color-nebula-glow) 55%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        in oklab 120% 60% at 50% 85%,
+        var(--color-nebula-haze),
+        transparent 75%
+      ),
+      radial-gradient(
+        in oklab 140% 90% at 60% 90%,
+        var(--color-nebula-deep),
+        var(--color-void) 70%
+      );
+  }
+}
+
+/* Sparse starfield: tiled 1px points, no image request. */
+.stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, var(--color-starlight), transparent),
+    radial-gradient(1px 1px at 37% 62%, var(--color-starlight), transparent),
+    radial-gradient(1px 1px at 68% 12%, var(--color-nebula-tint), transparent),
+    radial-gradient(1px 1px at 84% 44%, var(--color-starlight), transparent),
+    radial-gradient(1px 1px at 52% 86%, var(--color-gold), transparent),
+    radial-gradient(1px 1px at 23% 74%, var(--color-nebula-tint), transparent);
+  background-size: 340px 340px;
+}
+
+/* The planet's dark disc; its top edge is the horizon. The inset highlight
+   follows the curve, so the gold rim always sits exactly on the planet. */
+.planet {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: -62vw;
+  height: 80vw;
+  border-radius: 50%;
+  background: radial-gradient(
+    in oklab 50% 50% at 50% 0%,
+    var(--color-void-2),
+    var(--color-void-deep) 60%
+  );
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklab, var(--color-gold) 85%, transparent),
+    inset 0 12px 24px -12px
+      color-mix(in oklab, var(--color-gold) 25%, transparent),
+    0 -2px 60px -10px color-mix(in oklab, var(--color-gold) 30%, transparent);
+
+  @media (--desktop) {
+    bottom: -52vw;
+    height: 70vw;
+  }
+}
+
+/* Light breaking over the horizon at the crest (18vw above the bottom on
+   both layouts, from the planet's bottom offset + height). */
+.flare {
+  position: absolute;
+  left: 50%;
+  bottom: 18vw;
+  width: 40vw;
+  height: 3vw;
+  translate: -50% 50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    in oklab closest-side,
+    var(--color-starlight),
+    color-mix(in oklab, var(--color-gold) 60%, transparent) 30%,
+    transparent
+  );
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: mobile-vw(24px);
+
+  /* Wide enough for the two headline lines at 88px (about 1000px at 1440). */
+  @media (--desktop) {
+    gap: desktop-vw(28px);
+    max-width: desktop-vw(1040px);
+    margin-inline: var(--safe) auto;
+  }
+}
+
+.logo {
+  width: mobile-vw(200px);
+
+  @media (--desktop) {
+    width: desktop-vw(220px);
+  }
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+}
+
+.line {
+  display: block;
+}
+
+.lineInner {
+  display: block;
+}
+
+.lede {
+  max-width: 34ch;
+  color: var(--color-silver);
+
+  @media (--desktop) {
+    max-width: 44ch;
+  }
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: mobile-vw(12px);
+  margin-top: mobile-vw(8px);
+
+  @media (--desktop) {
+    gap: desktop-vw(16px);
+    margin-top: desktop-vw(12px);
+  }
+}
+
+@media (--motion-ok) {
+  .lineInner {
+    animation: rise 1400ms var(--ease-out-expo) 150ms both;
+  }
+
+  /* 80 ms line stagger (brand.motion.stagger). */
+  .line:nth-child(2) .lineInner {
+    animation-delay: 230ms;
+  }
+
+  .line:nth-child(3) .lineInner {
+    animation-delay: 310ms;
+  }
+
+  .logo,
+  .lede,
+  .ctas {
+    animation: fade-up 1000ms var(--ease-out-expo) both;
+  }
+
+  .lede {
+    animation-delay: 450ms;
+  }
+
+  .ctas {
+    animation-delay: 600ms;
+  }
+
+  .flare {
+    animation: flare 1800ms var(--ease-out-expo) 300ms both;
+  }
+}
+
+/* Entrances start at opacity 0.01, not 0, and nothing starts clipped out of
+   view: Chrome skips opacity-0 and fully clipped elements as LCP candidates,
+   so the first paint would not count and LCP would wait for the animation
+   (measured: 3.4 s on mobile with a masked rise). */
+@keyframes rise {
+  from {
+    opacity: 0.01;
+    transform: translateY(0.35em);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0.01;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes flare {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+}

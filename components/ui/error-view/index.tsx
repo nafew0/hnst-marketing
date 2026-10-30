@@ -44,7 +44,7 @@ export function ErrorView({
 
   return (
     <div className="my-auto flex flex-col items-center justify-center dr-gap-y-24 dr-px-16 text-center uppercase">
-      <h1 className="font-bold dr-text-28">{title}</h1>
+      <h1 className="h3 dr-text-28">{title}</h1>
       <p className="dr-text-14 text-secondary/70">{description}</p>
 
       {process.env.NODE_ENV === 'development' && (

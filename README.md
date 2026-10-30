@@ -1,3 +1,39 @@
+# HONEST Marketing website (hnst-web)
+
+The site for [hnst.marketing](https://hnst.marketing). It is built on [Satūs](https://github.com/darkroomengineering/satus) (MIT) and self-hosted on our own VM with open-source parts only.
+
+- **Plan:** [docs/PLAN.md](docs/PLAN.md). Read its "Satus adaptations" section first.
+- **Rules:** [docs/RULES.md](docs/RULES.md) plus [AGENTS.md](AGENTS.md).
+- **Phase briefs:** [docs/phases/](docs/phases/).
+- **Ownership:** [CODEOWNERS](CODEOWNERS).
+
+## Quick start
+
+Versions checked at P1 (30 Oct 2026): Node 24.20.0 (`.nvmrc`), Bun 1.4.4, Next 16.4.3, React 19.3.1.
+
+```bash
+nvm use                    # Node 24.20
+bun install
+bun run db:up              # Postgres 17 in Docker (docker-compose.dev.yml)
+NEXT_PUBLIC_API_MOCKS=1 bun dev   # site on :3000, /api/v1 mocked in the browser
+```
+
+| Command                     | What it does                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `bun run check`             | Runs every gate (lint, format, types, tests, hex guard, contracts, contrast). It must pass before a PR. |
+| `bun run tokens`            | Regenerates the CSS tokens after editing `brand.config.ts`.                                             |
+| `bun run contracts:openapi` | Regenerates `lib/contracts/openapi.json` from the Zod contracts.                                        |
+| `bun run build`             | Production build (`output: 'standalone'`).                                                              |
+
+| Route  | What it is                                           |
+| ------ | ---------------------------------------------------- |
+| `/`    | Hero v0. P7 replaces it with the cinematic homepage. |
+| `/lab` | Component, motion and contract showcase (noindex).   |
+
+---
+
+_The upstream Satūs README follows. Its Vercel, Sanity, Shopify, HubSpot and Mailchimp sections do not apply to this project._
+
 [![SATUS](https://assets.darkroom.engineering/satus/banner.gif)](https://github.com/darkroomengineering/satus)
 
 # Satūs

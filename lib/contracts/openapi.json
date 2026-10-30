@@ -1,0 +1,779 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "HONEST Marketing website API",
+    "version": "1.0.0",
+    "description": "Contract between the hnst.marketing front end and its back end. Generated from lib/contracts (Zod). Do not edit by hand."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Queued": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["queued"]
+          },
+          "ref": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": ["status", "ref"]
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "validation_failed",
+                  "captcha_failed",
+                  "idempotency_key_missing",
+                  "rate_limited",
+                  "slot_taken",
+                  "slot_range_too_large",
+                  "upstream_unavailable",
+                  "unauthorized",
+                  "not_found",
+                  "internal_error"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["code", "message"]
+          }
+        },
+        "required": ["error"]
+      },
+      "LeadInput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["contact", "magnet", "package", "gift"]
+          },
+          "firstName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+[1-9]\\d{7,14}$/u"
+          },
+          "company": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 300,
+            "format": "uri"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "packageInterest": {
+            "type": "string",
+            "enum": ["basic-diy", "executive", "founder", "diamond"]
+          },
+          "consent": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "boolean"
+              },
+              "sms": {
+                "type": "boolean"
+              },
+              "emailText": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "smsText": {
+                "type": "string",
+                "maxLength": 2000
+              }
+            },
+            "required": ["email", "sms", "emailText", "smsText"]
+          },
+          "utm": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "medium": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "campaign": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "content": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "term": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
+          },
+          "pageUrl": {
+            "type": "string",
+            "maxLength": 2000,
+            "format": "uri"
+          },
+          "altcha": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "type",
+          "firstName",
+          "email",
+          "consent",
+          "utm",
+          "pageUrl",
+          "altcha"
+        ]
+      },
+      "SlotsResponse": {
+        "type": "object",
+        "properties": {
+          "tz": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "slots": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              },
+              "required": ["date", "slots"]
+            }
+          }
+        },
+        "required": ["tz", "days"]
+      },
+      "BookingCreated": {
+        "type": "object",
+        "properties": {
+          "appointmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["appointmentId", "start", "end"]
+      },
+      "BookingInput": {
+        "type": "object",
+        "properties": {
+          "slot": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "tz": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "contact": {
+            "type": "object",
+            "properties": {
+              "firstName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "lastName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "email": {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email"
+              },
+              "phone": {
+                "type": "string",
+                "pattern": "^\\+[1-9]\\d{7,14}$/u"
+              }
+            },
+            "required": ["firstName", "email"]
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          },
+          "consent": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "boolean"
+              },
+              "sms": {
+                "type": "boolean"
+              },
+              "emailText": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "smsText": {
+                "type": "string",
+                "maxLength": 2000
+              }
+            },
+            "required": ["email", "sms", "emailText", "smsText"]
+          },
+          "utm": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "medium": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "campaign": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "content": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "term": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
+          },
+          "pageUrl": {
+            "type": "string",
+            "maxLength": 2000,
+            "format": "uri"
+          },
+          "altcha": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "slot",
+          "tz",
+          "contact",
+          "answers",
+          "consent",
+          "utm",
+          "pageUrl",
+          "altcha"
+        ]
+      },
+      "EventsInput": {
+        "type": "object",
+        "properties": {
+          "anonId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 64
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "enum": [
+                    "pricing_viewed",
+                    "package_clicked",
+                    "cta_clicked",
+                    "video_completed",
+                    "booking_step"
+                  ]
+                },
+                "props": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  }
+                },
+                "ts": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": ["name", "ts"]
+            },
+            "minItems": 1,
+            "maxItems": 50
+          }
+        },
+        "required": ["anonId", "events"]
+      },
+      "OffersResponse": {
+        "type": "object",
+        "properties": {
+          "packages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tier": {
+                  "type": "string",
+                  "enum": ["basic-diy", "executive", "founder", "diamond"]
+                },
+                "price": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "turnaround": {
+                  "type": "string",
+                  "maxLength": 80
+                }
+              },
+              "required": ["tier", "price", "turnaround"]
+            }
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "banner": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": ["packages"]
+      },
+      "GhlWorkflowEvent": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string",
+            "enum": ["offer-changed"]
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": ["event", "id"],
+        "additionalProperties": {}
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/api/v1/leads": {
+      "post": {
+        "summary": "Submit a lead (contact, lead magnet, package interest, gift)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "Idempotency-Key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "description": "Lead form submission",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted into the outbox; a repeated key replays this",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Queued"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_failed, captcha_failed or idempotency_key_missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/booking/slots": {
+      "get": {
+        "summary": "Free Discovery Call slots (max 31-day window)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "required": true,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "required": true,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "required": true,
+            "name": "tz",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available slots grouped by day",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlotsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_failed or slot_range_too_large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings": {
+      "post": {
+        "summary": "Book a Discovery Call",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "Idempotency-Key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "description": "Booking request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booked in GHL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingCreated"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "GHL unavailable; queued for retry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Queued"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_failed, captcha_failed or idempotency_key_missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "slot_taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events": {
+      "post": {
+        "summary": "Batched intent events",
+        "requestBody": {
+          "description": "Event batch",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Stored"
+          },
+          "400": {
+            "description": "validation_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/offers": {
+      "get": {
+        "summary": "Live package prices from GHL custom values and products",
+        "responses": {
+          "200": {
+            "description": "Current offers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OffersResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "upstream_unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhooks/ghl-workflow/{key}": {
+      "post": {
+        "summary": "GHL workflow Custom Webhook (offer-changed)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "key",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "description": "GHL workflow payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GhlWorkflowEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Acknowledged (also for duplicates)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [true]
+                    }
+                  },
+                  "required": ["ok"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

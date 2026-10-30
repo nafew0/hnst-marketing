@@ -1,0 +1,48 @@
+# Who owns what (docs/PLAN.md § Satus adaptations A). One GitHub account
+# reviews every PR; the comment on each block names the coder who may edit it.
+# Anything not listed below is shared and belongs to Claude.
+
+# --- Claude: foundation, design system, motion, 3D, homepage, docs ---
+*                                   @nafew0
+/brand.config.ts                    @nafew0
+/lib/contracts/                     @nafew0
+/lib/styles/                        @nafew0
+/lib/navigation.ts                  @nafew0
+/lib/env.ts                         @nafew0
+/components/ui/                     @nafew0
+/components/layout/                 @nafew0
+/components/motion/                 @nafew0
+/components/three/                  @nafew0
+/components/sections/signature/     @nafew0
+/app/(site)/page.tsx                @nafew0
+/app/(site)/layout.tsx              @nafew0
+/app/(site)/lab/                    @nafew0
+/docs/                              @nafew0
+
+# --- Grok: back end, worker, GHL, media scripts, deploy, ops ---
+/lib/ghl/                           @nafew0
+/lib/ghl-read/                      @nafew0
+/app/api/v1/                        @nafew0
+/app/api/webhooks/                  @nafew0
+/app/api/health/                    @nafew0
+/worker/                            @nafew0
+/db/migrations/                     @nafew0
+/scripts/                           @nafew0
+/deploy/                            @nafew0
+/Dockerfile.web                     @nafew0
+/Dockerfile.worker                  @nafew0
+/docs/ops/                          @nafew0
+
+# --- Astra: CMS, content pages, forms, tracking, SEO, QA ---
+/payload.config.ts                  @nafew0
+/lib/cms/                           @nafew0
+/app/(payload)/                     @nafew0
+/components/sections/standard/      @nafew0
+/components/forms/                  @nafew0
+/lib/track.ts                       @nafew0
+/lib/seo/                           @nafew0
+/app/sitemap.ts                     @nafew0
+/app/robots.ts                      @nafew0
+/e2e/                               @nafew0
+/.github/workflows/                 @nafew0
+/docs/qa/                           @nafew0

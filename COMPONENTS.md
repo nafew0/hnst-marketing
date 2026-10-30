@@ -13,18 +13,25 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 |-----------|--------|------|
 | Accordion | `@/components/ui/accordion` | Client |
 | AlertDialog | `@/components/ui/alert-dialog` | Client |
+| Badge | `@/components/ui/badge` | Server |
+| Button | `@/components/ui/button` | Server |
+| Card | `@/components/ui/card` | Server |
 | Checkbox | `@/components/ui/checkbox` | Client |
 | ErrorView | `@/components/ui/error-view` | Client |
 | Fold | `@/components/ui/fold` | Client |
 | Form | `@/components/ui/form` | Client |
+| Heading | `@/components/ui/heading` | Server |
+| HorizonDivider | `@/components/ui/horizon-divider` | Server |
 | Image | `@/components/ui/image` | Client |
 | Link | `@/components/ui/link` | Client |
+| Logo | `@/components/ui/logo` | Server |
 | Marquee | `@/components/ui/marquee` | Client |
 | Menu | `@/components/ui/menu` | Client |
 | NotConfigured | `@/components/ui/not-configured` | Server |
 | NotFoundView | `@/components/ui/not-found-view` | Server |
 | RealViewport | `@/components/ui/real-viewport` | Client |
 | Scrollbar | `@/components/ui/scrollbar` | Client |
+| Section | `@/components/ui/section` | Server |
 | Select | `@/components/ui/select` | Client |
 | Switch | `@/components/ui/switch` | Client |
 | Tabs | `@/components/ui/tabs` | Client |

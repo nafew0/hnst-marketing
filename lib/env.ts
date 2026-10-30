@@ -24,6 +24,29 @@ const envSchema = z.object({
   ERROR_REPORT_URL: z.url().optional(),
   ERROR_REPORT_TOKEN: z.string().min(1).optional(),
 
+  // HONEST Marketing. Names are frozen in Phase 1 so the back end (P2/P5)
+  // and front end (P3/P6) never edit this block in parallel; docs/RULES.md.
+  // Mock /api/v1 in the browser with MSW (lib/contracts/mocks). '1' = on.
+  // Inlined at build time: never set it for a production build.
+  NEXT_PUBLIC_API_MOCKS: z.enum(['0', '1']).optional(),
+  // Postgres 17 (docker-compose); Payload and the pg-boss outbox share it.
+  DATABASE_URL: z.url().optional(),
+  PAYLOAD_SECRET: z.string().min(32).optional(),
+  // GoHighLevel API v2. The Private Integration Token is server only: never
+  // give it a NEXT_PUBLIC_ name or log it.
+  GHL_PIT: z.string().min(1).optional(),
+  GHL_LOCATION_ID: z.string().min(1).optional(),
+  GHL_CALENDAR_ID: z.string().min(1).optional(),
+  GHL_PIPELINE_ID: z.string().min(1).optional(),
+  // "Website Leads" stage ids: new leads land in New; a booking moves the
+  // opportunity to Call Booked (P5).
+  GHL_STAGE_NEW_ID: z.string().min(1).optional(),
+  GHL_STAGE_CALL_BOOKED_ID: z.string().min(1).optional(),
+  // Path secret for POST /api/webhooks/ghl-workflow/:key.
+  GHL_WORKFLOW_SECRET: z.string().min(24).optional(),
+  // ALTCHA proof-of-work signing key (self-hosted captcha).
+  ALTCHA_HMAC_KEY: z.string().min(32).optional(),
+
   // Sanity (supports both Satus and Vercel Marketplace conventions)
   NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),
   NEXT_PUBLIC_SANITY_DATASET: z.string().optional(),

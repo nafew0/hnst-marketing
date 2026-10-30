@@ -36,7 +36,7 @@ import s from './alert-dialog.module.css'
  *       <AlertDialog.Description>
  *         This will permanently delete the item.
  *       </AlertDialog.Description>
- *       <div className="flex gap-2">
+ *       <div className="flex dr-gap-8">
  *         <AlertDialog.Close>Cancel</AlertDialog.Close>
  *         <button onClick={handleConfirm}>Confirm</button>
  *       </div>
