@@ -29,6 +29,7 @@ import { brandColor } from './color'
 import { DuneTerrain } from './dune-terrain'
 import { FBM_5, FULLSCREEN_VERTEX, SIMPLEX_3D } from './glsl'
 import { seededRandom } from './gold-material'
+import { Starfield } from './starfield'
 import { StudioLights } from './studio-lights'
 
 /** Chapter ends, shared with the captions in `copy.ts`. */
@@ -38,16 +39,27 @@ const CHAPTER_TWO_END = 0.68
 /** The clutter and the constellation float this high over the dunes. */
 const SKY_Y = 24
 
-const CARD_COUNT = 300
+const CARD_COUNT = 220
 const PARTICLE_COUNT = 3600
 const NODE_COUNT = 26
 const NODE_RING = 1.95
-const CABLE_COUNT = 5
+const CABLE_COUNT = 4
 const ALERT_COUNT = 14
 /** The veil is renderOrder 50 and paints over everything opaque. */
 const OVER_VEIL = 55
 
 const smooth = MathUtils.smoothstep
+
+/** Paper in several colours, so a pile of cards reads as separate things. */
+const CARD_TINTS = [
+  'starlight',
+  'nebula-tint',
+  'starlight',
+  'nebula-teal',
+  'silver',
+  'nebula-rose',
+  'gold',
+] as const
 
 // The gas of every chapter in one shader: cold fog that warms to the nebula,
 // then a veil that thins out from its gaps, showing the dunes behind it.
@@ -60,9 +72,10 @@ uniform float uThin;
 uniform vec3 uVoid;
 uniform vec3 uFogDark;
 uniform vec3 uFogLight;
-uniform vec3 uDeep;
-uniform vec3 uHaze;
-uniform vec3 uBright;
+uniform vec3 uTeal;
+uniform vec3 uViolet;
+uniform vec3 uRose;
+uniform vec3 uHot;
 varying vec2 vUv;
 ${SIMPLEX_3D}
 ${FBM_5}
@@ -72,12 +85,16 @@ void main() {
   float f = fbm(vec3(p + 2.2 * q, uTime * 0.7));
   float density = clamp((f - 0.42) * 2.6, 0.0, 1.0);
   vec3 cold = mix(uFogDark, uFogLight, smoothstep(0.1, 0.9, density));
-  vec3 warm = mix(uVoid, uDeep, smoothstep(0.02, 0.32, density));
-  warm = mix(warm, uHaze, smoothstep(0.22, 0.66, density));
-  warm = mix(warm, uBright, smoothstep(0.58, 1.0, density) * 0.9);
+  // The hero's gas: open space, teal edges, a rose core.
+  float gathered = density * exp(-dot(p, p) * 1.1);
+  vec3 warm = uVoid;
+  warm = mix(warm, uTeal * 0.3, smoothstep(0.01, 0.22, gathered));
+  warm = mix(warm, uViolet * 0.5, smoothstep(0.2, 0.44, gathered));
+  warm = mix(warm, uRose * 0.72, smoothstep(0.4, 0.68, gathered));
+  warm = mix(warm, uHot, smoothstep(0.76, 1.0, gathered) * 0.8);
   vec3 color = mix(cold, warm, uWarm);
   float d = length((vUv - 0.5) * vec2(uAspect, 1.0));
-  color += uBright * uGlow * exp(-d * 2.6) * (0.4 + density);
+  color += uRose * uGlow * exp(-d * 3.2) * (0.1 + density) * 0.22;
   float alpha = smoothstep(uThin - 0.5, uThin + 0.5, density + 0.5);
   gl_FragColor = vec4(color, alpha);
 }
@@ -149,8 +166,9 @@ function createCards(random: () => number) {
   const card = new BoxGeometry(0.62, 0.42, 0.006)
   const cardMaterial = new MeshPhysicalMaterial({
     color: brandColor('starlight'),
-    roughness: 0.35,
-    metalness: 0.25,
+    // Matte paper: a metal would mirror the dark studio and read as black.
+    roughness: 0.75,
+    metalness: 0,
     // Drawn with the transparent pass, so it lands on top of the veil.
     transparent: true,
   })
@@ -172,10 +190,8 @@ function createCards(random: () => number) {
       speed: 1.5 + random() * 3,
       phase: random() * Math.PI * 2,
     }
-    tint
-      .copy(brandColor('silver'))
-      .lerp(brandColor('nebula-tint'), random() * 0.5)
-    tint.multiplyScalar(0.25 + random() * 0.75)
+    tint.copy(brandColor(CARD_TINTS[i % CARD_TINTS.length] ?? 'starlight'))
+    tint.lerp(brandColor('silver'), 0.4).multiplyScalar(0.75 + random() * 0.25)
     cards.setColorAt(i, tint)
     return base
   })
@@ -185,9 +201,10 @@ function createCards(random: () => number) {
 
 function createCables(random: () => number) {
   const material = new MeshPhysicalMaterial({
-    color: brandColor('void-3'),
-    roughness: 0.4,
-    metalness: 0.6,
+    color: brandColor('silver'),
+    emissive: brandColor('nebula-tint'),
+    emissiveIntensity: 0.28,
+    roughness: 0.5,
     transparent: true,
   })
   const group = Array.from({ length: CABLE_COUNT }, () => {
@@ -201,7 +218,7 @@ function createCables(random: () => number) {
         )
     )
     const mesh = new Mesh(
-      new TubeGeometry(new CatmullRomCurve3(points), 120, 0.012, 6),
+      new TubeGeometry(new CatmullRomCurve3(points), 120, 0.008, 6),
       material
     )
     mesh.frustumCulled = false
@@ -301,15 +318,17 @@ function createParts(): FilmParts {
         uGlow: { value: 0 },
         uThin: { value: -1 },
         uVoid: { value: brandColor('void') },
+        // Cold blue-grey weather, well above black, so the clutter stands out.
         uFogDark: {
-          value: brandColor('void-2').lerp(brandColor('nebula-deep'), 0.25),
+          value: brandColor('void-3').lerp(brandColor('silver'), 0.1),
         },
         uFogLight: {
-          value: brandColor('silver').lerp(brandColor('nebula-haze'), 0.82),
+          value: brandColor('silver').lerp(brandColor('nebula-haze'), 0.55),
         },
-        uDeep: { value: brandColor('nebula-deep') },
-        uHaze: { value: brandColor('nebula-haze') },
-        uBright: { value: brandColor('nebula-glow') },
+        uTeal: { value: brandColor('nebula-teal') },
+        uViolet: { value: brandColor('nebula-glow') },
+        uRose: { value: brandColor('nebula-rose') },
+        uHot: { value: brandColor('starlight') },
       },
       vertexShader: FULLSCREEN_VERTEX,
       fragmentShader: VEIL_FRAGMENT,
@@ -498,17 +517,24 @@ export function FilmWorld({ progressRef }: { progressRef: RefObject<number> }) {
   const [parts] = useState(createParts)
   const skyRef = useRef<Group>(null)
   const ringRef = useRef<Group>(null)
+  const starsRef = useRef<Group>(null)
   useEffect(() => () => disposeParts(parts), [parts])
 
   useFrame(({ camera, viewport }) => {
     if (!(camera instanceof PerspectiveCamera) || !skyRef.current) return
     poseFilm(parts, camera, skyRef.current, progressRef.current, viewport.dpr)
     if (ringRef.current) fitRing(ringRef.current, camera.aspect)
+    if (starsRef.current) {
+      starsRef.current.visible =
+        progressRef.current > CHAPTER_ONE_END - 0.04 &&
+        progressRef.current < 0.8
+    }
   })
 
   return (
     <>
       <StudioLights />
+      <ambientLight intensity={1.1} />
       <DuneTerrain moveCamera={false} />
       <group ref={skyRef}>
         <primitive object={parts.cards} />
@@ -516,6 +542,9 @@ export function FilmWorld({ progressRef }: { progressRef: RefObject<number> }) {
         {parts.cables.group.map((cable) => (
           <primitive key={cable.uuid} object={cable} />
         ))}
+        <group ref={starsRef}>
+          <Starfield renderOrder={OVER_VEIL - 1} />
+        </group>
         <group ref={ringRef}>
           <points
             frustumCulled={false}

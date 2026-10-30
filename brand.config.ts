@@ -43,6 +43,8 @@ const palette = {
   'nebula-haze': 'oklch(0.4368 0.0507 309.43)', // #5a4a67 brand Nebula, mid haze
   'nebula-deep': 'oklch(0.2678 0.0558 299.53)', // #2a1f3d deep plum shadow
   'nebula-tint': 'oklch(0.7583 0.0913 298.77)', // #b8a4e3 lavender rim light
+  'nebula-teal': 'oklch(0.6758 0.1121 221.72)', // #2fa6c8 outer wisps (atmosphere only)
+  'nebula-rose': 'oklch(0.6933 0.1505 7.13)', // #e8708c hot core (atmosphere only)
 
   // Accent and semantic
   amber: 'oklch(0.6678 0.1531 42.62)', // #e07040 ≤5% micro-highlights (retune pending)

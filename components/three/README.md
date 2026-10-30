@@ -42,6 +42,8 @@ Tier 0 and tier 1 (reduced motion, Save-Data, phones, narrow or software-GPU scr
 | `DuneTerrain`    | Simplex dunes lit by a golden-hour sun, fogged into the sky behind them, so the plane has no visible edge.                                                                                                                                                                                                    | `cameraGlideRef` / `cameraGlide` (0–1)                                           |
 | `GoldGlintPlane` | Brushed gold with an anisotropic streak (faint at rest, bright on hover) and a molten reveal edge. For the package cards.                                                                                                                                                                                     | `hover`, `reveal` (0–1)                                                          |
 
+`PlanetRim` is the hero's dark planet with its gold horizon and a small moon, all in one full-view shader. `NebulaGas` and `Starfield` take a `fieldRef` (`pointer-field.ts`) to react to hover and clicks.
+
 `FilmWorld` is S2's film from one progress value: cold clutter that dissolves into gold, a ring of 26 points, then a thinning veil over the dunes. It is rendered to frames on `/lab/posters`, never shown live.
 
 Building blocks: `goldMaterial()`, `smokedGlassMaterial()`, `<StudioLights>` (six Lightformers baked once into the environment), `withDissolve(material)`, and `brandColor(name)`. three cannot parse `oklch()`, so `brandColor` converts `brand.config.ts` OKLCH to linear sRGB. Every colour comes from the config: change `nebula-glow` and the gas re-colours.

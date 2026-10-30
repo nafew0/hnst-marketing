@@ -11,6 +11,7 @@ import type { CaptureFn, SceneCamera } from '@/components/three'
 import { DuneTerrain } from '@/components/three/dune-terrain'
 import { FilmWorld } from '@/components/three/film-world'
 import { GoldGlintPlane } from '@/components/three/gold-glint-plane'
+import { createPointerField } from '@/components/three/pointer-field'
 import { ViewportScene } from '@/components/three/viewport-scene'
 import { Button } from '@/components/ui/button'
 import { Eyebrow, Heading } from '@/components/ui/heading'
@@ -21,6 +22,7 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 const SETTLE_MS = 3200
 
 const noScroll = { current: 0 }
+const stillField = { current: createPointerField() }
 const FILM_CAMERA: SceneCamera = { fov: 35, position: [0, 24, 10] }
 const FILM_FRAMES = 72
 const FILM_WIDTHS = { desktop: 1120, mobile: 620 } as const
@@ -44,7 +46,7 @@ const POSTERS: PosterSpec[] = [
     width: 1600,
     aspect: '16 / 9',
     camera: HERO_CAMERA,
-    world: <HeroWorld progressRef={noScroll} />,
+    world: <HeroWorld progressRef={noScroll} fieldRef={stillField} />,
   },
   {
     id: 'hero-mobile',
@@ -52,7 +54,7 @@ const POSTERS: PosterSpec[] = [
     width: 780,
     aspect: '9 / 19',
     camera: HERO_CAMERA,
-    world: <HeroWorld progressRef={noScroll} portrait />,
+    world: <HeroWorld progressRef={noScroll} fieldRef={stillField} portrait />,
   },
   {
     id: 'platter-stage',

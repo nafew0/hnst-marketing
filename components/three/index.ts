@@ -10,6 +10,13 @@ export {
   type PlatterState,
 } from './golden-platter'
 export { NebulaGas } from './nebula-gas'
+export { PlanetRim } from './planet-rim'
+export {
+  createPointerField,
+  type PointerField,
+  pulseAt,
+  stepPointerField,
+} from './pointer-field'
 export { readTriangles } from './scene-stats'
 export { Starfield } from './starfield'
 export { StudioLights } from './studio-lights'
