@@ -4,10 +4,12 @@ import { draftMode } from 'next/headers'
 import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
+import { PrivacyControls } from '@/components/forms/privacy'
 import { DeviceTierProvider } from '@/components/motion/device-tier'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
+import { getSettings } from '@/lib/cms/data'
 import { ApiMocks } from '@/lib/contracts/mocks/api-mocks'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
@@ -16,6 +18,13 @@ import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
+
+import '@/lib/styles/css/index.css'
+
+import { fontsVariable } from '@/lib/styles/fonts'
+
+// Editorial updates and consent settings must take effect without a rebuild.
+export const dynamic = 'force-dynamic'
 
 const APP_NAME = SITE.name
 const APP_DEFAULT_TITLE = SITE.name
@@ -88,38 +97,48 @@ export const viewport: Viewport = {
  * toasts, Visual Editing or JSON-LD.
  */
 export default async function AppLayout({ children }: PropsWithChildren) {
+  const settings = await getSettings()
   const { isEnabled: isDraftMode } = await draftMode()
   return (
-    <>
-      {/* On every page, not just home: deep pages are landed on directly far more often. */}
-      <JsonLd data={organizationSchema()} />
-      <JsonLd data={websiteSchema()} />
-      <Suspense fallback={null}>
-        <Link
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-gap focus:left-gap focus:z-9999 focus:rounded-full focus:bg-gold focus:dr-px-16 focus:dr-py-8 focus:text-void focus:ring-2 focus:ring-starlight focus:outline-none"
-        >
-          Skip to main content
-        </Link>
-      </Suspense>
-      <RealViewport>
-        <ToastProvider>
-          <TransformProvider>
-            {/*
+    <html
+      lang="en"
+      dir="ltr"
+      className={fontsVariable}
+      data-theme="dark"
+      suppressHydrationWarning
+    >
+      <body>
+        {/* On every page, not just home: deep pages are landed on directly far more often. */}
+        <JsonLd data={organizationSchema()} />
+        <JsonLd data={websiteSchema()} />
+        <Suspense fallback={null}>
+          <Link
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-gap focus:left-gap focus:z-9999 focus:rounded-full focus:bg-gold focus:dr-px-16 focus:dr-py-8 focus:text-void focus:ring-2 focus:ring-starlight focus:outline-none"
+          >
+            Skip to main content
+          </Link>
+        </Suspense>
+        <RealViewport>
+          <ToastProvider>
+            <TransformProvider>
+              {/*
               DO NOT add Header or Footer here.
               They are included in the <Wrapper> component used by each page.
               See: components/layout/wrapper/index.tsx
             */}
-            <DeviceTierProvider>{children}</DeviceTierProvider>
-          </TransformProvider>
-          <ToastViewport />
-        </ToastProvider>
-      </RealViewport>
-      <OptionalFeatures />
-      <ApiMocks />
+              <DeviceTierProvider>{children}</DeviceTierProvider>
+            </TransformProvider>
+            <ToastViewport />
+          </ToastProvider>
+        </RealViewport>
+        <OptionalFeatures />
+        <ApiMocks />
+        <PrivacyControls trackingId={settings?.ghlTrackingId ?? ''} />
 
-      {/* Not patched in draft mode, to avoid conflicts. */}
-      <ReactTempus patch={!isDraftMode} />
-    </>
+        {/* Not patched in draft mode, to avoid conflicts. */}
+        <ReactTempus patch={!isDraftMode} />
+      </body>
+    </html>
   )
 }
