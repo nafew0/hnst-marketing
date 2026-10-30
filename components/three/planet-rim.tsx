@@ -16,7 +16,8 @@ import { FULLSCREEN_VERTEX, SIMPLEX_3D } from './glsl'
 import type { PointerField } from './pointer-field'
 
 const LANDSCAPE = { centre: [0.62, -1.02], radius: 1.28, moon: [0.45, 0.84] }
-const PORTRAIT = { centre: [0.5, -0.62], radius: 0.86, moon: [0.82, 0.9] }
+// The crest sits just under the logo; the text below reads on the dark disc.
+const PORTRAIT = { centre: [0.5, -0.22], radius: 0.84, moon: [0.82, 0.9] }
 
 const FRAGMENT = /* glsl */ `
 uniform float uAspect;

@@ -62,8 +62,10 @@ void main() {
   // Clouds with open space around them: one body of gas around uLightPos and a
   // few stray wisps, instead of a ceiling of purple over the whole frame.
   vec2 fromCore = (vUv - uLightPos) * aspect;
-  float body = exp(-dot(fromCore, fromCore) * 5.2);
-  float stray = smoothstep(0.54, 0.78, fbm(vec3(p * 0.42 + 7.0, t * 0.3))) * 0.3;
+  // Sized by the shorter side, so a phone gets a cloud and not a full screen.
+  float short_ = min(uAspect, 1.0);
+  float body = exp(-dot(fromCore, fromCore) * 5.2 / (short_ * short_));
+  float stray = smoothstep(0.54, 0.78, fbm(vec3(p * 0.42 + 7.0, t * 0.3))) * 0.3 * short_;
   float presence = clamp(body + stray, 0.0, 1.0);
   float density = clamp((f - 0.44 + q.x * 0.1) * 2.1 * uDensity, 0.0, 1.0) * presence;
 
