@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { z } from 'zod'
 
 import { PackageInterestForm } from '@/components/forms/lead-form'
 import {
@@ -40,6 +41,7 @@ export default async function PackagePage({ params }: Props) {
   ])
   const item = packages.find((p) => p.tier === tier)
   if (!item) notFound()
+  const legal = z.object({ slug: z.string() }).safeParse(item.legalDoc)
   return (
     <PageShell>
       <JsonLd data={serviceSchema(item)} />
@@ -61,14 +63,18 @@ export default async function PackagePage({ params }: Props) {
               </div>
             ))}
             <p className="p text-silver">{settings?.toolCostDisclosure}</p>
-            <Button variant="link" href={`/legal/${item.tier}-terms`}>
-              Package terms
-            </Button>
+            <>
+              {legal.success && (
+                <Button variant="link" href={`/legal/${legal.data.slug}`}>
+                  Package terms
+                </Button>
+              )}
+            </>
             <Button variant="link" href="/packages">
               Compare all packages
             </Button>
           </div>
-          <div className="rounded-2xl border border-gold/30 bg-void-2 dr-p-32">
+          <div className="rounded-[16px] border border-gold/30 bg-void-2 dr-p-32">
             <Heading as="h2" size="h3" className="dr-mb-24">
               Let’s explore the fit.
             </Heading>

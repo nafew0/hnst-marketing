@@ -1,3 +1,4 @@
+import { ScrollArea } from '@base-ui/react/scroll-area'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { ReactNode } from 'react'
 
@@ -109,55 +110,62 @@ export function PackageGrid({ items }: { items: Package[] }) {
 }
 export function ComparisonTable({ items }: { items: Package[] }) {
   return (
-    <div
-      role="region"
-      aria-label="Package comparison"
-      className="rounded-2xl overflow-x-auto border border-gold/20"
-    >
-      <table className="w-full min-w-[700px] text-left p">
-        <caption className="sr-only">
-          HONEST Marketing package comparison
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col" className="dr-p-24">
-              Included
-            </th>
-            {items.map((item) => (
-              <th key={item.id} scope="col" className="dr-p-24 text-gold">
-                {item.name}
+    <ScrollArea.Root className="min-w-0 overflow-hidden rounded-[16px] border border-gold/20">
+      <ScrollArea.Viewport
+        role="region"
+        aria-label="Package comparison"
+        className="w-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+      >
+        <table className="w-full min-w-[700px] text-left p">
+          <caption className="sr-only">
+            HONEST Marketing package comparison
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col" className="dr-p-24">
+                Included
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {[
-            { label: 'Delivery', values: items.map((item) => item.turnaround) },
-            {
-              label: 'Specialist bots',
-              values: items.map((item) => item.bots ?? 'Scope agreed together'),
-            },
-            {
-              label: 'Revisions',
-              values: items.map(
-                (item) => item.revisions ?? 'Scope agreed together'
-              ),
-            },
-          ].map((row) => (
-            <tr key={row.label} className="border-t border-gold/20">
-              <th scope="row" className="dr-p-24">
-                {row.label}
-              </th>
-              {row.values.map((value, index) => (
-                <td key={items[index]?.id} className="dr-p-24 text-silver">
-                  {value}
-                </td>
+              {items.map((item) => (
+                <th key={item.id} scope="col" className="dr-p-24 text-gold">
+                  {item.name}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {[
+              {
+                label: 'Delivery',
+                values: items.map((item) => item.turnaround),
+              },
+              {
+                label: 'Specialist bots',
+                values: items.map(
+                  (item) => item.bots ?? 'Scope agreed together'
+                ),
+              },
+              {
+                label: 'Revisions',
+                values: items.map(
+                  (item) => item.revisions ?? 'Scope agreed together'
+                ),
+              },
+            ].map((row) => (
+              <tr key={row.label} className="border-t border-gold/20">
+                <th scope="row" className="dr-p-24">
+                  {row.label}
+                </th>
+                {row.values.map((value, index) => (
+                  <td key={items[index]?.id} className="dr-p-24 text-silver">
+                    {value}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </ScrollArea.Viewport>
+    </ScrollArea.Root>
   )
 }
 export function FaqList({ items }: { items: Faq[] }) {

@@ -36,13 +36,13 @@ export default async function ContactPage() {
             {settings?.publicEmail && (
               <Link
                 href={`mailto:${settings.publicEmail}`}
-                className="mt-8 inline-block text-gold"
+                className="dr-mt-32 inline-block text-gold"
               >
                 {settings.publicEmail}
               </Link>
             )}
           </div>
-          <div className="rounded-2xl border border-gold/30 bg-void-2 dr-p-32">
+          <div className="rounded-[16px] border border-gold/30 bg-void-2 dr-p-32">
             <ContactForm consent={consentCopy(settings)} />
           </div>
         </Container>

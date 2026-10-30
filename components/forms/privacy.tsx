@@ -1,23 +1,53 @@
 'use client'
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import * as CookieConsent from 'vanilla-cookieconsent'
 
 import 'vanilla-cookieconsent/dist/cookieconsent.css'
+import './privacy.css'
 import { captureAttribution } from '@/components/forms/attribution'
+import { getTrackingId } from '@/components/forms/tracking-settings'
 import { flushEvents, setTrackingConsent, track } from '@/lib/track'
 let trackingScript: HTMLScriptElement | undefined
-export function PrivacyControls({ trackingId = '' }: { trackingId?: string }) {
+export function openPrivacyPreferences() {
+  CookieConsent.showPreferences()
+}
+const trackingKeys =
+  /^(?:_landing-page|v2_(?:session_history|contact_session|history)|v3_first_session_event|_ga|_gid|_gcl|_gat|hl_|ghl_|leadconnector)/u
+function clearAnalyticsStorage() {
+  try {
+    for (const storage of [localStorage, sessionStorage]) {
+      for (const key of Object.keys(storage))
+        if (trackingKeys.test(key)) storage.removeItem(key)
+    }
+  } catch {
+    /* Storage may be disabled by the browser. */
+  }
+}
+export function PrivacyControls() {
   const pathname = usePathname()
+  const viewedRef = useRef<string | null>(null)
   useEffect(() => {
     captureAttribution()
   }, [])
   useEffect(() => {
     let active = true
-    const sync = () => {
+    const sync = async () => {
       if (!active) return
       const accepted = CookieConsent.acceptedCategory('analytics')
       setTrackingConsent(accepted)
+      if (!accepted) clearAnalyticsStorage()
+      if (
+        accepted &&
+        (pathname === '/packages' || pathname.startsWith('/packages/')) &&
+        viewedRef.current !== pathname
+      ) {
+        viewedRef.current = pathname
+        track('pricing_viewed', { path: pathname })
+      }
+      const trackingId = accepted ? await getTrackingId() : ''
+      if (!active || accepted !== CookieConsent.acceptedCategory('analytics'))
+        return
       if (
         accepted &&
         trackingId &&
@@ -35,12 +65,15 @@ export function PrivacyControls({ trackingId = '' }: { trackingId?: string }) {
         window.location.reload()
       }
     }
-    window.addEventListener('hnst:consent', sync)
+    const changed = () => {
+      void sync()
+    }
+    window.addEventListener('hnst:consent', changed)
     void CookieConsent.run({
-      hideFromBots: false,
+      hideFromBots: true,
       categories: {
         necessary: { enabled: true, readOnly: true },
-        analytics: {},
+        analytics: { autoClear: { cookies: [{ name: trackingKeys }] } },
       },
       onConsent: () => window.dispatchEvent(new Event('hnst:consent')),
       onChange: () => window.dispatchEvent(new Event('hnst:consent')),
@@ -92,12 +125,8 @@ export function PrivacyControls({ trackingId = '' }: { trackingId?: string }) {
       active = false
       clearInterval(interval)
       window.removeEventListener('pagehide', hide)
-      window.removeEventListener('hnst:consent', sync)
+      window.removeEventListener('hnst:consent', changed)
     }
-  }, [trackingId])
-  useEffect(() => {
-    if (pathname === '/packages' || pathname.startsWith('/packages/'))
-      track('pricing_viewed', { path: pathname })
   }, [pathname])
   useEffect(() => {
     const click = (event: MouseEvent) => {
@@ -115,7 +144,7 @@ export function PrivacyControls({ trackingId = '' }: { trackingId?: string }) {
   return (
     <button
       type="button"
-      onClick={() => CookieConsent.showPreferences()}
+      onClick={openPrivacyPreferences}
       className="fixed right-[12px] bottom-[12px] z-50 rounded-full border border-gold/40 bg-void dr-px-16 dr-py-8 caption text-starlight"
     >
       Privacy choices

@@ -20,8 +20,8 @@ export function Captcha() {
       const widget = document.createElement('altcha-widget')
       element = widget
       widget.setAttribute('name', 'altcha')
+      widget.setAttribute('configuration', JSON.stringify({ challenge }))
       hostRef.current.append(widget)
-      await widget.configure({ challenge })
     }
     void setup().catch(() => {
       if (active) setFailed(true)

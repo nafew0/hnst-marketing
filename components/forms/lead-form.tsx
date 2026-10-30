@@ -20,6 +20,7 @@ import {
   type Tier,
 } from '@/lib/contracts'
 import { api, newIdempotencyKey, toFormState } from '@/lib/contracts/client'
+import { HONEYPOT_FIELD } from '@/lib/ghl/constants'
 import type { FormState } from '@/lib/types/form'
 import { zodToValidator } from '@/utils/validation'
 addValidator('firstName', zodToValidator(nameSchema))
@@ -35,17 +36,29 @@ interface Props {
   type: 'contact' | 'package' | 'magnet'
   tier?: Tier
 }
+function PhoneConsentError() {
+  const { state } = useFormContext()
+  const message = state.formState?.fieldErrors?.phone
+  return message ? (
+    <p role="alert" className="caption text-danger">
+      {message}
+    </p>
+  ) : null
+}
 function ServerErrors() {
   const { state } = useFormContext()
   const errors = state.formState?.fieldErrors
   if (!errors) return null
   return (
     <ul role="alert" className="text-danger">
-      {Object.entries(errors).map(([field, message]) => (
-        <li key={field}>
-          {field}: {message}
-        </li>
-      ))}
+      {Object.entries(errors)
+        .filter(
+          ([field]) =>
+            !['firstName', 'email', 'phone', 'message'].includes(field)
+        )
+        .map(([field, message]) => (
+          <li key={field}>{message}</li>
+        ))}
     </ul>
   )
 }
@@ -62,7 +75,7 @@ export function LeadForm({ consent, type, tier }: Props) {
     if (completeRef.current)
       return { status: 202, message: 'Already received.' }
     const field = (name: string) => String(data.get(name) ?? '')
-    if (field('website_confirm'))
+    if (field(HONEYPOT_FIELD))
       return { status: 400, message: 'Unable to submit this form.' }
     if (!consent.approved && process.env.NEXT_PUBLIC_API_MOCKS !== '1')
       return { status: 503, message: 'This form is not available yet.' }
@@ -94,13 +107,23 @@ export function LeadForm({ consent, type, tier }: Props) {
           ])
         ),
       }
-    const serialized = JSON.stringify(parsed.data)
+    const visitor = parsed.data
+    const serialized = JSON.stringify({
+      type: visitor.type,
+      firstName: visitor.firstName,
+      email: visitor.email,
+      phone: visitor.phone,
+      message: visitor.message,
+      tier: visitor.packageInterest,
+      consent: { email: visitor.consent.email, sms: visitor.consent.sms },
+    })
     // Changed input is a new submission; unchanged retries retain the key.
     if (keyRef.current === null || payloadRef.current !== serialized) {
       keyRef.current = newIdempotencyKey()
       payloadRef.current = serialized
     }
-    const result = await api.submitLead(parsed.data, keyRef.current)
+    const body = { ...parsed.data, [HONEYPOT_FIELD]: '' }
+    const result = await api.submitLead(body, keyRef.current)
     if (result.ok) {
       completeRef.current = true
       keyRef.current = null
@@ -141,6 +164,7 @@ export function LeadForm({ consent, type, tier }: Props) {
         type="tel"
         label="Phone (optional, international format)"
       />
+      <PhoneConsentError />
       {type !== 'magnet' && (
         <TextareaField
           id={`${id}-message`}
@@ -152,20 +176,20 @@ export function LeadForm({ consent, type, tier }: Props) {
         <label htmlFor={`${id}-website-confirm`}>Leave this empty</label>
         <input
           id={`${id}-website-confirm`}
-          name="website_confirm"
+          name={HONEYPOT_FIELD}
           autoComplete="off"
           tabIndex={-1}
         />
       </div>
       <fieldset className="flex flex-col dr-gap-16">
-        <legend className="font-medium dr-mb-12 p">
+        <legend className="dr-mb-12 p font-[500]">
           Stay in touch (optional)
         </legend>
         <label className="flex items-start dr-gap-12 p">
           <input
             type="checkbox"
             name="consent.email"
-            className="mt-1 size-5 shrink-0 accent-gold"
+            className="mt-[4px] size-[20px] shrink-0 appearance-auto accent-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
           />
           <span>{consent.email}</span>
         </label>
@@ -173,7 +197,7 @@ export function LeadForm({ consent, type, tier }: Props) {
           <input
             type="checkbox"
             name="consent.sms"
-            className="mt-1 size-5 shrink-0 accent-gold"
+            className="mt-[4px] size-[20px] shrink-0 appearance-auto accent-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
           />
           <span>{consent.sms}</span>
         </label>

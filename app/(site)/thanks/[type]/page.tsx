@@ -22,7 +22,7 @@ export default async function ThanksPage({
   params: Promise<{ type: string }>
 }) {
   const { type } = await params
-  if (!(type in messages)) notFound()
+  if (!Object.hasOwn(messages, type)) notFound()
   const message = Object.entries(messages).find(([key]) => key === type)?.[1]
   return (
     <PageShell>

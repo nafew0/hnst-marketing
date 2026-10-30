@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <PageShell>
       <PageHero
-        title="A little off the map."
+        title="404"
         description="We couldn’t find that page. Let’s get you back on track."
         eyebrow="404 — PAGE NOT FOUND"
       />
