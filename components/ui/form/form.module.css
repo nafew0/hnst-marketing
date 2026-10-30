@@ -19,8 +19,8 @@
       background: var(--color-success);
     }
 
+    /* Stays clickable: this is the "Try again" state. */
     &.error {
-      pointer-events: none;
       background: var(--color-danger);
     }
 
