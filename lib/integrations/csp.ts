@@ -39,6 +39,8 @@ export const PROJECT_CSP_EXTRA_SOURCES: CspSources = {
     'https://services.leadconnectorhq.com',
     'https://backend.leadconnectorhq.com',
   ],
+  // The GoHighLevel calendar embed /book falls back to when the API is down.
+  'frame-src': ['https://api.leadconnectorhq.com'],
   'worker-src': ["'self'", 'blob:'],
 }
 

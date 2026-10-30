@@ -235,9 +235,9 @@ export async function listRecoverableBookings(
 }
 
 /**
- * Serializes two requests that share an Idempotency-Key. The lock is held
- * on this connection while `run` uses the pool, so a second booking waits
- * until the first has stored 201 or 202.
+ * Serializes two requests that share an Idempotency-Key, so a second booking
+ * waits until the first has stored 201 or 202. Pass `getBookingLockPool()`:
+ * the lock's connection stays held while `run` uses the main pool.
  */
 export async function withBookingLock<T>(
   db: Pool,

@@ -199,6 +199,35 @@ describe('booking', () => {
     expect(queued).toHaveLength(2)
   })
 
+  it('keeps the booking when a step fails after the appointment exists', async () => {
+    const { rows, store } = memoryStore()
+    const { client, counts } = fakeGhl('ok')
+    const failing: GhlClient = {
+      ...client,
+      async upsertOpportunity() {
+        throw new GhlRequestError('Call Booked stage id is not set', 0, null)
+      },
+    }
+    const queued: string[] = []
+    const booked = deps(store, failing, queued)
+    const first = await acceptBooking(
+      { idempotencyKey: key, body: sampleBooking, ip: null, userAgent: null },
+      booked
+    )
+    const retry = await acceptBooking(
+      { idempotencyKey: key, body: sampleBooking, ip: null, userAgent: null },
+      booked
+    )
+    expect(first.ok).toBe(true)
+    if (first.ok && first.status === 201) {
+      expect(first.body.appointmentId).toBe('appt-1')
+    }
+    expect(retry).toEqual(first)
+    expect(counts.appointments).toBe(1)
+    expect(rows.size).toBe(1)
+    expect(queued).toHaveLength(1)
+  })
+
   it('resumes a partial booking without creating a second contact', async () => {
     const { client, counts } = fakeGhl('ok')
     const row: StoredBooking = {

@@ -5,7 +5,7 @@ import { leadInputSchema } from '@/lib/contracts'
 import { env } from '@/lib/env'
 
 import type { NewLead } from './accept-lead'
-import { HEARTBEAT_ID } from './constants'
+import { BOOKING_LOCK_CONNECTIONS, HEARTBEAT_ID } from './constants'
 import type { LeadProgress, OutboxLead } from './types'
 
 const leadStatusSchema = z.enum([
@@ -38,6 +38,7 @@ const beatSchema = z.object({
 })
 
 let pool: Pool | undefined
+let lockPool: Pool | undefined
 
 export function getPool(): Pool {
   const databaseUrl = env.DATABASE_URL
@@ -50,11 +51,27 @@ export function getPool(): Pool {
   return pool
 }
 
+/**
+ * Holds booking advisory locks and nothing else. `run` queries the main pool
+ * while its lock is held, so sharing one pool freezes as soon as every
+ * connection holds a lock and waits for another. Cost: at most this many
+ * bookings run at once; the rest wait for a connection here.
+ */
+export function getBookingLockPool(): Pool {
+  const databaseUrl = env.DATABASE_URL
+  if (!databaseUrl) throw new Error('DATABASE_URL is not set')
+  lockPool ??= new Pool({
+    connectionString: databaseUrl,
+    max: BOOKING_LOCK_CONNECTIONS,
+  })
+  return lockPool
+}
+
 export async function closePool(): Promise<void> {
-  if (!pool) return
-  const current = pool
+  const open = [pool, lockPool].filter((current) => current !== undefined)
   pool = undefined
-  await current.end()
+  lockPool = undefined
+  await Promise.all(open.map((current) => current.end()))
 }
 
 export async function pingDatabase(db: Pool): Promise<boolean> {

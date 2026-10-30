@@ -13,7 +13,7 @@ import {
 } from '@/lib/ghl/booking-store'
 import { verifyAltcha } from '@/lib/ghl/captcha'
 import { ghlFromEnv } from '@/lib/ghl/from-env'
-import { getPool } from '@/lib/ghl/postgres'
+import { getBookingLockPool, getPool } from '@/lib/ghl/postgres'
 import { enqueueBooking } from '@/lib/ghl/queue'
 import { clientIp, userAgent } from '@/lib/ghl/request-meta'
 import { errorJson, noStore } from '@/lib/ghl/respond'
@@ -40,27 +40,30 @@ export async function POST(request: Request) {
   const header = request.headers.get(IDEMPOTENCY_HEADER)
   try {
     const db = getPool()
-    const result = await withBookingLock(db, header ?? '', () =>
-      acceptBooking(
-        {
-          idempotencyKey: header,
-          body,
-          ip: clientIp(request),
-          userAgent: userAgent(request),
-        },
-        {
-          verifyCaptcha: (payload) => verifyAltcha(payload, hmacKey),
-          store: {
-            find: (key) => findBooking(db, key),
-            claim: (input) => claimBooking(db, input),
-            save: (row) => saveBooking(db, row),
-            remove: (ref) => removeBooking(db, ref),
+    const result = await withBookingLock(
+      getBookingLockPool(),
+      header ?? '',
+      () =>
+        acceptBooking(
+          {
+            idempotencyKey: header,
+            body,
+            ip: clientIp(request),
+            userAgent: userAgent(request),
           },
-          ghl: ghlFromEnv(),
-          enqueue: enqueueBooking,
-          now: () => new Date().toISOString(),
-        }
-      )
+          {
+            verifyCaptcha: (payload) => verifyAltcha(payload, hmacKey),
+            store: {
+              find: (key) => findBooking(db, key),
+              claim: (input) => claimBooking(db, input),
+              save: (row) => saveBooking(db, row),
+              remove: (ref) => removeBooking(db, ref),
+            },
+            ghl: ghlFromEnv(),
+            enqueue: enqueueBooking,
+            now: () => new Date().toISOString(),
+          }
+        )
     )
     if (result.ok) {
       return NextResponse.json(result.body, {

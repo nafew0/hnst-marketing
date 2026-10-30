@@ -57,11 +57,17 @@ export const EVENTS_FLUSH_LOCK = 582026
 /** Advisory-lock class for one Idempotency-Key. Paired with hashtext(key). */
 export const BOOKING_LOCK_CLASS = 582027
 
+/** Connections reserved for booking locks, separate from the main pool. */
+export const BOOKING_LOCK_CONNECTIONS = 5
+
 /** Events with no email are not a contact. Keep them this long, then delete. */
 export const ANONYMOUS_EVENT_DAYS = 30
 
 /** In-memory free-slot cache, per (from, to, tz). */
 export const SLOT_CACHE_MS = 60_000
+
+/** Upper bound on cached (from, to, tz) entries. */
+export const SLOT_CACHE_MAX_ENTRIES = 500
 
 /** Data Cache tag for GET /api/v1/offers. The offer-changed webhook expires it. */
 export const OFFERS_CACHE_TAG = 'offers'
