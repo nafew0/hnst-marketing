@@ -40,6 +40,10 @@
     gap: mobile-vw(20px);
   }
 
+  .noteWrap {
+    order: 3;
+  }
+
   .item {
     display: flex;
     flex-direction: column;
@@ -130,6 +134,15 @@
       background: color-mix(in oklab, var(--color-void-deep) 72%, transparent);
       white-space: nowrap;
       will-change: transform, opacity;
+    }
+
+    /* Under the floating labels, clear of the page's corner label. */
+    .track[data-live] .noteWrap {
+      position: absolute;
+      right: 0;
+      bottom: desktop-vw(40px);
+      left: 0;
+      text-align: right;
     }
 
     /* Still read out with the list; the static layout shows it on screen. */

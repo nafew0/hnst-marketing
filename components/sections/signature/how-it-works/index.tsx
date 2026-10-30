@@ -4,7 +4,6 @@ import {
   stepsCopy,
 } from '@/components/sections/signature/copy'
 import { RevealHeading } from '@/components/sections/signature/reveal-heading'
-import { Eyebrow } from '@/components/ui/heading'
 
 import { StepsArc } from './steps-arc'
 
@@ -24,9 +23,9 @@ export function HowItWorks({
     <section className={s.section} aria-labelledby="steps-title">
       <StepsArc
         steps={steps}
+        note={stepsCopy.note}
         intro={
           <div className={s.intro}>
-            <Eyebrow>{stepsCopy.eyebrow}</Eyebrow>
             <RevealHeading id="steps-title">{stepsCopy.heading}</RevealHeading>
           </div>
         }

@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test'
 // above it, as a visitor arriving there would.
 const startAboveStatement = (page: Page) =>
   page
-    .locator('[aria-hidden="true"]', { hasText: 'You own everything' })
+    .locator('[aria-hidden="true"]', { hasText: 'all by hand' })
     .evaluate((element) => {
       window.scrollTo(
         0,
@@ -17,7 +17,7 @@ const startAboveStatement = (page: Page) =>
 
 const wordOpacities = (page: Page) =>
   page
-    .locator('[aria-hidden="true"]', { hasText: 'You own everything' })
+    .locator('[aria-hidden="true"]', { hasText: 'all by hand' })
     .locator('[class*="word"]')
     .evaluateAll((words) =>
       words.map((word) => Number(getComputedStyle(word).opacity))
@@ -84,7 +84,7 @@ test('with reduced motion, the manifesto fades once when it scrolls into view', 
   expect(new Set(await wordOpacities(page))).toEqual(new Set([0.5]))
 
   await page
-    .locator('[aria-hidden="true"]', { hasText: 'You own everything' })
+    .locator('[aria-hidden="true"]', { hasText: 'all by hand' })
     .scrollIntoViewIfNeeded()
   await expect
     .poll(async () => new Set(await wordOpacities(page)))

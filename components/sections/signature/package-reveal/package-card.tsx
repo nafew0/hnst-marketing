@@ -196,7 +196,7 @@ export function PackageCard({
 
       <div className={s.face}>
         <div className={s.head}>
-          {item.highlight && <Badge className={s.badge}>Recommended</Badge>}
+          {item.badge && <Badge className={s.badge}>{item.badge}</Badge>}
           <h3 className={cn(s.name, 'h4')}>{name}</h3>
         </div>
         <p className={cn(s.price, 'h2')}>

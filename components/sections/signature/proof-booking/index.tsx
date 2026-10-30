@@ -14,7 +14,7 @@ import s from './proof-booking.module.css'
  * closing band with the one gold booking button.
  */
 export function ProofBooking() {
-  const { eyebrow, heading, body, shots, ctaHeading, ctaBody, cta } = proofCopy
+  const { eyebrow, heading, body, shots, ctaHeading, cta } = proofCopy
   return (
     <>
       <section className={s.proof} aria-labelledby="proof-title">
@@ -37,9 +37,6 @@ export function ProofBooking() {
             <Heading id="cta-title" size="h1">
               {ctaHeading}
             </Heading>
-            <p className="max-w-[44ch] p-big text-pretty text-silver">
-              {ctaBody}
-            </p>
             <Button href={cta.href} size="lg">
               {cta.label}
             </Button>

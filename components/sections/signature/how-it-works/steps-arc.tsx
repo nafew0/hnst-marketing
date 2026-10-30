@@ -33,9 +33,11 @@ function lightSteps(list: HTMLOListElement | null, progress: number) {
 export function StepsArc({
   steps,
   intro,
+  note,
 }: {
   steps: readonly ProcessStep[]
   intro: ReactNode
+  note: string
 }) {
   const { state } = useDeviceTier()
   const { isMobile } = useDeviceDetection()
@@ -142,6 +144,7 @@ export function StepsArc({
                 </li>
               ))}
             </ol>
+            <p className={cn(s.note, 'caption text-silver')}>{note}</p>
           </div>
         </div>
       </div>

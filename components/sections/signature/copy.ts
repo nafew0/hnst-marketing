@@ -3,53 +3,39 @@ import type { Tier } from '@/lib/contracts'
 /**
  * Homepage copy, typed and in one place until P3's CMS is merged.
  *
- * Every string here is a DRAFT: Nafew and the Founder have not approved it
- * (docs/PLAN.md § 6). Facts come from the Master Tier Table (DRAFT, 29 Oct
- * 2026); open decisions read "To be confirmed" instead of a guess. Flip
- * `copyStatus` to 'approved' once the text is signed off: the visible DRAFT
- * mark on the page goes with it.
+ * The wording is HonestMarketing AI/HONEST-Website-Wave3-Inputs.md § 2. Every
+ * string is a DRAFT: none of it is Founder-approved, and several lines depend on
+ * the open decisions in § 1 of that file (listed in the PR). Open facts read "To
+ * be confirmed" instead of a guess. Flip `copyStatus` to 'approved' once the text
+ * is signed off: the visible DRAFT mark on the page goes with it.
  */
 
 export const copyStatus: 'draft' | 'approved' = 'draft'
 
 export const heroCopy = {
   eyebrow: 'Enter HONEST Marketing',
-  lines: ['Your whole', 'marketing package.', 'Done honestly.'],
-  lede: 'Brand, research, campaign, website, email and 30 days of content, produced with AI and reviewed by people. Delivered in days, not months.',
+  lines: ['Your marketing,', 'on a golden platter.'],
+  lede: 'A complete marketing and AI system, built from your answers to a series of questions. Delivered ready to run. Yours to keep and own outright.',
   primaryCta: { href: '/book', label: 'Book a call' },
   secondaryCta: { href: '/packages', label: 'See packages' },
 } as const
 
 /** The six deliverables on the platter, in the order the scene reveals them. */
 export const platterCopy = {
-  eyebrow: 'The golden platter',
-  heading: 'Everything you need, served whole.',
-  body: 'Six deliverables, built and connected for you. In the Founder Package, 26 specialist bots work around them.',
+  eyebrow: 'Done For You',
+  heading: 'Everything on a golden platter.',
+  body: 'When others say Done For You, they really mean “kinda”. You still have to execute the tasks and make the biggest decisions. Here, it all comes from a series of questions.',
+  note: 'Shown: the Founder Package. What’s included varies by package.',
   deliverables: [
-    {
-      name: 'Brand Bible',
-      description: 'Who you are and how you sound, written down.',
-    },
-    {
-      name: 'Research Lab',
-      description: 'Your market and your customers, researched.',
-    },
-    {
-      name: 'Content calendar',
-      description: 'Posts across 6–8 platforms, sized for each one.',
-    },
+    { name: 'Brand Bible', description: 'Your brand, documented' },
+    { name: 'Research Lab', description: 'Your market, researched' },
+    { name: 'Content calendar', description: '6–8 platforms, 2 posts a day' },
     {
       name: 'Website',
-      description: 'A full website: 24 pages in the Founder Package.',
+      description: '24 pages, 5 forms, payment and calendar setup',
     },
-    {
-      name: 'Funnel',
-      description: 'A connected path from first interest to next step.',
-    },
-    {
-      name: 'Bot',
-      description: 'Specialist bots for research, strategy and content.',
-    },
+    { name: 'Funnels', description: '2 funnels, 2 lead magnets' },
+    { name: 'Bots', description: '26 Super Intelligence bot templates' },
   ],
 } as const
 
@@ -58,44 +44,48 @@ export interface ProcessStep {
   description: string
 }
 
-/**
- * Typed fallback for S5 until P3's CMS is merged. The order is the plan's
- * (docs/phases/P6.md); the sentences are placeholders for Nafew's text.
- */
+/** Typed fallback for S5 until P3's CMS is merged. */
 export const fallbackSteps: readonly ProcessStep[] = [
   {
-    title: 'Questionnaire',
-    description: 'You answer our questions about your business and your goals.',
+    title: 'Answer the questions',
+    description:
+      'Answer the questionnaire and upload every marketing asset you can get your hands on. This part runs at your pace.',
   },
   {
-    title: 'Bots',
-    description: 'Specialist bots research, plan and draft from your answers.',
+    title: 'The bots go to work',
+    description:
+      'Once your answers are in, our Super Intelligence bot teams take over the execution.',
   },
   {
     title: 'Peer review',
-    description: 'People check the work before you see it.',
+    description:
+      'When the assets are ready, you get a Deliverables Peer-Review Sheet. Go through each asset critically: what’s wrong, what has to change, what perfect looks like.',
   },
   {
     title: 'Revisions',
-    description: 'You ask for changes, within your package’s revision rounds.',
+    description:
+      'We revise every mark and resubmit with a new sheet. Anything you don’t flag as work in progress counts as accepted, so treat each draft as if it were the final.',
   },
   {
     title: 'Handover',
-    description: 'The finished package is handed over to you.',
+    description:
+      'Final assets are packaged and delivered, and ownership of everything we created transfers to you.',
   },
 ]
 
 export const stepsCopy = {
-  eyebrow: 'How it works',
-  heading: 'Five steps, from first answer to handover.',
+  // § 2 gives this section no headline, so it carries its own name.
+  heading: 'How it works',
+  note: 'Basic DIY is a self-paced course: you run these steps yourself.',
 } as const
 
 export const packagesCopy = {
-  eyebrow: 'Packages',
-  heading: 'Choose how much you want done for you.',
-  /** P3's tool-cost text; moves to SiteSettings with the CMS. */
-  disclosure:
-    'Third-party tools and subscriptions are paid separately. Confirm your package’s current tool requirements and costs before purchase.',
+  eyebrow: 'The packages',
+  heading: 'Pick how much you want done for you.',
+  toolCosts:
+    'Tools are billed to you directly by their providers and aren’t included in the package price: Google Workspace $8.40/month per seat, X or Grok about $8–$200/month, GoHighLevel $97/month. That’s about $115–$310/month in total.',
+  terms:
+    'No refunds and no guarantees: see each package’s terms. Results depend on your commitment and creativity in answering the questions.',
 } as const
 
 export interface CompareRow {
@@ -117,6 +107,8 @@ export interface PackageFacts {
   href: string
   ctaLabel: string
   highlight?: boolean
+  /** Small label above the name, for the highlighted package. */
+  badge?: string
   compare: readonly CompareRow[]
 }
 
@@ -126,17 +118,16 @@ const TO_CONFIRM = 'To be confirmed'
 export const homePackages: readonly PackageFacts[] = [
   {
     tier: 'basic-diy',
-    name: 'Basic DIY Package',
-    summary:
-      'Learn the process in the HonestU course and build it yourself with six bots.',
+    name: 'Basic DIY',
+    summary: 'Learn it and build it yourself: the course and 6 bot templates.',
     price: 500,
     value: 1500,
-    turnaround: 'At your own pace',
+    turnaround: 'Your own pace',
     href: '/packages/basic-diy',
     ctaLabel: 'Explore Basic DIY',
     compare: [
-      { label: 'Delivery', value: 'At your own pace' },
-      { label: 'Bots', value: '6' },
+      { label: 'Delivery', value: 'Your own pace' },
+      { label: 'Bot templates', value: '6' },
       { label: 'Revisions', value: 'As many as it takes, by you' },
       { label: 'Website', value: 'None included' },
       { label: 'Funnels', value: 'Course section' },
@@ -144,9 +135,9 @@ export const homePackages: readonly PackageFacts[] = [
   },
   {
     tier: 'executive',
-    name: 'Executive Package',
+    name: 'Executive',
     summary:
-      'Brand Bible, Research Lab, one campaign, one funnel, one lead magnet and a link-in-bio site.',
+      'Done for you: Brand Bible, Research Lab, one campaign, one funnel, a link-in-bio site and 13 bot templates.',
     price: 2500,
     value: 7500,
     turnaround: '14–21 days after setup',
@@ -154,7 +145,7 @@ export const homePackages: readonly PackageFacts[] = [
     ctaLabel: 'Explore Executive',
     compare: [
       { label: 'Delivery', value: '14–21 days after setup' },
-      { label: 'Bots', value: '13' },
+      { label: 'Bot templates', value: '13' },
       { label: 'Revisions', value: TO_CONFIRM },
       { label: 'Website', value: 'Link in bio' },
       { label: 'Funnels', value: '1' },
@@ -164,16 +155,17 @@ export const homePackages: readonly PackageFacts[] = [
     tier: 'founder',
     name: 'Founder Package',
     summary:
-      'The full foundation: Brand Bible, Research Lab, one campaign, a 24-page website, two funnels and two lead magnets.',
+      'Done for you, in half the execution time of Executive: a 24-page website, 2 funnels and 26 bot templates.',
     price: 5000,
     value: 15000,
     turnaround: '7–14 days after setup',
     href: '/packages/founder',
     ctaLabel: 'Explore the Founder Package',
     highlight: true,
+    badge: 'Our lead offer',
     compare: [
       { label: 'Delivery', value: '7–14 days after setup' },
-      { label: 'Bots', value: '26' },
+      { label: 'Bot templates', value: '26' },
       { label: 'Revisions', value: '5 rounds' },
       { label: 'Website', value: '24 pages' },
       { label: 'Funnels', value: '2' },
@@ -181,9 +173,9 @@ export const homePackages: readonly PackageFacts[] = [
   },
   {
     tier: 'diamond',
-    name: 'Diamond Package',
+    name: 'Diamond',
     summary:
-      'Human-led delivery in Fort Lauderdale, with a 25–50-page website, three funnels and brand production.',
+      'Human-led, in person in Fort Lauderdale (Las Olas): a 25–50 page website, 3 funnels, and photo and video shoots.',
     price: 25000,
     priceFrom: true,
     turnaround: '21–28 days after setup',
@@ -191,7 +183,7 @@ export const homePackages: readonly PackageFacts[] = [
     ctaLabel: 'Explore Diamond',
     compare: [
       { label: 'Delivery', value: '21–28 days after setup' },
-      { label: 'Bots', value: TO_CONFIRM },
+      { label: 'Bot templates', value: TO_CONFIRM },
       { label: 'Revisions', value: 'Unlimited' },
       { label: 'Website', value: '25–50 pages' },
       { label: 'Funnels', value: '3' },
@@ -199,45 +191,46 @@ export const homePackages: readonly PackageFacts[] = [
   },
 ]
 
-/** S2's three chapters, in the film's order. `end` is where its caption leaves. */
+/**
+ * S2. `end` is where a caption leaves, in film progress: 2023 and 2026 play over
+ * the clutter, and "Then" from the moment it starts to dissolve until the dunes.
+ */
 export const filmCopy = {
   title: 'Back in my day',
+  pinnedLine:
+    'Back in my day, we used to struggle with marketing our business.',
   chapters: [
     {
-      eyebrow: 'Back in my day',
-      heading: 'The overwhelm.',
-      body: 'Marketing meant a pile of tools, a pile of logins and work that never quite connected.',
+      label: '2023',
+      body: 'You stumble across ChatGPT for the very first time. It’s an insane piece of technology. You haven’t a clue how to use it in your business.',
       still: '/posters/film-1.webp',
       stillMobile: '/posters/film-1-mobile.webp',
-      alt: 'Blank cards and tangled cables tumbling through cold fog.',
-      end: 0.34,
+      alt: 'Blank cards and tangled lines drifting in cold fog.',
+      end: 0.17,
     },
     {
-      eyebrow: 'Then',
-      heading: 'Super Intelligence arrives.',
-      body: 'The scattered pieces dissolve and find their order: a team of specialist bots, working as one.',
+      label: '2026',
+      body: 'Technology has advanced. You know how much it should be helping you. But you’re overwhelmed, the FOMO keeps building, and you’re still struggling to market.',
       still: '/posters/film-2.webp',
       stillMobile: '/posters/film-2-mobile.webp',
-      alt: 'Gold particles streaming out of violet gas into a ring of bright points.',
-      end: 0.68,
+      alt: 'A dense tumble of coloured cards and tangled lines.',
+      end: 0.36,
     },
     {
-      eyebrow: 'Now',
-      heading: 'The frontier.',
-      body: 'What used to take a department can reach you as one finished package.',
+      label: 'Then',
+      body: 'A young, vivacious entrepreneur walks up. Without saying a word, hands you a complete content calendar and a top-to-bottom audit of everything public about your business. It came to you. Almost as if it already knew everything about you.',
       still: '/posters/film-3.webp',
       stillMobile: '/posters/film-3-mobile.webp',
-      alt: 'Golden dunes at the end of a veil of purple gas.',
+      alt: 'Gold points of light settling into a ring among stars and gas.',
       end: 1,
     },
   ],
 } as const
 
 export const turnCopy = {
-  eyebrow: 'The turn',
-  heading: 'Not a marketing agency like was possible yesterday',
-  statement:
-    'Most agencies sell you hours. We sell you the finished package: research, brand, campaign, website, email and a month of content, built by AI agents and checked by people. You own everything we make.',
+  heading: 'Not a marketing agency like was possible yesterday.',
+  body: 'Just a few short months ago, marketing was laborious and no one understood it. For those failing to adapt, it still is. We used to charge $25k+ for the same systems and, believe it or not, we did it all by hand.',
+  closing: 'Today is the day that changed.',
 } as const
 
 export interface ProofShot {
@@ -259,11 +252,10 @@ const proofShots: readonly ProofShot[] = [
  * invented results or testimonials.
  */
 export const proofCopy = {
-  eyebrow: 'Proof',
-  heading: 'Client zero: HONEST Marketing itself.',
-  body: 'We use our own system to run our own marketing. These are the real screens from that work.',
+  eyebrow: 'Client zero',
+  heading: 'HONEST Marketing itself.',
+  body: 'No testimonials here, because we won’t invent any. So here’s the real thing: the Notion and GoHighLevel system we run on.',
   shots: proofShots,
-  ctaHeading: 'Let’s talk about your package.',
-  ctaBody: 'A short call to see which package fits, and what it would take.',
+  ctaHeading: 'I’m ready when you are.',
   cta: { href: '/book', label: 'Book your call' },
 } as const

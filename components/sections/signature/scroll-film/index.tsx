@@ -1,5 +1,5 @@
 import { filmCopy } from '@/components/sections/signature/copy'
-import { Eyebrow, Heading } from '@/components/ui/heading'
+import { Heading } from '@/components/ui/heading'
 import { Image } from '@/components/ui/image'
 
 import { FilmTrack } from './film-track'
@@ -15,11 +15,19 @@ import s from './scroll-film.module.css'
 export function ScrollFilm() {
   return (
     <section className={s.section} aria-label={filmCopy.title}>
-      <FilmTrack chapters={filmCopy.chapters} />
+      <FilmTrack
+        pinnedLine={filmCopy.pinnedLine}
+        chapters={filmCopy.chapters}
+      />
 
       <div className={s.stills}>
+        <div className="dr-layout-block">
+          <Heading as="h2" size="h2">
+            {filmCopy.pinnedLine}
+          </Heading>
+        </div>
         {filmCopy.chapters.map((chapter) => (
-          <article key={chapter.heading} className={s.still}>
+          <article key={chapter.label} className={s.still}>
             <div className={s.stillImage}>
               <div className="absolute inset-0 desktop-only">
                 <Image
@@ -39,9 +47,8 @@ export function ScrollFilm() {
               </div>
             </div>
             <div className="dr-layout-block flex flex-col dr-gap-12">
-              <Eyebrow>{chapter.eyebrow}</Eyebrow>
-              <Heading as="h2" size="h1">
-                {chapter.heading}
+              <Heading as="h3" size="h1">
+                {chapter.label}
               </Heading>
               <p className="max-w-[46ch] p-big text-pretty text-silver">
                 {chapter.body}

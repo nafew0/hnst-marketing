@@ -22,7 +22,7 @@ describe('withOffers', () => {
       price: 450,
       value: 1400,
       turnaround: '2 weeks',
-      name: 'Basic DIY Package',
+      name: 'Basic DIY',
     })
   })
 

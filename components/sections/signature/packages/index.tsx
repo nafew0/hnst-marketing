@@ -20,9 +20,10 @@ export function Packages() {
           </RevealHeading>
         </div>
         <PackageReveal items={homePackages} />
-        <p className="max-w-[72ch] caption text-silver">
-          {packagesCopy.disclosure}
-        </p>
+        <div className="flex max-w-[72ch] flex-col dr-gap-8 caption text-silver">
+          <p>{packagesCopy.toolCosts}</p>
+          <p>{packagesCopy.terms}</p>
+        </div>
       </div>
     </section>
   )

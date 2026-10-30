@@ -6,7 +6,7 @@ import { useRef } from 'react'
 import { useDeviceTier } from '@/components/motion/device-tier'
 import { ScrollSequence } from '@/components/motion/scroll-sequence'
 import { useScrollProgress } from '@/components/motion/use-scroll-progress'
-import { Eyebrow, Heading } from '@/components/ui/heading'
+import { Heading } from '@/components/ui/heading'
 
 import s from './scroll-film.module.css'
 
@@ -19,8 +19,7 @@ const LOAD_MARGIN = '40% 0px'
 const DISSOLVE_START = 0.93
 
 interface Chapter {
-  eyebrow: string
-  heading: string
+  label: string
   body: string
   still: string
   end: number
@@ -34,7 +33,13 @@ function captionOpacity(progress: number, start: number, end: number) {
   return Math.min(1, Math.max(0, Math.min(inward, end === 1 ? 1 : outward)))
 }
 
-export function FilmTrack({ chapters }: { chapters: readonly Chapter[] }) {
+export function FilmTrack({
+  pinnedLine,
+  chapters,
+}: {
+  pinnedLine: string
+  chapters: readonly Chapter[]
+}) {
   const { state } = useDeviceTier()
   const live = state?.motionMedia === true
   const rootRef = useRef<HTMLDivElement>(null)
@@ -80,12 +85,18 @@ export function FilmTrack({ chapters }: { chapters: readonly Chapter[] }) {
           deferPoster
           className={cn(s.filmTrack)}
         >
+          <div className={s.pinned}>
+            <div className="dr-layout-block">
+              <Heading as="h2" size="h3" className={cn(s.pinnedLine)}>
+                {pinnedLine}
+              </Heading>
+            </div>
+          </div>
           <div ref={captionsRef} className={cn(s.captions, 'dr-layout-block')}>
             {chapters.map((chapter) => (
-              <div key={chapter.heading} className={s.caption}>
-                <Eyebrow>{chapter.eyebrow}</Eyebrow>
-                <Heading as="h2" size="h1">
-                  {chapter.heading}
+              <div key={chapter.label} className={s.caption}>
+                <Heading as="h3" size="h1">
+                  {chapter.label}
                 </Heading>
                 <p className="p-big text-pretty text-starlight">
                   {chapter.body}

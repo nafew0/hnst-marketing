@@ -22,6 +22,27 @@
     height: 600svh;
   }
 
+  /* Stays on screen through all three chapters. */
+  .pinned {
+    position: absolute;
+    top: calc(var(--header-height) + mobile-vw(16px));
+    right: 0;
+    left: 0;
+    z-index: 1;
+    text-shadow: 0 0 mobile-vw(24px) var(--color-void-deep);
+
+    @media (--desktop) {
+      top: calc(var(--header-height) + desktop-vw(24px));
+      text-shadow: 0 0 desktop-vw(32px) var(--color-void-deep);
+    }
+  }
+
+  .pinnedLine {
+    @media (--desktop) {
+      max-width: columns(6);
+    }
+  }
+
   .captions {
     position: absolute;
     inset: 0;
@@ -87,10 +108,9 @@
     text-shadow: 0 0 mobile-vw(24px) var(--color-void-deep);
 
     @media (--desktop) {
-      top: 50%;
+      top: auto;
       right: auto;
-      bottom: auto;
-      translate: 0 -50%;
+      bottom: desktop-vw(64px);
       text-shadow: 0 0 desktop-vw(32px) var(--color-void-deep);
     }
   }

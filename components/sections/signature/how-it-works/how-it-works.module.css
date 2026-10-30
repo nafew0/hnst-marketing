@@ -119,6 +119,17 @@
     padding-left: mobile-vw(32px);
   }
 
+  .note {
+    margin-top: mobile-vw(24px);
+    padding-left: mobile-vw(32px);
+
+    @media (--desktop) {
+      margin-top: desktop-vw(24px);
+      padding-left: 0;
+      text-align: center;
+    }
+  }
+
   .node {
     position: absolute;
     top: mobile-vw(4px);

@@ -26,8 +26,8 @@ const stillField = { current: createPointerField() }
 const FILM_CAMERA: SceneCamera = { fov: 35, position: [0, 24, 10] }
 const FILM_FRAMES = 72
 const FILM_WIDTHS = { desktop: 1120, mobile: 620 } as const
-/** Mid-chapter still of each film chapter, for tier 0. */
-const STILL_AT = [0.2, 0.62, 0.97] as const
+/** One still per caption, for tier 0: early clutter, dense clutter, the ring. */
+const STILL_AT = [0.11, 0.3, 0.64] as const
 
 interface PosterSpec {
   id: string
@@ -188,6 +188,31 @@ export function Posters() {
     setStatus('Done')
   }
 
+  /** S2's tier 0 stills only, without touching the frames. */
+  async function renderAllStills() {
+    for (const variant of FILM_VARIANTS) {
+      if (!(await renderStills(variant))) return
+    }
+    setStatus('Stills done')
+  }
+
+  async function renderStills(variant: (typeof FILM_VARIANTS)[number]) {
+    const capture = captureFor(`film-${variant.key}`)
+    for (const [index, at] of STILL_AT.entries()) {
+      filmProgress.current = at
+      await nextFrame()
+      const blob = await capture.current?.(
+        variant.key === 'desktop' ? 1600 : 780
+      )
+      const name = `film-${index + 1}${variant.suffix}`
+      if (!blob || !(await save(name, blob))) {
+        setStatus(`Failed: ${name}`)
+        return false
+      }
+    }
+    return true
+  }
+
   /** S2: every frame of both layouts, the manifest, and the chapter stills. */
   async function renderFilm() {
     const desktopUrls: string[] = []
@@ -207,18 +232,7 @@ export function Posters() {
         list.push(`/posters/${name}.webp`)
         setStatus(`Film ${variant.key}: frame ${i + 1} of ${FILM_FRAMES}`)
       }
-      for (const [index, at] of STILL_AT.entries()) {
-        filmProgress.current = at
-        await nextFrame()
-        const blob = await capture.current?.(
-          variant.key === 'desktop' ? 1600 : 780
-        )
-        const name = `film-${index + 1}${variant.suffix}`
-        if (!blob || !(await save(name, blob))) {
-          setStatus(`Failed: ${name}`)
-          return
-        }
-      }
+      if (!(await renderStills(variant))) return
     }
     const manifest = {
       chapter: 'homepage-film',
@@ -247,6 +261,9 @@ export function Posters() {
               <Button onClick={() => void renderAll()}>Render all</Button>
               <Button variant="ghost" onClick={() => void renderFilm()}>
                 Render film
+              </Button>
+              <Button variant="ghost" onClick={() => void renderAllStills()}>
+                Render stills
               </Button>
             </>
           )}

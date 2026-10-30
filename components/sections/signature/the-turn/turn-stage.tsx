@@ -8,7 +8,7 @@ import { useDeviceTier } from '@/components/motion/device-tier'
 import { useScrollProgress } from '@/components/motion/use-scroll-progress'
 import { useLazyWorld } from '@/components/three/use-lazy-world'
 import { ViewportScene } from '@/components/three/viewport-scene'
-import { Eyebrow, Heading } from '@/components/ui/heading'
+import { Heading } from '@/components/ui/heading'
 import { Image } from '@/components/ui/image'
 
 import s from './the-turn.module.css'
@@ -30,13 +30,7 @@ function setTurn(stage: HTMLElement | null, progress: number) {
  * entrance and the wash from the nebula's violet to frontier gold. Tier 0 leaves
  * it at the stylesheet's 1, so the static picture is the end state.
  */
-export function TurnStage({
-  eyebrow,
-  heading,
-}: {
-  eyebrow: string
-  heading: string
-}) {
+export function TurnStage({ heading }: { heading: string }) {
   const { state } = useDeviceTier()
   const { setNearRef, World } = useLazyWorld(loadWorld)
   const [setTrackRectRef, track] = useRect({ ignoreTransform: true })
@@ -100,7 +94,6 @@ export function TurnStage({
         <div className={s.wash} aria-hidden="true" />
         <div className={s.exit} aria-hidden="true" />
         <div className={cn(s.copy, 'dr-layout-block')}>
-          <Eyebrow>{eyebrow}</Eyebrow>
           <Heading as="h2" id="turn-title" size="display" className={s.heading}>
             {heading}
           </Heading>

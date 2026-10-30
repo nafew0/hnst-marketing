@@ -14,7 +14,7 @@ import s from './golden-platter.module.css'
  * the props on the platter (`PlatterStage`).
  */
 export function GoldenPlatter() {
-  const { eyebrow, heading, body, deliverables } = platterCopy
+  const { eyebrow, heading, body, note, deliverables } = platterCopy
   return (
     <section className={s.section} aria-labelledby="platter-title">
       <PlatterStage
@@ -30,6 +30,7 @@ export function GoldenPlatter() {
           </div>
         }
         deliverables={deliverables}
+        note={note}
       />
     </section>
   )

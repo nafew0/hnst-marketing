@@ -11,12 +11,13 @@ import { TurnStage } from './turn-stage'
 export function TheTurn() {
   return (
     <>
-      <TurnStage eyebrow={turnCopy.eyebrow} heading={turnCopy.heading} />
+      <TurnStage heading={turnCopy.heading} />
       <Section theme="frontier" spacing="lg" aria-label="Why HONEST">
-        <Container>
-          <p className="max-w-[24ch] h2 text-balance">
-            <ProgressText>{turnCopy.statement}</ProgressText>
+        <Container className="flex flex-col dr-gap-32">
+          <p className="max-w-[28ch] h2 text-balance">
+            <ProgressText>{turnCopy.body}</ProgressText>
           </p>
+          <p className="h2 text-contrast">{turnCopy.closing}</p>
         </Container>
       </Section>
     </>

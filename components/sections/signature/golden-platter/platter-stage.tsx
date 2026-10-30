@@ -56,9 +56,11 @@ function PlatterPoster() {
 export function PlatterStage({
   intro,
   deliverables,
+  note,
 }: {
   intro: ReactNode
   deliverables: readonly { name: string; description: string }[]
+  note: string
 }) {
   const { state } = useDeviceTier()
   const { setNearRef, World } = useLazyWorld(loadWorld)
@@ -145,6 +147,11 @@ export function PlatterStage({
               </li>
             ))}
           </ol>
+        </div>
+        <div className={s.noteWrap}>
+          <p className={cn(s.note, 'dr-layout-block caption text-silver')}>
+            {note}
+          </p>
         </div>
       </div>
     </div>

@@ -9,16 +9,16 @@ import type { ErrorEnvelope, OffersResponse } from '@/lib/contracts'
 // follow /api/v1/offers with the facts in the page as the fallback.
 
 const SECTIONS = [
-  /Your whole/,
-  /The overwhelm\./,
-  /Super Intelligence arrives\./,
-  /The frontier\./,
+  /Your marketing/,
+  /2023/,
+  /2026/,
+  /^Then$/,
   /Not a marketing agency like was possible yesterday/,
-  /Everything you need/,
-  /Five steps/,
-  /Choose how much/,
-  /Client zero/,
-  /Let’s talk about/,
+  /Everything on a golden platter/,
+  /How it works/,
+  /Pick how much/,
+  /HONEST Marketing itself/,
+  /ready when you are/,
 ]
 
 const OFFERS_ROUTE = '**/api/v1/offers'
@@ -43,7 +43,7 @@ const stubOffers = (
 
 const scrollToPackages = (page: Page) =>
   page
-    .getByRole('heading', { name: /Choose how much/ })
+    .getByRole('heading', { name: /Pick how much/ })
     .evaluate((heading) => heading.scrollIntoView())
 
 test.describe('reduced motion', () => {
@@ -60,9 +60,7 @@ test.describe('reduced motion', () => {
     await expectWholeStory(page)
 
     // The film's chapters are readable stills, not a 600svh scrub.
-    await expect(
-      page.getByRole('heading', { name: /The overwhelm\./ })
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { name: /2023/ })).toBeVisible()
     const facts = await page.evaluate(() => ({
       pinned: [...document.querySelectorAll('main *')].filter(
         (element) =>
@@ -205,9 +203,9 @@ test('every section heading is reachable by the steps of a real scroll', async (
   await page.goto('/')
   await page.waitForLoadState('load')
   // A jump past the entry points must not leave a headline hidden.
-  const heading = page.getByRole('heading', { name: /Five steps/ })
+  const heading = page.getByRole('heading', { name: /How it works/ })
   await page
-    .getByRole('heading', { name: /Choose how much/ })
+    .getByRole('heading', { name: /Pick how much/ })
     .evaluate((element) => element.scrollIntoView())
   await heading.evaluate((element) => element.scrollIntoView())
   await expect
