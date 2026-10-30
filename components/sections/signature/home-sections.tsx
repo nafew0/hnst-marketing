@@ -4,6 +4,7 @@ import { Hero } from './hero'
 import { HowItWorks } from './how-it-works'
 import { Packages } from './packages'
 import { ScrollFilm } from './scroll-film'
+import { TheTurn } from './the-turn'
 
 /**
  * The homepage story, S1–S7. Shared by `/` and `/lab/home`, which renders it
@@ -14,6 +15,7 @@ export function HomeSections() {
     <>
       <Hero />
       <ScrollFilm />
+      <TheTurn />
       <GoldenPlatter />
       <HowItWorks />
       <Packages />

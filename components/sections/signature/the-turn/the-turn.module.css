@@ -1,0 +1,109 @@
+@layer components {
+  .track {
+    position: relative;
+    z-index: 0;
+    color: var(--color-starlight);
+  }
+
+  .stage {
+    --turn: 1;
+
+    position: relative;
+    display: flex;
+    min-height: 100svh;
+    align-items: flex-start;
+    overflow: clip;
+    isolation: isolate;
+    padding-block: calc(var(--header-height) + mobile-vw(48px)) mobile-vw(64px);
+
+    @media (--desktop) {
+      padding-block: calc(var(--header-height) + desktop-vw(72px))
+        desktop-vw(64px);
+    }
+  }
+
+  /* Starts on the film's last frame: dark and unturned until scroll says so. */
+  .stage[data-scrubbed] {
+    --turn: 0;
+  }
+
+  @media (--motion-ok) {
+    .track {
+      /* 14% of the track overlaps the film's last 84svh: see FILM_OVERLAP. */
+      height: 240svh;
+      margin-top: -140svh;
+    }
+
+    .track[data-static] {
+      height: auto;
+      margin-top: 0;
+    }
+
+    .stage {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+    }
+  }
+
+  .scene {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  /* Violet at the start of the turn, warm frontier light at the end. Both layers
+     are opacity only, from --turn. */
+  .wash {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(
+        in oklab to bottom,
+        color-mix(in oklab, var(--color-void-deep) 62%, transparent),
+        transparent 55%
+      ),
+      radial-gradient(
+        in oklab 120% 70% at 72% 62%,
+        color-mix(in oklab, var(--color-gold-frontier) 30%, transparent),
+        transparent 70%
+      );
+    opacity: var(--turn);
+  }
+
+  /* The bottom edge eases into the frontier band under it. */
+  .exit {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    height: 22svh;
+    background: linear-gradient(
+      in oklab to top,
+      var(--color-void-deep),
+      transparent
+    );
+    opacity: var(--turn);
+  }
+
+  .copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: mobile-vw(16px);
+    opacity: clamp(0, calc((var(--turn) - 0.1) * 4), 1);
+    transform: translateY(
+      calc((1 - clamp(0, calc((var(--turn) - 0.1) * 4), 1)) * 2.5rem)
+    );
+
+    @media (--desktop) {
+      gap: desktop-vw(20px);
+    }
+  }
+
+  .heading {
+    max-width: 15ch;
+  }
+}
