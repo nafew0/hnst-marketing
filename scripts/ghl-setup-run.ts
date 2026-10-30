@@ -12,6 +12,7 @@ const client = createGhlClient({
   locationId: required(env.GHL_LOCATION_ID, 'GHL_LOCATION_ID'),
   pipelineId: required(env.GHL_PIPELINE_ID, 'GHL_PIPELINE_ID'),
   stageNewId: required(env.GHL_STAGE_NEW_ID, 'GHL_STAGE_NEW_ID'),
+  stageCallBookedId: env.GHL_STAGE_CALL_BOOKED_ID ?? null,
   calendarId: env.GHL_CALENDAR_ID ?? null,
 })
 

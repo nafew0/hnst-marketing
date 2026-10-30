@@ -2,7 +2,12 @@ import { describe, expect, it } from 'bun:test'
 
 import type { LeadInput } from '@/lib/contracts'
 
-import { appointmentBody, contactRequest, noteBody } from './payloads'
+import {
+  appointmentBody,
+  contactRequest,
+  noteBody,
+  readAppointmentTimes,
+} from './payloads'
 
 const lead = {
   type: 'package',
@@ -40,6 +45,33 @@ describe('lead payloads', () => {
     expect(noteBody(lead)).toBe(
       'Hello\n\nPage: https://hnst.marketing/packages/founder'
     )
+  })
+
+  it('reads the end time from the follow-up event when create omits it', () => {
+    expect(
+      readAppointmentTimes({
+        id: 'appt-1',
+        startTime: null,
+        endTime: null,
+        fetchedStart: '2026-11-02T08:00:00-05:00',
+        fetchedEnd: '2026-11-02T08:30:00-05:00',
+        fallbackStart: '2026-11-02T08:00:00-05:00',
+      })
+    ).toEqual({
+      appointmentId: 'appt-1',
+      start: '2026-11-02T08:00:00-05:00',
+      end: '2026-11-02T08:30:00-05:00',
+    })
+    expect(
+      readAppointmentTimes({
+        id: 'appt-1',
+        startTime: null,
+        endTime: null,
+        fetchedStart: null,
+        fetchedEnd: null,
+        fallbackStart: '2026-11-02T08:00:00-05:00',
+      })
+    ).toBeNull()
   })
 
   it('never asks GoHighLevel to ignore a taken slot', () => {
