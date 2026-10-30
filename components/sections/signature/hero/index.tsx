@@ -3,6 +3,7 @@ import cn from 'clsx'
 import { heroCopy } from '@/components/sections/signature/copy'
 import { Button } from '@/components/ui/button'
 import { Eyebrow } from '@/components/ui/heading'
+import { Logo } from '@/components/ui/logo'
 
 import { HeroStage } from './hero-stage'
 
@@ -12,14 +13,24 @@ import s from './hero.module.css'
  * S1. The headline is server-rendered and rises with CSS on first paint, so it
  * is the LCP element and never waits for JavaScript (see the keyframes' comment
  * in hero.module.css). Behind it, `HeroStage` holds the code-rendered poster
- * and, at tiers 2–3, the live nebula, starfield and gold emblem. Reduced motion
- * shows the final state.
+ * and, at tiers 2–3, the live gas, stars and planet. Reduced motion shows the
+ * final state.
  */
 export function Hero() {
   const { eyebrow, lines, lede, primaryCta, secondaryCta } = heroCopy
   return (
     <section className={s.hero} aria-labelledby="hero-title">
       <HeroStage />
+
+      {/* The Brand Bible logo in its own colours, with depth from CSS: a stacked
+          extrusion, a light sweep and a tilt towards the pointer. */}
+      <div className={s.emblem} aria-hidden="true">
+        <div className={s.emblemGlow} />
+        <div className={s.emblemTilt}>
+          <Logo tagline title={false} className={s.emblemLogo} />
+          <Logo tagline title={false} className={s.emblemSheen} />
+        </div>
+      </div>
 
       <div className={cn(s.content, 'dr-layout-block')}>
         <Eyebrow className={s.eyebrow}>{eyebrow}</Eyebrow>

@@ -2,14 +2,16 @@
   position: relative;
   display: flex;
   min-height: max(100svh, mobile-vw(640px));
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: mobile-vw(20px);
   overflow: clip;
   padding-block: calc(var(--header-height) + mobile-vw(24px)) mobile-vw(72px);
   color: var(--color-starlight);
   isolation: isolate;
 
   @media (--desktop) {
-    align-items: center;
+    justify-content: center;
     min-height: max(100svh, desktop-vw(760px));
     padding-block: calc(var(--header-height) + desktop-vw(40px))
       desktop-vw(140px);
@@ -33,44 +35,16 @@
   inset: 0;
   background:
     radial-gradient(
-      in oklab 60% 55% at 78% 30%,
-      color-mix(in oklab, var(--color-nebula-glow) 55%, transparent),
+      in oklab 34% 40% at 74% 40%,
+      color-mix(in oklab, var(--color-nebula-rose) 30%, transparent),
       transparent 70%
     ),
     radial-gradient(
-      in oklab 45% 40% at 92% 62%,
-      color-mix(in oklab, var(--color-nebula-tint) 22%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      in oklab 80% 70% at 60% 45%,
-      var(--color-nebula-haze),
+      in oklab 55% 60% at 70% 34%,
+      color-mix(in oklab, var(--color-nebula-teal) 22%, transparent),
       transparent 75%
     ),
-    radial-gradient(
-      in oklab 120% 90% at 70% 20%,
-      var(--color-nebula-deep),
-      var(--color-void) 70%
-    );
-
-  @media (--mobile) {
-    background:
-      radial-gradient(
-        in oklab 90% 45% at 70% 78%,
-        color-mix(in oklab, var(--color-nebula-glow) 55%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        in oklab 120% 60% at 50% 85%,
-        var(--color-nebula-haze),
-        transparent 75%
-      ),
-      radial-gradient(
-        in oklab 140% 90% at 60% 90%,
-        var(--color-nebula-deep),
-        var(--color-void) 70%
-      );
-  }
+    var(--color-void-deep);
 }
 
 /* Calm behind the text whatever the gas is doing: left on desktop, bottom on
@@ -81,17 +55,116 @@
   background: linear-gradient(
     in oklab to top,
     var(--color-void) 8%,
-    color-mix(in oklab, var(--color-void) 72%, transparent) 42%,
-    transparent 68%
+    color-mix(in oklab, var(--color-void) 66%, transparent) 38%,
+    transparent 58%
   );
 
   @media (--desktop) {
     background: linear-gradient(
       in oklab to right,
-      color-mix(in oklab, var(--color-void) 82%, transparent) 12%,
-      color-mix(in oklab, var(--color-void) 45%, transparent) 40%,
-      transparent 62%
+      color-mix(in oklab, var(--color-void-deep) 55%, transparent) 10%,
+      transparent 52%
     );
+  }
+}
+
+/* Where a click lands (set by HeroStage). Sized by a square, grown by scale. */
+.ripple {
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  margin: -35vmax 0 0 -35vmax;
+  border: 1px solid var(--color-gold);
+  border-radius: 50%;
+  box-shadow:
+    0 0 40px color-mix(in oklab, var(--color-gold) 50%, transparent),
+    inset 0 0 40px
+      color-mix(in oklab, var(--color-nebula-teal) 40%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* The logo: original artwork, 3D by CSS. The filter stack extrudes it in the
+   artwork's darkest metal; it rasterizes once and the tilt runs on the compositor.
+   --rx, --ry, --sheen and --out come from HeroStage. */
+.emblem {
+  position: relative;
+  align-self: center;
+  width: mobile-vw(270px);
+  margin-top: auto;
+  perspective: 900px;
+  pointer-events: none;
+  opacity: calc(1 - var(--out, 0) * 1.5);
+  transform: translateY(calc(var(--out, 0) * -18%))
+    scale(calc(1 - var(--out, 0) * 0.28));
+
+  @media (--desktop) {
+    position: absolute;
+    top: 50%;
+    right: desktop-vw(40px);
+    width: desktop-vw(500px);
+    margin: 0;
+    translate: 0 -54%;
+  }
+}
+
+.emblemGlow {
+  position: absolute;
+  inset: -30% -18%;
+  background:
+    radial-gradient(
+      in oklab 30% 42% at 76% 32%,
+      color-mix(in oklab, var(--color-gold) 42%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      in oklab 55% 52% at 45% 50%,
+      color-mix(in oklab, var(--color-void-deep) 78%, transparent),
+      transparent 78%
+    );
+}
+
+.emblemTilt {
+  position: relative;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  will-change: transform;
+
+  @media (--motion-ok) {
+    transition: transform 500ms var(--ease-out-expo);
+  }
+}
+
+.emblemLogo {
+  filter: drop-shadow(0.5px 0.5px 0 var(--color-gold-metal-2))
+    drop-shadow(0.75px 0.75px 0 var(--color-gold-metal-1))
+    drop-shadow(0.75px 0.75px 0 var(--color-gold-metal-1))
+    drop-shadow(1px 1.5px 0 var(--color-gold-metal-1))
+    drop-shadow(
+      0 8px 18px color-mix(in oklab, var(--color-void-deep) 80%, transparent)
+    );
+}
+
+/* The same artwork, brightened and seen through a moving slit: light crossing
+   the metal, which reads as depth without changing the logo's colours. */
+.emblemSheen {
+  position: absolute;
+  inset: 0;
+  filter: brightness(1.9) saturate(0.7);
+  mask-image: linear-gradient(
+    105deg,
+    transparent 38%,
+    black 50%,
+    transparent 62%
+  );
+  mask-size: 260% 100%;
+  mask-repeat: no-repeat;
+  mask-position: var(--sheen, 0%) 0;
+  transform: translateZ(1px);
+
+  @media (--motion-ok) {
+    transition: mask-position 500ms var(--ease-out-expo);
   }
 }
 
@@ -108,6 +181,7 @@
 }
 
 .content {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -169,6 +243,14 @@
     animation-delay: 310ms;
   }
 
+  .emblem {
+    animation: emblem-in 1500ms var(--ease-out-expo) 200ms backwards;
+  }
+
+  .emblemGlow {
+    animation: emblem-glow 7s ease-in-out 1.5s infinite alternate;
+  }
+
   .eyebrow,
   .lede,
   .ctas {
@@ -188,6 +270,19 @@
    view: Chrome skips opacity-0 and fully clipped elements as LCP candidates,
    so the first paint would not count and LCP would wait for the animation
    (measured: 3.4 s on mobile with a masked rise). */
+@keyframes emblem-in {
+  from {
+    opacity: 0.01;
+    filter: blur(6px);
+  }
+}
+
+@keyframes emblem-glow {
+  to {
+    opacity: 0.6;
+  }
+}
+
 @keyframes rise {
   from {
     opacity: 0.01;
