@@ -4,18 +4,26 @@ import {
   PageHero,
   consentCopy,
 } from '@/components/sections/standard/catalog'
+import { DraftIndicator } from '@/components/sections/standard/draft-indicator'
 import { Heading } from '@/components/ui/heading'
 import { Link } from '@/components/ui/link'
 import { Section, Container } from '@/components/ui/section'
-import { getPage, getSettings } from '@/lib/cms/data'
+import { getPage, getSettings, readContext } from '@/lib/cms/data'
 
 export async function ContactContent() {
-  const [page, settings] = await Promise.all([
+  const [page, settings, context] = await Promise.all([
     getPage('contact'),
     getSettings(),
+    readContext(),
   ])
   return (
     <>
+      <DraftIndicator
+        visible={
+          context?.preview === true &&
+          (page?._status === 'draft' || settings?._status === 'draft')
+        }
+      />
       {page ? (
         <ContentBlocks page={page} packages={[]} faqs={[]} />
       ) : (
