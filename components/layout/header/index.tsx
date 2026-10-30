@@ -2,8 +2,10 @@
 
 import { Dialog } from '@base-ui/react/dialog'
 import cn from 'clsx'
+import { useWindowSize } from 'hamo'
+import { useLenis } from 'lenis/react'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
@@ -11,6 +13,11 @@ import { Logo } from '@/components/ui/logo'
 import { bookCall, primaryNav } from '@/lib/navigation'
 
 import s from './header.module.css'
+
+/** Scroll past this share of the viewport on the homepage's hero, then solid. */
+const HERO_SHARE = 0.8
+/** Every other page goes solid as soon as anything has scrolled under the bar. */
+const PAGE_OFFSET = 24
 
 /**
  * Fixed top bar. Desktop: inline nav + gold "Book a call". Mobile: a
@@ -21,9 +28,20 @@ export function Header() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
+  const headerRef = useRef<HTMLElement>(null)
+  const { height = 0 } = useWindowSize()
+  const solidFrom = pathname === '/' ? height * HERO_SHARE : PAGE_OFFSET
+
+  // Through a ref: the state flips on scroll, which never re-renders the bar.
+  useLenis(
+    ({ scroll }) => {
+      headerRef.current?.toggleAttribute('data-solid', scroll > solidFrom)
+    },
+    [solidFrom]
+  )
 
   return (
-    <header className={s.header}>
+    <header ref={headerRef} className={s.header}>
       <div className={cn(s.bar, 'dr-layout-block')}>
         <Link href="/" aria-label="HONEST Marketing home" className={s.home}>
           <Logo title={false} className={s.logo} />

@@ -5,6 +5,7 @@ import { HowItWorks } from './how-it-works'
 import { Packages } from './packages'
 import { ProofBooking } from './proof-booking'
 import { ScrollFilm } from './scroll-film'
+import { ScrollHairline } from './scroll-hairline'
 import { TheTurn } from './the-turn'
 
 /**
@@ -13,7 +14,7 @@ import { TheTurn } from './the-turn'
  */
 export function HomeSections() {
   return (
-    <>
+    <ScrollHairline>
       <Hero />
       <ScrollFilm />
       <TheTurn />
@@ -22,6 +23,6 @@ export function HomeSections() {
       <Packages />
       <ProofBooking />
       <DraftMark />
-    </>
+    </ScrollHairline>
   )
 }
