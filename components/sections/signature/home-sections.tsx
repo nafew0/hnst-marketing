@@ -3,6 +3,7 @@ import { GoldenPlatter } from './golden-platter'
 import { Hero } from './hero'
 import { HowItWorks } from './how-it-works'
 import { Packages } from './packages'
+import { ProofBooking } from './proof-booking'
 import { ScrollFilm } from './scroll-film'
 import { TheTurn } from './the-turn'
 
@@ -19,6 +20,7 @@ export function HomeSections() {
       <GoldenPlatter />
       <HowItWorks />
       <Packages />
+      <ProofBooking />
       <DraftMark />
     </>
   )
