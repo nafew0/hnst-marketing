@@ -1,0 +1,144 @@
+@layer components {
+  .section {
+    position: relative;
+    color: var(--color-starlight);
+  }
+
+  .stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(32px);
+    padding-block: mobile-vw(72px);
+  }
+
+  /* Mobile, reduced motion: the still sits between the intro and the list. */
+  .scene {
+    position: relative;
+    order: 1;
+    width: 100%;
+    aspect-ratio: 1;
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: mobile-vw(16px);
+  }
+
+  .heading {
+    max-width: 14ch;
+  }
+
+  .listWrap {
+    order: 2;
+  }
+
+  .list {
+    display: grid;
+    gap: mobile-vw(20px);
+  }
+
+  .item {
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(4px);
+  }
+
+  .name {
+    color: var(--color-gold);
+  }
+
+  @media (--desktop) {
+    .stage {
+      gap: desktop-vw(32px);
+      padding-block: desktop-vw(120px);
+    }
+
+    .scene {
+      aspect-ratio: 16 / 9;
+    }
+
+    .intro {
+      gap: desktop-vw(20px);
+    }
+
+    .list {
+      grid-template-columns: repeat(3, 1fr);
+      gap: desktop-vw(24px) var(--gap);
+    }
+
+    .item {
+      gap: desktop-vw(6px);
+    }
+  }
+
+  /* Pinned on desktop at every tier, so the page has the same length whether
+     or not the live scene arrives. */
+  @media (--desktop) and (--motion-ok) {
+    .track {
+      height: 250svh;
+    }
+
+    .stage {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      justify-content: center;
+      overflow: clip;
+      padding-block: calc(var(--header-height) + desktop-vw(16px))
+        desktop-vw(32px);
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      aspect-ratio: auto;
+    }
+
+    .intro {
+      max-width: columns(5);
+    }
+
+    .list {
+      grid-template-columns: repeat(2, minmax(0, columns(3)));
+      justify-content: start;
+      gap: desktop-vw(14px) var(--gap);
+    }
+
+    /* Live: the items are captions on the props, moved by PlatterStage. */
+    .track[data-live] .listWrap {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .track[data-live] .list {
+      display: block;
+    }
+
+    .track[data-live] .item {
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      padding: desktop-vw(4px) desktop-vw(10px);
+      border: 1px solid color-mix(in oklab, var(--color-gold) 35%, transparent);
+      border-radius: 999px;
+      background: color-mix(in oklab, var(--color-void-deep) 72%, transparent);
+      white-space: nowrap;
+      will-change: transform, opacity;
+    }
+
+    /* Still read out with the list; the static layout shows it on screen. */
+    .track[data-live] .description {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+  }
+}
