@@ -1,3 +1,7 @@
+// First, before any component: this sheet declares the CSS layer order, and a
+// component's `@layer components` loaded earlier would flip it, letting Tailwind's
+// reset override every component style.
+import '@/lib/styles/css/index.css'
 import { TransformProvider } from 'hamo'
 import type { Metadata, Viewport } from 'next'
 import { draftMode } from 'next/headers'
@@ -17,9 +21,6 @@ import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
-
-import '@/lib/styles/css/index.css'
-
 import { fontsVariable } from '@/lib/styles/fonts'
 
 const APP_NAME = SITE.name
