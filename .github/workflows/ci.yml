@@ -62,7 +62,14 @@ jobs:
       # not listed here, since some have no fixed release; plain `bun audit`
       # lists them.
       - name: bun audit
-        run: bun audit --audit-level=moderate
+        # Two Payload transitive advisories have no compatible fix yet:
+        # - GHSA-x8rm-f576-gq67 graphql-scalars PhoneNumber ReDoS: Payload's
+        #   GraphQL schema has no PhoneNumber scalar. Fix is 2.x, a major Payload
+        #   does not support.
+        # - GHSA-67mh-4wv8-2f99 esbuild <=0.24 dev-server CORS: only drizzle-kit's
+        #   migration CLI uses this esbuild; it never runs a dev server.
+        # Re-check both on every Payload upgrade and drop the ignore once fixed.
+        run: bun audit --audit-level=moderate --ignore=GHSA-x8rm-f576-gq67 --ignore=GHSA-67mh-4wv8-2f99
 
   e2e:
     runs-on: ubuntu-latest
