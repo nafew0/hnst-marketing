@@ -8,6 +8,9 @@ import { expect, test } from '@playwright/test'
  * `gl.clear`, not a draw call: with every mesh hidden an awake frame still
  * clears but draws nothing, so draw calls would read a busy canvas as idle.
  *
+ * The page is `/lab/webgl` (`app/(site)/lab/webgl`), a noindex fixture: one
+ * cube in the first screen, a gap with none, then a row of cubes.
+ *
  * The canvas mounts only on a hardware WebGL2 context. CI's headless
  * Chromium renders with SwiftShader, where `isWebGL` is false and no canvas
  * mounts, so the test skips there instead of failing. Run it on the GPU with
@@ -28,8 +31,11 @@ test.use({ viewport: { width: 1440, height: 500 } })
 // the canvas has gone back to sleep.
 const GRACE_EXPIRED_MS = 3000
 
-// Parallax moves one box by up to 240px; keep that much clear around a gap.
-const BOX_MARGIN = 260
+const ROUTE = '/lab/webgl'
+
+// Clearance around each box, so a cube grazing the viewport edge never counts
+// as off screen.
+const BOX_MARGIN = 40
 
 const clears = (page: Page) => page.evaluate(() => window.__clears)
 
@@ -57,7 +63,7 @@ test('the root canvas draws while a cube is on screen or the page scrolls, and s
     }
   })
 
-  await page.goto('/webgl')
+  await page.goto(ROUTE)
   await page.waitForLoadState('load')
 
   const renderer = await page.evaluate(() => {
@@ -81,7 +87,7 @@ test('the root canvas draws while a cube is on screen or the page scrolls, and s
     )
   test.skip(
     !canvasMounted,
-    `no <canvas> mounted on /webgl (renderer: ${renderer}); the WebGL gate kept it off`
+    `no <canvas> mounted on ${ROUTE} (renderer: ${renderer}); the WebGL gate kept it off`
   )
 
   // 1. The first cube is in the first screen and holds the canvas awake.
@@ -121,7 +127,7 @@ test('the root canvas draws while a cube is on screen or the page scrolls, and s
   const { gapY } = layout
   if (gapY === null) {
     throw new Error(
-      `no scroll position on /webgl keeps every cube off screen: ${JSON.stringify(layout)}`
+      `no scroll position on ${ROUTE} keeps every cube off screen: ${JSON.stringify(layout)}`
     )
   }
 
