@@ -1,0 +1,13 @@
+// 3D world (Phase 4). See components/three/README.md.
+export { brandColor, oklchToLinearRgb, parseOklch } from './color'
+export { DuneTerrain } from './dune-terrain'
+export { Emblem3D } from './emblem-3d'
+export { goldMaterial, smokedGlassMaterial, tuneGold } from './gold-material'
+export { GoldGlintPlane } from './gold-glint-plane'
+export { GoldenPlatter, type PlatterState } from './golden-platter'
+export { NebulaGas } from './nebula-gas'
+export { readTriangles } from './scene-stats'
+export { Starfield } from './starfield'
+export { StudioLights } from './studio-lights'
+export type { CaptureFn, SceneCamera } from './viewport-renderer'
+export { ViewportScene } from './viewport-scene'

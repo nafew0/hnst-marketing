@@ -2,6 +2,10 @@
   .webgl {
     position: fixed;
     inset: 0;
+    /* HONEST: behind the page. Scenes are backdrops (nebula, dunes) under DOM
+       text, so sections that show one keep a transparent background. Satus's
+       WebGL image planes, which expect the canvas on top, are not used here. */
+    z-index: -1;
     max-height: 100vh;
     max-width: 100vw;
     pointer-events: none;
