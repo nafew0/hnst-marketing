@@ -68,8 +68,13 @@ test('P6 production pages render without errors, fit their viewport and pass axe
     const response = await page.goto(path)
     expect(response?.status(), path).toBe(200)
     // Let the first MSW registration settle before navigating to another page.
+    // Bounded: `ready` can stay pending in Chromium on a page the worker
+    // already controls, and this is only a settling wait, not an assertion.
     await page.evaluate(() =>
-      navigator.serviceWorker.ready.then(() => undefined)
+      Promise.race([
+        navigator.serviceWorker.ready.then(() => undefined),
+        new Promise((resolve) => setTimeout(resolve, 3000)),
+      ])
     )
     await dismissConsent(page)
     await expect(page.locator('main h1')).toHaveCount(1)
@@ -140,6 +145,8 @@ test('booking confirms once with optional consents unchecked and exports the ret
   expect(body.consent.email).toBe(false)
   expect(body.contact.phone).toBeUndefined()
   expect(Object.keys(body.answers)).toHaveLength(3)
+  // GoHighLevel shows these keys to the Founder: words, not CMS row ids.
+  for (const key of Object.keys(body.answers)) expect(key).toContain(' ')
 })
 test('queued booking stays pending and offers no calendar exports', async ({
   page,
@@ -212,55 +219,59 @@ test('month paging and timezone changes keep queries within 31 days', async ({
     ).toBeLessThanOrEqual(31)
   await expect(page.locator('input[name="slot"]:checked')).toHaveCount(0)
 })
-test('an uncertain booking retry retains its logical idempotency key', async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    const original = window.fetch.bind(window)
-    let dropped = false
-    window.fetch = Object.assign(
-      async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = new URL(
-          input instanceof Request ? input.url : String(input),
-          location.href
-        )
-        const response = await original(input, init)
-        if (url.pathname === '/api/v1/bookings' && !dropped) {
-          dropped = true
-          throw new TypeError('Simulated lost response')
-        }
-        return response
-      },
-      window.fetch
-    )
+for (const edited of [false, true])
+  test(`an uncertain booking retry retains its idempotency key${edited ? ' after an edit' : ''}`, async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const original = window.fetch.bind(window)
+      let dropped = false
+      window.fetch = Object.assign(
+        async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = new URL(
+            input instanceof Request ? input.url : String(input),
+            location.href
+          )
+          const response = await original(input, init)
+          if (url.pathname === '/api/v1/bookings' && !dropped) {
+            dropped = true
+            throw new TypeError('Simulated lost response')
+          }
+          return response
+        },
+        window.fetch
+      )
+    })
+    const keys: string[] = []
+    page.on('request', (request) => {
+      if (request.url().endsWith('/api/v1/bookings'))
+        keys.push(request.headers()['idempotency-key'] ?? '')
+    })
+    await page.goto('/book')
+    await dismissConsent(page)
+    await chooseTime(page)
+    await details(page, 'p6-retry@example.test')
+    await page
+      .getByRole('button', { name: 'Request this time', exact: true })
+      .click()
+    await expect(
+      page.getByText(
+        'We could not confirm the result. Retry this request before booking elsewhere.',
+        { exact: true }
+      )
+    ).toBeVisible()
+    await page.clock.install()
+    await page.clock.setSystemTime(new Date(Date.now() + 7 * 86400000))
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+    // The first attempt may have booked, so an edit must not mint a new key.
+    if (edited)
+      await page.locator('input[name="contact.firstName"]').fill('Edited')
+    await page.getByRole('button', { name: 'Try again', exact: true }).click()
+    await expect(page).toHaveURL(/\/thanks\/booking$/u)
+    expect(keys).toHaveLength(2)
+    expect(keys[0]).toBeTruthy()
+    expect(keys[1]).toBe(keys[0])
   })
-  const keys: string[] = []
-  page.on('request', (request) => {
-    if (request.url().endsWith('/api/v1/bookings'))
-      keys.push(request.headers()['idempotency-key'] ?? '')
-  })
-  await page.goto('/book')
-  await dismissConsent(page)
-  await chooseTime(page)
-  await details(page, 'p6-retry@example.test')
-  await page
-    .getByRole('button', { name: 'Request this time', exact: true })
-    .click()
-  await expect(
-    page.getByText(
-      'We could not confirm the result. Retry this request before booking elsewhere.',
-      { exact: true }
-    )
-  ).toBeVisible()
-  await page.clock.install()
-  await page.clock.setSystemTime(new Date(Date.now() + 7 * 86400000))
-  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
-  await page.getByRole('button', { name: 'Try again', exact: true }).click()
-  await expect(page).toHaveURL(/\/thanks\/booking$/u)
-  expect(keys).toHaveLength(2)
-  expect(keys[0]).toBeTruthy()
-  expect(keys[1]).toBe(keys[0])
-})
 test('availability outage uses the CMS calendar iframe', async ({ page }) => {
   await page
     .context()
