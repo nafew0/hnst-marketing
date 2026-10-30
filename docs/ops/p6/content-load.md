@@ -18,3 +18,7 @@ The isolated local review database was loaded with all new P6 content as drafts 
 Build with `NEXT_PUBLIC_API_MOCKS=1` for booking tests. CI uses this mode and holds no GHL credentials or worker. A confirmed 201, queued 202 and slot conflict are separate cases. A queued result offers no calendar exports. An uncertain request retains the same logical idempotency key on retry and never offers an embed that could create a second booking.
 
 The production embed was inspected inside `/book` at desktop and phone widths without choosing a time or submitting. A real appointment appearing in GHL remains unverified until Nafew authorizes a live booking.
+
+The calendar address saves to the pending SiteSettings draft whenever one exists, and goes live when that draft is published. Re-running the seed never publishes anything else with it.
+
+Go-live: the Docker build has no `DATABASE_URL`, so these ISR routes can serve their "in preparation" fallback for up to an hour after a deploy. Revalidate them as a deploy step.

@@ -68,8 +68,13 @@ test('P6 production pages render without errors, fit their viewport and pass axe
     const response = await page.goto(path)
     expect(response?.status(), path).toBe(200)
     // Let the first MSW registration settle before navigating to another page.
+    // Bounded: `ready` can stay pending in Chromium on a page the worker
+    // already controls, and this is only a settling wait, not an assertion.
     await page.evaluate(() =>
-      navigator.serviceWorker.ready.then(() => undefined)
+      Promise.race([
+        navigator.serviceWorker.ready.then(() => undefined),
+        new Promise((resolve) => setTimeout(resolve, 3000)),
+      ])
     )
     await dismissConsent(page)
     await expect(page.locator('main h1')).toHaveCount(1)
