@@ -192,9 +192,11 @@ export function BookingForm({
         email: field('contact.email'),
         phone: field('contact.phone') || undefined,
       },
+      // Keyed by the question's words, not its CMS row id: GoHighLevel shows
+      // these keys to the Founder. The contract caps a key at 80 characters.
       answers: Object.fromEntries(
         questions.map((question) => [
-          question.id,
+          question.question.slice(0, 80),
           field(`answers.${question.id}`),
         ])
       ),
@@ -227,17 +229,21 @@ export function BookingForm({
       answers: input.answers,
       consent: { email: input.consent.email, sms: input.consent.sms },
     })
-    const replaying =
-      uncertain && intentRef.current === intent && keyRef.current !== null
+    // After a lost response the first attempt may have booked, so every retry
+    // keeps its key, edited or not: the server replays that booking if it
+    // exists, and only otherwise creates this one. A new key could book twice.
+    let key = keyRef.current
+    const replaying = uncertain && key !== null
     if (!replaying && !slots.some((item) => item.slots.includes(slot)))
       return { status: 400, message: copy.chooseSlot }
-    if (!keyRef.current || intentRef.current !== intent) {
-      keyRef.current = newIdempotencyKey()
+    if (!key || (!replaying && intentRef.current !== intent)) {
+      key = newIdempotencyKey()
+      keyRef.current = key
       intentRef.current = intent
     }
     track('booking_step', { step: 'submit' })
     const body = { ...input, [HONEYPOT_FIELD]: '' }
-    const result = await api.book(body, keyRef.current)
+    const result = await api.book(body, key)
     if (result.ok) {
       confirmedRef.current = true
       keyRef.current = null
@@ -272,14 +278,12 @@ export function BookingForm({
   ): Promise<FormState> {
     if (pendingRef.current) return pendingRef.current
     setSubmitting(true)
-    const pending = performSubmit(data)
-    pendingRef.current = pending
-    try {
-      return await pending
-    } finally {
+    const pending = performSubmit(data).finally(() => {
       pendingRef.current = null
       setSubmitting(false)
-    }
+    })
+    pendingRef.current = pending
+    return pending
   }
   if (!available)
     return (

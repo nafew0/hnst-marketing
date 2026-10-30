@@ -29,11 +29,14 @@ export default async function ThanksPage({
   if (!Object.hasOwn(messages, type)) notFound()
   if (type === 'booking' || type === 'magnet') {
     const content = await loadPageContent(`thanks-${type}`)
-    return (
-      <PageShell>
-        <StandardPageContent {...content} />
-      </PageShell>
-    )
+    // Unpublished or the CMS is down: a visitor who just booked still gets the
+    // thank-you below, never "Page in preparation".
+    if (content.page)
+      return (
+        <PageShell>
+          <StandardPageContent {...content} />
+        </PageShell>
+      )
   }
   const message = Object.entries(messages).find(([key]) => key === type)?.[1]
   return (

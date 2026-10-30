@@ -62,11 +62,26 @@ export async function seedWave3(inputPath?: string) {
         'Provide the approved calendar address in the private Wave 3 inputs file.'
       )
     // The Founder approved this configuration value. It stays in Postgres only.
+    // Payload merges an update over the latest version, so publishing while a
+    // draft is pending would publish that draft's unapproved copy with it.
+    const latest = await cms.findGlobal({
+      slug: 'site-settings',
+      draft: true,
+    })
+    const draftPending = latest._status === 'draft'
     await cms.updateGlobal({
       slug: 'site-settings',
-      data: { bookingEmbedUrl: parsed.data, _status: 'published' },
+      draft: draftPending,
+      data: {
+        bookingEmbedUrl: parsed.data,
+        _status: draftPending ? 'draft' : 'published',
+      },
       context: { skipRevalidation: true },
     })
+    if (draftPending)
+      console.log(
+        'Saved the calendar address to the pending SiteSettings draft. It goes live when that draft is published.'
+      )
   }
   const settings = await cms.findGlobal({ slug: 'site-settings', draft: true })
   if (!settings.qualifyingQuestions?.length)
