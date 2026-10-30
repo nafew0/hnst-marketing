@@ -27,8 +27,9 @@ const MAIN_PAGES = [
 const windowOf = (page: Page) => page.getByRole('dialog')
 const control = (page: Page, name: string) =>
   page.getByRole('button', { name, exact: true })
-const closeControl = (page: Page) => page.getByLabel('Close window')
-const minimiseControl = (page: Page) => page.getByLabel('Minimise window')
+const closeControl = (page: Page) => windowOf(page).getByLabel('Close window')
+const minimiseControl = (page: Page) =>
+  windowOf(page).getByLabel('Minimise window')
 
 /** A click before hydration is a full page load, so wait for React to own it. */
 async function hydrated(link: Locator) {
@@ -157,7 +158,7 @@ test('a half-filled form survives minimise and restore, and nothing reaches brow
   const draft = windowOf(page).locator('input[name="draft"]')
   await draft.fill('half-filled-value')
   const consent = windowOf(page).locator('input[name="consent"]')
-  await consent.check()
+  await windowOf(page).getByText('Tick box').click()
   const scroller = windowOf(page).locator('[data-window-scroller]')
   await scroller.evaluate((element) => {
     element.scrollTop = 300
@@ -185,6 +186,10 @@ test('a form that succeeds lands on its thank-you page with the window gone', as
   page,
 }) => {
   test.skip(!process.env.P6_MOCKS_TESTS, 'Needs the mock API and CMS copy')
+  // Production hides the consent banner from bots.
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'webdriver', { get: () => false })
+  )
   await page.goto('/')
   await page
     .getByRole('button', { name: 'Necessary only', exact: true })
@@ -268,14 +273,27 @@ test('keyboard: Tab stays inside, focus returns, and the controls and dock work'
   await link.focus()
   await page.keyboard.press('Enter')
   await expect(windowOf(page)).toBeVisible()
-  for (let press = 0; press < 40; press += 1) {
+  // Base UI's invisible focus guards take a stop as focus wraps round, and the
+  // browser passes through `body`. What matters is that no page element is hit.
+  const focused = new Set<string>()
+  for (let press = 0; press < 60; press += 1) {
     await page.keyboard.press('Tab')
-    expect(
-      await page.evaluate(() =>
-        Boolean(document.activeElement?.closest('[data-window]'))
-      )
-    ).toBe(true)
+    focused.add(
+      await page.evaluate(() => {
+        const element = document.activeElement
+        if (element?.closest('[data-window]')) return 'window'
+        return element?.hasAttribute('data-base-ui-focus-guard')
+          ? 'guard'
+          : `outside: ${element?.tagName}`
+      })
+    )
   }
+  expect(focused.has('window')).toBe(true)
+  expect(
+    [...focused].filter(
+      (item) => item.startsWith('outside') && item !== 'outside: BODY'
+    )
+  ).toEqual([])
   await page.keyboard.press('Escape')
   await expect(windowOf(page)).toBeHidden()
   await expect(link).toBeFocused()
@@ -325,7 +343,10 @@ test('axe finds nothing serious open, full screen or minimised', async ({
   isMobile,
 }) => {
   const scan = async () => {
-    const { violations } = await new AxeBuilder({ page }).analyze()
+    // On Safari, Base UI gives its aria-hidden focus guards `role="button"`.
+    const { violations } = await new AxeBuilder({ page })
+      .exclude('[data-base-ui-focus-guard]')
+      .analyze()
     expect(
       violations
         .filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))
@@ -372,7 +393,7 @@ test.describe('without JavaScript', () => {
     for (const href of MAIN_PAGES) {
       await page.goto(href)
       await expect(page.locator('header')).toBeVisible()
-      await expect(page.locator('footer')).toBeVisible()
+      await expect(page.getByRole('contentinfo')).toBeVisible()
       await expect(
         page.locator('main [data-window-direct] h1').first()
       ).toBeVisible()
@@ -430,6 +451,33 @@ test('the consent banner still works with a window open', async ({ page }) => {
   await page.locator('#cc-main button[data-role="necessary"]').first().click()
   await expect(banner).toBeHidden()
   await expect(windowOf(page)).toBeVisible()
+})
+
+test('consent can be changed from inside a window', async ({ page }) => {
+  // Production hides the consent UI from bots.
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'webdriver', { get: () => false })
+  )
+  await page.goto('/')
+  await openFromLink(page, '/contact')
+  await windowOf(page).getByRole('button', { name: 'Privacy choices' }).click()
+  await expect(page.locator('#cc-main .pm')).toBeVisible()
+})
+
+test('the world loop plays inside a window, and stops behind one', async ({
+  page,
+}) => {
+  const playing = (selector: string) =>
+    page.locator(selector).evaluate((video: HTMLVideoElement) => !video.paused)
+  await page.goto('/how-it-works')
+  const direct = '[data-window-direct] video'
+  await expect.poll(() => playing(direct)).toBe(true)
+  await openFromLink(page, '/contact')
+  const inside = '[data-window-scroller][data-active] video'
+  await expect.poll(() => playing(inside)).toBe(true)
+  await expect.poll(() => playing(direct)).toBe(false)
+  await closeControl(page).click()
+  await expect.poll(() => playing(direct)).toBe(true)
 })
 
 test('the canvas stops drawing behind a window and resumes after', async ({

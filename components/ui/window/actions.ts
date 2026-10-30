@@ -15,13 +15,7 @@ export function minimiseWindow({
   href,
   title,
 }: Pick<WindowEntry, 'href' | 'title'>) {
-  setMinimised({
-    href,
-    title,
-    // oxlint-disable-next-line hamo/no-raw-layout-read -- one read on a click, in no loop
-    scrollOffset: scrollerOf(href)?.scrollTop ?? 0,
-    draft: null,
-  })
+  setMinimised({ href, title, draft: null })
   returnToBase()
 }
 

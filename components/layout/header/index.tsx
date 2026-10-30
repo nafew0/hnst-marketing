@@ -59,7 +59,12 @@ export function Header() {
   )
 
   return (
-    <header ref={headerRef} className={s.header}>
+    // Only the homepage has Lenis and a hero to keep clear; elsewhere it's solid.
+    <header
+      ref={headerRef}
+      className={s.header}
+      data-solid={pathname === '/' ? undefined : ''}
+    >
       <div className={cn(s.bar, 'dr-layout-block')}>
         <Link href="/" aria-label="HONEST Marketing home" className={s.home}>
           <Logo title={false} className={s.logo} />

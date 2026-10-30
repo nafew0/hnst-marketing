@@ -37,6 +37,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Tabs | `@/components/ui/tabs` | Client |
 | Toast | `@/components/ui/toast` | Client |
 | Tooltip | `@/components/ui/tooltip` | Client |
+| Window | `@/components/ui/window` | Server |
 
 ---
 

@@ -1,6 +1,9 @@
 'use client'
 
+import cn from 'clsx'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
+
+import { worldHost, WorldSky } from '@/components/world'
 
 import { TitleBar } from './controls'
 import { captureDraft } from './drafts'
@@ -38,7 +41,7 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
   return (
     <div
       ref={frameRef}
-      className={s.direct}
+      className={cn(s.direct, worldHost)}
       data-theme="dark"
       data-window-direct
       data-fullscreen={fullscreen || undefined}
@@ -53,12 +56,11 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
           setMinimised({
             href,
             title,
-            // oxlint-disable-next-line hamo/no-raw-layout-read -- one read on a click, in no loop
-            scrollOffset: window.scrollY,
             draft: captureDraft(frameRef.current),
           })
         }}
       />
+      <WorldSky />
       {children}
     </div>
   )

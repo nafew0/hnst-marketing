@@ -54,8 +54,11 @@
     }
   }
 
+  /* Still laid out while closed, so minimised panes keep their scroll. */
   &[hidden] {
-    display: none;
+    display: flex;
+    visibility: hidden;
+    pointer-events: none;
   }
 }
 
@@ -170,16 +173,38 @@
   }
 }
 
-.scroller {
+.privacy {
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  margin-left: auto;
+  padding-inline: 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-silver);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-starlight);
+    outline-offset: -2px;
+  }
+}
+
+.panes {
+  position: relative;
   flex: 1;
   min-height: 0;
+}
+
+.scroller {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
   overflow: hidden auto;
   overscroll-behavior: contain;
   outline: none;
 
-  &:focus-visible {
-    outline: 2px solid var(--color-gold);
-    outline-offset: -2px;
+  &[data-active] {
+    visibility: visible;
   }
 }
 

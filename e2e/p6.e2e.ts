@@ -583,7 +583,7 @@ test('P6 analytics records booking and package clicks only after consent', async
     .first()
     .click()
   await page
-    .locator('main')
+    .getByRole('dialog')
     .getByRole('link', { name: 'Explore the Founder Package', exact: true })
     .click()
   await expect

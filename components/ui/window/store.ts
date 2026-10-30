@@ -10,7 +10,6 @@ export interface WindowEntry {
   /** Null until the route delivers it: loading, or minimised from a direct visit. */
   content: ReactNode
   minimised: boolean
-  scrollOffset: number
   /** Field values to put back: a direct visit's page can't stay mounted. */
   draft: FieldDraft[] | null
 }
@@ -50,7 +49,6 @@ export function openRoute({
     title: title || existing?.title || '',
     content: existing?.content ?? content,
     minimised: false,
-    scrollOffset: existing?.scrollOffset ?? 0,
     draft: existing?.draft ?? null,
   }
   setState({
@@ -78,7 +76,7 @@ export function settle() {
 }
 
 export function setMinimised(
-  entry: Pick<WindowEntry, 'href' | 'title' | 'scrollOffset' | 'draft'>
+  entry: Pick<WindowEntry, 'href' | 'title' | 'draft'>
 ) {
   setState(({ entries }) => ({
     activeHref: null,

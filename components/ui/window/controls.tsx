@@ -34,6 +34,8 @@ interface TitleBarProps {
   home?: boolean
   onClose?: () => void
   onMinimise: () => void
+  /** A modal hides the page's "Privacy choices", and consent must stay reachable. */
+  onPrivacy?: () => void
 }
 
 /** The window's title bar: red, yellow and green at the left, title centred. */
@@ -45,6 +47,7 @@ export function TitleBar({
   home = false,
   onClose,
   onMinimise,
+  onPrivacy,
 }: TitleBarProps) {
   return (
     <div className={s.bar}>
@@ -99,6 +102,16 @@ export function TitleBar({
       <div id={titleId} className={s.title}>
         {title}
       </div>
+      {onPrivacy && (
+        <button
+          type="button"
+          aria-label="Privacy choices"
+          className={s.privacy}
+          onClick={onPrivacy}
+        >
+          Privacy
+        </button>
+      )}
     </div>
   )
 }

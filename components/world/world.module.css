@@ -1,0 +1,266 @@
+/*
+ * Unlayered on purpose: these beat the Tailwind utilities on the standard
+ * sections, so the whole look changes here. Cost: a section that wants its own
+ * opaque background needs a rule here too.
+ */
+.host {
+  isolation: isolate;
+}
+
+.host :global(section) {
+  background: transparent;
+}
+
+.host :global(.bg-void-2),
+.host [data-card] {
+  border-color: color-mix(in oklab, var(--color-gold) 30%, transparent);
+  background: color-mix(in oklab, var(--color-void-deep) 80%, transparent);
+  box-shadow: 0 24px 72px -32px
+    color-mix(in oklab, var(--color-nebula-glow) 55%, transparent);
+
+  @media (--desktop) {
+    background: color-mix(in oklab, var(--color-void-deep) 56%, transparent);
+    backdrop-filter: blur(14px) saturate(1.25);
+  }
+}
+
+/* Stays put behind the page; the negative margin takes it out of the flow. */
+.sky {
+  position: sticky;
+  top: 0;
+  z-index: -1;
+  flex: none;
+  height: 100svh;
+  margin-bottom: -100svh;
+  overflow: hidden;
+  background: var(--color-void-deep);
+  pointer-events: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      in oklab to bottom,
+      color-mix(in oklab, var(--color-void-deep) 10%, transparent),
+      color-mix(in oklab, var(--color-void-deep) 28%, transparent)
+    );
+  }
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-void-deep);
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out-expo);
+}
+
+.isPlaying {
+  opacity: 1;
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 88svh;
+  overflow: hidden;
+}
+
+/* The scene dissolves into the nebula above the copy, so the headline stays clear. */
+.hero .scene {
+  background: transparent;
+  mask-image: linear-gradient(in oklab to bottom, black 48%, transparent 92%);
+}
+
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    in oklab to bottom,
+    color-mix(in oklab, var(--color-void-deep) 50%, transparent),
+    transparent 20%
+  );
+  pointer-events: none;
+}
+
+.heroCopy {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(16px);
+  padding-block: mobile-vw(120px) mobile-vw(32px);
+
+  @media (--desktop) {
+    gap: desktop-vw(14px);
+    padding-block: desktop-vw(180px) desktop-vw(40px);
+  }
+
+  & > * {
+    text-shadow: 0 2px 28px
+      color-mix(in oklab, var(--color-void-deep) 80%, transparent);
+  }
+}
+
+.lede {
+  max-width: 44rem;
+  color: var(--color-starlight);
+}
+
+/* No copy: the scene fades into the starfield at both edges. */
+.band {
+  position: relative;
+  height: 70svh;
+  mask-image: linear-gradient(
+    in oklab to bottom,
+    transparent,
+    black 18%,
+    black 82%,
+    transparent
+  );
+}
+
+.closing {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 72svh;
+  overflow: hidden;
+  text-align: center;
+  mask-image: linear-gradient(in oklab to bottom, transparent, black 16%);
+}
+
+.closingScrim {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    in oklab 70% 70% at 50% 50%,
+    color-mix(in oklab, var(--color-void-deep) 72%, transparent),
+    color-mix(in oklab, var(--color-void-deep) 20%, transparent)
+  );
+}
+
+.closingCopy {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: mobile-vw(20px);
+  width: 100%;
+  padding-block: mobile-vw(72px);
+
+  @media (--desktop) {
+    gap: desktop-vw(24px);
+    padding-block: desktop-vw(96px);
+  }
+}
+
+/* The lunar walk: a gold trail with a lit bead at each step. */
+.trail {
+  position: relative;
+  display: grid;
+  gap: mobile-vw(20px);
+  padding-left: mobile-vw(28px);
+
+  @media (--desktop) {
+    grid-template-columns: 1fr 1fr;
+    gap: desktop-vw(32px) desktop-vw(88px);
+    padding-left: 0;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: mobile-vw(6px);
+    width: 1px;
+    background: linear-gradient(
+      in oklab to bottom,
+      transparent,
+      var(--color-gold) 8%,
+      var(--color-gold) 92%,
+      transparent
+    );
+
+    @media (--desktop) {
+      left: 50%;
+    }
+  }
+}
+
+.step {
+  position: relative;
+
+  @media (--desktop) {
+    &:nth-child(odd) {
+      grid-column: 1;
+    }
+
+    &:nth-child(even) {
+      grid-column: 2;
+      margin-top: desktop-vw(88px);
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: mobile-vw(30px);
+    left: mobile-vw(-27px);
+    width: mobile-vw(11px);
+    height: mobile-vw(11px);
+    border-radius: 50%;
+    background: var(--color-gold);
+    box-shadow: 0 0 18px 4px
+      color-mix(in oklab, var(--color-gold) 65%, transparent);
+
+    @media (--desktop) {
+      top: desktop-vw(40px);
+      left: auto;
+      width: desktop-vw(13px);
+      height: desktop-vw(13px);
+    }
+  }
+
+  @media (--desktop) {
+    &:nth-child(odd)::before {
+      right: calc(desktop-vw(-44px) - desktop-vw(6.5px));
+    }
+
+    &:nth-child(even)::before {
+      left: calc(desktop-vw(-44px) - desktop-vw(6.5px));
+    }
+  }
+}
+
+.stepCard {
+  padding: mobile-vw(24px);
+  border: 1px solid;
+  border-radius: 16px;
+
+  @media (--desktop) {
+    padding: desktop-vw(36px);
+  }
+}
+
+.stepNumber {
+  display: block;
+  margin-bottom: mobile-vw(12px);
+  color: var(--color-gold);
+
+  @media (--desktop) {
+    margin-bottom: desktop-vw(12px);
+  }
+}

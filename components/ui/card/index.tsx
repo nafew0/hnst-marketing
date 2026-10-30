@@ -20,6 +20,7 @@ export function Card({
 }: CardProps) {
   return (
     <div
+      data-card
       className={cn(
         s.card,
         featured && s.featured,

@@ -14,6 +14,7 @@ import { packageFacts } from '@/components/sections/standard/package-facts'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Section, Container } from '@/components/ui/section'
+import { worldFor } from '@/components/world'
 import {
   getPackages,
   getFaqs,
@@ -49,6 +50,7 @@ export async function PackageDetailContent({ tier }: { tier: string }) {
       />
       <JsonLd data={serviceSchema(item)} />
       <PageHero
+        clip={worldFor(`packages/${tier}`).hero}
         title={item.name}
         eyebrow={item.highlight ? 'OUR LEAD OFFER' : 'YOUR NEXT CHAPTER'}
         description={item.turnaround}
