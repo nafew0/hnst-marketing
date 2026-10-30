@@ -16,6 +16,7 @@ import s from './scroll-sequence.module.css'
 
 /** Canvas resolution ceiling: frames are 1280w (desktop) / 720w (mobile). */
 const MAX_DPR = 1.5
+const BLEND_STEPS = 16
 
 interface Player {
   store: FrameStore
@@ -44,12 +45,26 @@ function drawCover(
 function render(player: Player, canvas: HTMLCanvasElement | null) {
   const context = canvas?.getContext('2d')
   if (!canvas || !context) return
-  const target = Math.round(player.progress * (player.store.length - 1))
-  player.store.seek(target)
+  const position = player.progress * (player.store.length - 1)
+  const target = Math.floor(position)
+  player.store.seek(Math.round(position))
   const frame = player.store.nearest(target)
-  if (!frame || frame.index === player.drawn) return
-  player.drawn = frame.index
+  if (!frame) return
+  // Quantized: a blend step too small to see isn't worth a redraw.
+  const blend = Math.round((position - target) * BLEND_STEPS) / BLEND_STEPS
+  const drawn = frame.index + blend
+  if (drawn === player.drawn) return
+  player.drawn = drawn
+  context.globalAlpha = 1
   drawCover(context, frame.bitmap, canvas.width, canvas.height)
+  // A dissolve into the next frame: soft material then reads as motion, so a
+  // short frame set scrubs smoothly over a long scroll.
+  const next = player.store.nearest(target + 1)
+  if (frame.index === target && blend > 0 && next?.index === target + 1) {
+    context.globalAlpha = blend
+    drawCover(context, next.bitmap, canvas.width, canvas.height)
+    context.globalAlpha = 1
+  }
 }
 
 interface ScrollSequenceProps {
@@ -118,8 +133,11 @@ export function ScrollSequence({
     const player: Player = {
       store: new FrameStore(manifest[chosen], decodeFrame, (index) => {
         // A newly decoded frame closer to the playhead replaces the stand-in.
-        const target = Math.round(player.progress * (manifest.frames - 1))
-        if (Math.abs(index - target) < Math.abs(player.drawn - target)) {
+        const target = player.progress * (manifest.frames - 1)
+        if (
+          Math.abs(index - target) < 1 ||
+          Math.abs(index - target) < Math.abs(player.drawn - target)
+        ) {
           player.drawn = -1
           render(player, canvasRef.current)
         }
