@@ -37,6 +37,9 @@
 	--color-success: oklch(0.7248 0.0910 147.31);
 	--color-warning: oklch(0.7596 0.1382 70.35);
 	--color-danger: oklch(0.6484 0.1456 27.89);
+	--color-window-close: oklch(0.6936 0.1964 26.36);
+	--color-window-minimise: oklch(0.8348 0.1612 80.91);
+	--color-window-zoom: oklch(0.7280 0.2173 144.71);
 
   --spacing-*: initial;
 	--spacing-0: 0;

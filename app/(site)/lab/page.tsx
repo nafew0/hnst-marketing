@@ -150,6 +150,13 @@ export default function LabPage() {
 
       <LabMotion />
       <LabForm />
+      <Section>
+        <Container>
+          <Button href="/lab/window" variant="ghost">
+            Window fixture
+          </Button>
+        </Container>
+      </Section>
     </Wrapper>
   )
 }

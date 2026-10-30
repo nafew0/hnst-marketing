@@ -51,6 +51,11 @@ const palette = {
   success: 'oklch(0.7248 0.0910 147.31)', // #7fb685
   warning: 'oklch(0.7596 0.1382 70.35)', // #e8a040
   danger: 'oklch(0.6484 0.1456 27.89)', // #d9675b
+
+  // Page window controls (docs/phases/P7W.md): UI only, free to tune
+  'window-close': 'oklch(0.6936 0.1964 26.36)', // #ff5f57
+  'window-minimise': 'oklch(0.8348 0.1612 80.91)', // #febc2e
+  'window-zoom': 'oklch(0.7280 0.2173 144.71)', // #28c840
 } as const
 
 /** Theme roles consumed by Satus components (`--color-primary` etc.). */

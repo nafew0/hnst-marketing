@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
-import { PageShell } from '@/components/sections/standard/catalog'
 import { PackageDetailContent } from '@/components/sections/standard/pages/package-detail'
+import { WindowPage } from '@/components/ui/window'
 import { getPackages } from '@/lib/cms/data'
 import { routeAlternates } from '@/lib/seo/alternates'
 
@@ -23,9 +23,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function PackagePage({ params }: Props) {
   const { tier } = await params
+  const item = (await getPackages()).find((p) => p.tier === tier)
   return (
-    <PageShell>
+    <WindowPage href={`/packages/${tier}`} title={item?.name ?? 'Package'}>
       <PackageDetailContent tier={tier} />
-    </PageShell>
+    </WindowPage>
   )
 }

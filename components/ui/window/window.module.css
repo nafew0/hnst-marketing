@@ -1,0 +1,322 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: color-mix(in oklab, var(--color-void-deep) 72%, transparent);
+
+  @media (--motion-ok) {
+    transition: opacity var(--duration-fast) var(--ease-out-expo);
+
+    &[data-starting-style],
+    &[data-ending-style] {
+      opacity: 0;
+    }
+  }
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+/* The modal window. Phones always use the full-screen form. */
+.window {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-void);
+  color: var(--color-starlight);
+  outline: none;
+
+  @media (--desktop) {
+    &:not([data-fullscreen]) {
+      inset: 4vh max(var(--safe), calc((100vw - 1240px) / 2));
+      border: 1px solid color-mix(in oklab, var(--color-gold) 22%, transparent);
+      border-radius: 14px;
+      box-shadow: 0 32px 96px
+        color-mix(in oklab, var(--color-void-deep) 80%, transparent);
+    }
+  }
+
+  @media (--motion-ok) {
+    &:not([data-static]) {
+      transition:
+        opacity var(--duration-fast) var(--ease-out-expo),
+        transform var(--duration-fast) var(--ease-out-expo);
+
+      &[data-starting-style],
+      &[data-ending-style] {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+      }
+    }
+  }
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.bar {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 8px;
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--color-gold) 14%, transparent);
+  background: var(--color-void-2);
+}
+
+.controls {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* The target is 24 px (44 px on phones); the visible dot is drawn inside it. */
+.dot {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-void-deep);
+
+  @media (--desktop) {
+    width: 24px;
+    height: 24px;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--dot);
+
+    @media (--desktop) {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-starlight);
+    outline-offset: -2px;
+  }
+}
+
+.close {
+  --dot: var(--color-window-close);
+}
+
+.minimise {
+  --dot: var(--color-window-minimise);
+}
+
+/* Nothing to do on a phone: the window already fills the screen. */
+.zoom {
+  --dot: var(--color-window-zoom);
+
+  @media (--mobile) {
+    display: none;
+  }
+}
+
+/* Colour can't be the only signal: symbols on hover, focus and touch. */
+.glyph {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+
+.dot .glyph {
+  opacity: 0;
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+.controls:hover .glyph,
+.dot:focus-visible .glyph {
+  opacity: 1;
+}
+
+.title {
+  position: absolute;
+  inset: 0 88px;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 44px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-silver);
+
+  @media (--mobile) {
+    inset: 0 104px;
+  }
+}
+
+.scroller {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: -2px;
+  }
+}
+
+.loading {
+  padding: 48px;
+  text-align: center;
+  color: var(--color-silver);
+}
+
+/* A direct visit: the frame on a static background, with no live 3D. */
+.stage {
+  /* The logo's crescent hangs a little below the header. */
+  padding-top: calc(var(--header-height) + 12px);
+  background:
+    radial-gradient(
+      in oklab 90% 50% at 70% 0%,
+      color-mix(in oklab, var(--color-nebula-deep) 85%, transparent),
+      transparent
+    ),
+    var(--color-void-deep);
+
+  @media (--desktop) {
+    padding-inline: var(--safe);
+    padding-bottom: var(--safe);
+  }
+}
+
+.direct {
+  width: 100%;
+  background: var(--color-void);
+  color: var(--color-starlight);
+
+  .bar {
+    position: sticky;
+    top: var(--header-height);
+    z-index: 10;
+  }
+
+  @media (--desktop) {
+    &:not([data-fullscreen]) {
+      max-width: 1240px;
+      margin-inline: auto;
+      border: 1px solid color-mix(in oklab, var(--color-gold) 22%, transparent);
+      border-radius: 14px;
+
+      .bar {
+        border-radius: 13px 13px 0 0;
+      }
+    }
+  }
+
+  &[data-fullscreen] {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    overflow-y: auto;
+
+    .bar {
+      top: 0;
+    }
+  }
+}
+
+/* Centred on desktop, above the page's corner pills on phones. */
+.dock {
+  position: fixed;
+  bottom: 56px;
+  left: 12px;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  gap: 8px;
+  max-width: calc(100vw - 24px);
+
+  @media (--desktop) {
+    bottom: 12px;
+    left: 50%;
+    justify-content: center;
+    max-width: 50vw;
+    transform: translateX(-50%);
+  }
+}
+
+.chip {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  border: 1px solid color-mix(in oklab, var(--color-gold) 40%, transparent);
+  border-radius: 999px;
+  background: var(--color-void);
+  color: var(--color-starlight);
+  font-size: 13px;
+}
+
+.restore {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding-inline: 14px 6px;
+  border-radius: 999px 0 0 999px;
+
+  @media (--desktop) {
+    min-height: 32px;
+  }
+}
+
+.chipDot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-window-minimise);
+}
+
+.chipTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dismiss {
+  display: grid;
+  flex: none;
+  width: 44px;
+  place-items: center;
+  border-radius: 0 999px 999px 0;
+  color: var(--color-silver);
+
+  @media (--desktop) {
+    width: 28px;
+  }
+}
+
+.restore:focus-visible,
+.dismiss:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: -2px;
+}
