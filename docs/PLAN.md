@@ -117,21 +117,53 @@ P1 forked Satus v3 and kept its conventions instead of re-creating the plan's or
   - The tagline "Powered by HONEST SuperIntelligence" is set in Helvetica Neue LT Pro in the artwork. We don't have that font, so `<Logo tagline>` renders the line as live text in Archivo Narrow.
 - **`<HorizonDivider>`** is the planet-rim gold arc, and its stroke can be drawn with `useDrawPath`.
 
+### H. Localhost first; the VM is deferred (Nafew, 30 Oct 2026)
+
+Every phase is built and accepted **on localhost**. There is no VM, staging hostname or public URL until the Founder says go. The deploy files from P2 (`Dockerfile.web`, `Dockerfile.worker`, `deploy/`) stay in the repo, ready but unused.
+
+- **Local stack:**
+  - Postgres: `bun run db:up` (port 5432), or `deploy/docker-compose.localhost.yml` (port 5433) when 5432 is taken.
+  - Site: `bun dev`, or `bun run build && bun run start` for production checks.
+  - Worker: `bun worker/index.ts`.
+  - Migrations and GHL setup: `bun scripts/migrate.ts` and `bun scripts/ghl-setup.ts`.
+  - Secrets live in the git-ignored root `.env` on Nafew's Mac (the GHL token included). Never commit it.
+- **Test data in GHL:** leads sent from localhost create **real** contacts and opportunities in the HONEST sub-account. Use `@example.com` emails and delete test records before launch.
+- **Media:** P5's `publish` copies processed clips and frame sets into `public/media/<hash>/`, which is git-ignored, so `/media/...` URLs work in `bun dev`. On the VM, the same paths come from `/srv/media` through Caddy.
+- **Phones on localhost:** for real-device checks (P10), run `bun run start -- -H 0.0.0.0` and open `http://<mac-lan-ip>:3000` on a phone on the same Wi-Fi.
+
+**What each phase does on localhost, and what moves to Go-live:**
+
+| Phase | Accepted on localhost                                                                                                                                                              | Moved to Go-live                                                                               |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| P2    | Leads API and worker deliver to GHL from the local stack. The repeated key gives one contact. Backup and restore against local Postgres. **Done 30 Oct.**                          | VM, SSH, staging HTTPS, building and running `deploy/docker-compose.yml`, `deploy.sh` rollback |
+| P5    | Slots, bookings, offers and events against GHL from localhost. `publish` copies media into `public/media/`. The webhook route is tested by posting to `localhost` with the secret. | Pointing the GHL "offer changed" workflow at the public URL; rsync to `/srv/media`             |
+| P8    | Rate limits, ALTCHA replay, load test against the local production build, DLQ tools, secrets runbook, restore drill on local Postgres                                              | Uptime Kuma alerts, Caddy and ufw security headers, VM restore drill                           |
+| P9    | Unchanged: runs against the local production build                                                                                                                                 | n/a                                                                                            |
+| P10   | Performance, polish, real devices over the LAN, final CSP                                                                                                                          | Production cut-over and `v1.0.0`                                                               |
+
+**Go-live** is a new step after P10. Grok runs it with Nafew once the Founder says go:
+
+1. Provision the VM (Ubuntu 24.04, ports 22/80/443, SSH keys) and copy `.env` to it (chmod 600).
+2. Point `staging.hnst.marketing` at the VM, set `SITE_ADDRESS` and `SITE_PASSWORD`, and run `deploy/deploy.sh`.
+3. Point the GHL workflow webhook at `https://<host>/api/webhooks/ghl-workflow/<secret>`.
+4. Install the crontab, run a restore drill on the VM, and set up Uptime Kuma alerts.
+5. Run the launch QA script (§9), get the Founder's sign-off, switch DNS to `hnst.marketing`, and tag `v1.0.0`.
+
 ---
 
 ## TL;DR
 
 - **10 build phases in 4 waves.** Each phase belongs to exactly one coder. Phases in the same wave run in parallel, because they touch different folders.
 
-  | Wave           | Claude                                        | Astra                                | Grok                                              |
-  | -------------- | --------------------------------------------- | ------------------------------------ | ------------------------------------------------- |
-  | 1 (Days 1–3)   | **P1** Foundation                             | —                                    | —                                                 |
-  | 2 (Days 4–9)   | **P4** 3D world + motion library              | **P3** CMS, core pages, forms        | **P2** Back-end core + self-hosted staging        |
-  | 3 (Days 10–17) | **P7** Signature homepage sections            | **P6** Remaining pages + booking UI  | **P5** Media pipeline + booking/offers/events API |
-  | 4 (Days 18–22) | **P10** Performance, polish, launch readiness | **P9** QA, accessibility, SEO audits | **P8** Hardening and ops                          |
-  | Launch         | Nafew: QA script, Founder sign-off, DNS       |                                      |                                                   |
+  | Wave                             | Claude                                        | Astra                                | Grok                                                                                   |
+  | -------------------------------- | --------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------- |
+  | 1 (Days 1–3)                     | **P1** Foundation                             | —                                    | —                                                                                      |
+  | 2 (Days 4–9)                     | **P4** 3D world + motion library              | **P3** CMS, core pages, forms        | **P2** Back-end core + self-hosted staging                                             |
+  | 3 (Days 10–17)                   | **P7** Signature homepage sections            | **P6** Remaining pages + booking UI  | **P5** Media pipeline + booking/offers/events API                                      |
+  | 4 (Days 18–22)                   | **P10** Performance, polish, launch readiness | **P9** QA, accessibility, SEO audits | **P8** Hardening and ops                                                               |
+  | Go-live (after the Founder's go) | Nafew: QA script, Founder sign-off, DNS       |                                      | **Go-live**: VM, staging, `deploy.sh`, GHL webhook, monitoring (§ Satus adaptations H) |
 
-- **Hosting: 100% free and open source, on your own VM:**
+- **Hosting: 100% free and open source, on your own VM, but only at Go-live.** Until then every phase runs on localhost (§ Satus adaptations H). The target setup:
   - Docker Compose: `web` (Next.js standalone) + `worker` + `postgres:17` + `caddy` (automatic HTTPS, serves the media files) + `uptime-kuma`.
   - Backups: nightly `pg_dump`.
   - No Vercel, Neon, Cloudflare or Railway.

@@ -92,3 +92,6 @@ README.original.md
 
 # setup-project test scratch folders
 .satus-*/
+
+# Processed media published locally by scripts/media (P5); on the VM it lives in /srv/media.
+/public/media/
