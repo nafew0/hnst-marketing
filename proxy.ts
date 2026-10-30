@@ -121,13 +121,18 @@ export function isSiteUnlocked(
 /**
  * Routes that stay open while the gate is on, because what calls them cannot
  * answer a Basic auth prompt. Each checks its own secret: the publish webhook,
- * and Presentation's draft-mode handshake. Every other `/api/*` route is gated
+ * Presentation's draft-mode handshake, and GoHighLevel's workflow webhook
+ * (secret path segment). `/api/health` answers deploy.sh and Uptime Kuma; it
+ * reports only up/down and a heartbeat time. Every other `/api/*` route is gated
  * like a page; `/api/cart/ensure` is same-origin, so the browser resends the
  * credentials it already has.
  */
 function isGateOpen(pathname: string): boolean {
   return (
-    pathname === '/api/revalidate' || pathname.startsWith('/api/draft-mode/')
+    pathname === '/api/revalidate' ||
+    pathname === '/api/health' ||
+    pathname.startsWith('/api/draft-mode/') ||
+    pathname.startsWith('/api/webhooks/')
   )
 }
 
