@@ -95,3 +95,5 @@ README.original.md
 
 # Processed media published locally by scripts/media (P5); on the VM it lives in /srv/media.
 /public/media/
+# Frame and loop intermediates. publish copies the hashed set into public/media.
+/media-out/
