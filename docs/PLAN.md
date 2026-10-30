@@ -174,6 +174,10 @@ Every phase is built and accepted **on localhost**. There is no VM, staging host
 
 ---
 
+### I. Main only (Nafew, 30 Oct 2026)
+
+There is no `dev` branch workflow. Every phase branch opens its PR straight into `main`, so CI runs on each PR, and anything older that says `dev` means `main`. Nothing deploys from `main` until the Founder's go (§ H), so merging isn't going live.
+
 ## TL;DR
 
 - **10 build phases in 4 waves.** Each phase belongs to exactly one coder. Phases in the same wave run in parallel, because they touch different folders.
@@ -325,7 +329,7 @@ OWNERSHIP: You may ONLY create/edit files listed under "Files you own" in your p
 CONTRACTS: lib/contracts is the source of truth for every API request/response. Never edit it. Front end uses MSW mocks when NEXT_PUBLIC_API_MOCKS=1.
 COLOURS/FONTS: never type a hex colour or font name — use CSS variables / Tailwind theme / import { brand } from '@/brand.config'.
 ANIMATION: anime.js 4.5 only (no GSAP, no framer-motion). Respect useReducedMotion() and DeviceTier.
-BRANCH: <coder>/<phase>-<feature> (e.g., grok/p2-leads-api). PR into dev. Small commits, conventional messages.
+BRANCH: <coder>/<phase>-<feature> (e.g., grok/p2-leads-api). PR into main. Small commits, conventional messages.
 DONE MEANS: typecheck + lint + unit tests pass; your phase's acceptance criteria are demonstrably met (write how you verified them in the PR); no console errors; no secrets in code or client bundles; README/docs updated for anything you added.
 NEVER: add dependencies without listing them in the PR for approval; delete others' files; commit .env; call GoHighLevel from the browser.
 ```
