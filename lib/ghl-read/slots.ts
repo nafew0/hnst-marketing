@@ -4,7 +4,7 @@ import {
   isoDateTimeSchema,
   slotsQuerySchema,
 } from '@/lib/contracts'
-import { SLOT_CACHE_MS } from '@/lib/ghl/constants'
+import { SLOT_CACHE_MAX_ENTRIES, SLOT_CACHE_MS } from '@/lib/ghl/constants'
 import { GhlRequestError } from '@/lib/ghl/errors'
 import { issueFields } from '@/lib/ghl/issues'
 import type { FreeSlotQuery } from '@/lib/ghl/types'
@@ -41,6 +41,25 @@ const slotCache = new Map<string, CacheEntry>()
 
 export function clearSlotCache(): void {
   slotCache.clear()
+}
+
+export function slotCacheSize(): number {
+  return slotCache.size
+}
+
+/**
+ * Any visitor can ask for any (from, to, tz), so the cache needs a bound.
+ * Past the cap it drops expired entries, then everything if none had expired.
+ * Cost: a burst of distinct queries re-reads GoHighLevel for the common ones.
+ */
+function remember(key: string, entry: CacheEntry, now: number): void {
+  if (slotCache.size >= SLOT_CACHE_MAX_ENTRIES) {
+    for (const [cachedKey, cached] of slotCache) {
+      if (cached.expiresAt <= now) slotCache.delete(cachedKey)
+    }
+    if (slotCache.size >= SLOT_CACHE_MAX_ENTRIES) slotCache.clear()
+  }
+  slotCache.set(key, entry)
 }
 
 export function timeZoneOffsetMinutes(instant: Date, timeZone: string): number {
@@ -151,7 +170,7 @@ export async function readFreeSlots(
       timezone: tz,
     })
     const body = mapSlots(tz, raw)
-    slotCache.set(cacheKey, { expiresAt: now + SLOT_CACHE_MS, body })
+    remember(cacheKey, { expiresAt: now + SLOT_CACHE_MS, body }, now)
     return { ok: true, body }
   } catch (error) {
     if (error instanceof GhlRequestError && error.statusCode === 0) {

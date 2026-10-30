@@ -270,6 +270,15 @@ export async function acceptBooking(
     return { ok: true, status: 201, body: created }
   } catch (error) {
     const kind = classifyBookingError(error)
+    // The appointment exists, so the visitor has this time. Removing the row
+    // would turn their retry into a 409 against their own appointment. The
+    // worker finishes or records the remaining steps.
+    if (row.appointmentId !== null && kind !== 'outage') {
+      const body = createdFrom(row)
+      await deps.store.save({ ...row, response: { status: 201, body } })
+      await deps.enqueue(row.ref, key.data)
+      return { ok: true, status: 201, body }
+    }
     if (kind === 'slot') {
       await deps.store.remove(row.ref)
       return rejection(

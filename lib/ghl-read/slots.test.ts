@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'bun:test'
 
-import { SLOT_CACHE_MS } from '@/lib/ghl/constants'
+import { SLOT_CACHE_MAX_ENTRIES, SLOT_CACHE_MS } from '@/lib/ghl/constants'
 import type { FreeSlotQuery } from '@/lib/ghl/types'
 
-import { clearSlotCache, readFreeSlots, zonedDayStartMs } from './slots'
+import {
+  clearSlotCache,
+  readFreeSlots,
+  slotCacheSize,
+  zonedDayStartMs,
+} from './slots'
 
 function slotsOf(calls: FreeSlotQuery[]) {
   return {
@@ -57,6 +62,35 @@ describe('slot range', () => {
     expect(backend.calls).toHaveLength(2)
     expect(second.ok).toBe(true)
     expect(third.ok).toBe(true)
+  })
+
+  it('caps the cache, dropping expired entries first', async () => {
+    clearSlotCache()
+    const backend = slotsOf([])
+    const oneDay = (index: number) => {
+      const date = new Date(Date.UTC(2026, 0, 1 + index))
+        .toISOString()
+        .slice(0, 10)
+      return { from: date, to: date, tz: 'UTC' }
+    }
+    const fill = async (now: number) => {
+      for (let index = 0; index < SLOT_CACHE_MAX_ENTRIES; index += 1) {
+        await readFreeSlots(oneDay(index), backend, now)
+      }
+      expect(slotCacheSize()).toBe(SLOT_CACHE_MAX_ENTRIES)
+    }
+    const next = oneDay(SLOT_CACHE_MAX_ENTRIES)
+
+    // Everything has expired, so only the expired entries go.
+    await fill(1_000)
+    await readFreeSlots(next, backend, 1_000 + SLOT_CACHE_MS)
+    expect(slotCacheSize()).toBe(1)
+
+    // Nothing has expired, so the whole cache resets rather than grow.
+    clearSlotCache()
+    await fill(1_000)
+    await readFreeSlots(next, backend, 1_000)
+    expect(slotCacheSize()).toBe(1)
   })
 
   it('rejects an unknown timezone', async () => {

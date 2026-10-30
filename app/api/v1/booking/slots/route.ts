@@ -13,14 +13,13 @@ const logger = pino({ level: 'info' })
 export async function GET(request: Request) {
   const url = new URL(request.url)
   try {
-    const ghl = ghlFromEnv()
     const result = await readFreeSlots(
       {
         from: url.searchParams.get('from') ?? '',
         to: url.searchParams.get('to') ?? '',
         tz: url.searchParams.get('tz') ?? '',
       },
-      { getFreeSlots: (query) => ghl.getFreeSlots(query) }
+      { getFreeSlots: (query) => ghlFromEnv().getFreeSlots(query) }
     )
     if (!result.ok) {
       return result.fields
