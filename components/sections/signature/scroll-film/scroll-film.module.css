@@ -1,0 +1,137 @@
+@layer components {
+  .section {
+    position: relative;
+    z-index: 1;
+    color: var(--color-starlight);
+  }
+
+  /* Reduced motion and tier 0: the stills take over from the film. */
+  .film {
+    display: none;
+
+    @media (--motion-ok) {
+      display: block;
+
+      &[data-static] {
+        display: none;
+      }
+    }
+  }
+
+  .filmTrack {
+    height: 600svh;
+  }
+
+  .captions {
+    position: absolute;
+    inset: 0;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: mobile-vw(16px);
+    padding-block: var(--header-height) mobile-vw(56px);
+
+    @media (--desktop) {
+      justify-content: center;
+      gap: desktop-vw(16px);
+      padding-block: var(--header-height) desktop-vw(56px);
+    }
+  }
+
+  /* Keeps the captions readable over whatever the film is passing through. */
+  .captions::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      in oklab to top,
+      color-mix(in oklab, var(--color-void-deep) 78%, transparent) 10%,
+      transparent 55%
+    );
+
+    @media (--desktop) {
+      background: linear-gradient(
+        in oklab to right,
+        color-mix(in oklab, var(--color-void-deep) 72%, transparent) 8%,
+        transparent 48%
+      );
+    }
+  }
+
+  .caption {
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(10px);
+
+    @media (--desktop) {
+      gap: desktop-vw(12px);
+      max-width: columns(5);
+    }
+  }
+
+  /* Live, the captions share one spot and take turns. Without JavaScript they
+     simply stack, so all three can be read over the poster. */
+  .film[data-live] .captions {
+    display: block;
+  }
+
+  .film[data-live] .caption {
+    position: absolute;
+    right: var(--safe);
+    bottom: mobile-vw(56px);
+    left: var(--safe);
+    opacity: 0;
+    will-change: opacity;
+    text-shadow: 0 0 mobile-vw(24px) var(--color-void-deep);
+
+    @media (--desktop) {
+      top: 50%;
+      right: auto;
+      bottom: auto;
+      translate: 0 -50%;
+      text-shadow: 0 0 desktop-vw(32px) var(--color-void-deep);
+    }
+  }
+
+  .stills {
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(56px);
+    padding-block: mobile-vw(56px);
+
+    @media (--desktop) {
+      gap: desktop-vw(96px);
+      padding-block: desktop-vw(96px);
+    }
+
+    @media (--motion-ok) {
+      display: none;
+    }
+  }
+
+  .film[data-static] + .stills {
+    display: flex;
+  }
+
+  .still {
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(20px);
+
+    @media (--desktop) {
+      gap: desktop-vw(28px);
+    }
+  }
+
+  .stillImage {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: clip;
+
+    @media (--desktop) {
+      aspect-ratio: 21 / 9;
+    }
+  }
+}
