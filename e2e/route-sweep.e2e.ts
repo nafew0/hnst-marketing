@@ -149,6 +149,20 @@ test.describe('route sweep', () => {
       expect(pageErrors).toEqual([])
 
       await waitForDynamicChunksIdle(page)
+      // Entrance animations (opacity fades) make axe measure half-faded text
+      // as low contrast; audit the settled page. Infinite loops are skipped.
+      await page.evaluate(() =>
+        Promise.all(
+          document
+            .getAnimations()
+            .filter(
+              (a) =>
+                a.effect?.getComputedTiming().endTime !==
+                Number.POSITIVE_INFINITY
+            )
+            .map((a) => a.finished.catch(() => undefined))
+        )
+      )
 
       // Critical and serious only, so minor third-party findings do not churn
       // the baseline.

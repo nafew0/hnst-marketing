@@ -191,6 +191,11 @@ jobs:
           HUBSPOT_ACCESS_TOKEN: leakcheck-HUBSPOT_ACCESS_TOKEN
           MAILCHIMP_API_KEY: leakcheck-MAILCHIMP_API_KEY
           CLOUDFLARE_TURNSTILE_SECRET_KEY: leakcheck-CLOUDFLARE_TURNSTILE_SECRET_KEY
+          # HONEST. Padded where lib/env.ts sets a minimum length.
+          GHL_PIT: leakcheck-GHL_PIT
+          GHL_WORKFLOW_SECRET: leakcheck-GHL_WORKFLOW_SECRET
+          PAYLOAD_SECRET: leakcheck-PAYLOAD_SECRET-padding-to-32
+          ALTCHA_HMAC_KEY: leakcheck-ALTCHA_HMAC_KEY-padding-to-32
 
       - name: Upload Playwright report
         if: failure() && steps.gate.outputs.run == 'true'
