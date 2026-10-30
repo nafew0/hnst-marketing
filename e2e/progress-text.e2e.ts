@@ -25,6 +25,7 @@ const wordOpacities = (page: Page) =>
 
 test('homepage manifesto words reveal across the scroll to the page bottom', async ({
   page,
+  isMobile,
 }, testInfo) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
@@ -40,7 +41,8 @@ test('homepage manifesto words reveal across the scroll to the page bottom', asy
   await page.mouse.move(640, 400)
   const samples: number[][] = []
   for (let i = 0; i < 40; i++) {
-    await page.mouse.wheel(0, 60)
+    if (isMobile) await page.evaluate(() => window.scrollBy(0, 60))
+    else await page.mouse.wheel(0, 60)
     await page.waitForTimeout(150)
     samples.push(await wordOpacities(page))
   }
