@@ -3,6 +3,35 @@ test.skip(
   !process.env.DATABASE_URL,
   'Requires the disposable CMS fixture database'
 )
+// CMS revalidation tests exercise the documented CMS-price fallback. The
+// shared reveal's live-offer precedence is covered by homepage/P6 flows.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = window.fetch.bind(window)
+    window.fetch = Object.assign(
+      (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = new URL(
+          input instanceof Request ? input.url : String(input),
+          location.href
+        )
+        if (url.pathname === '/api/v1/offers')
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                error: {
+                  code: 'upstream_unavailable',
+                  message: 'Offers unavailable in CMS fallback fixture',
+                },
+              }),
+              { status: 503, headers: { 'Content-Type': 'application/json' } }
+            )
+          )
+        return original(input, init)
+      },
+      window.fetch
+    )
+  })
+})
 test('editor updates the catalog but cannot promote their role or read drafts anonymously', async ({
   page,
   request,

@@ -1,6 +1,11 @@
 import path from 'node:path'
 
-import type { CollectionConfig, Field, GlobalConfig } from 'payload'
+import {
+  Forbidden,
+  type CollectionConfig,
+  type Field,
+  type GlobalConfig,
+} from 'payload'
 
 import {
   adminOrSelf,
@@ -207,7 +212,22 @@ const links: Field[] = [
 ]
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
-  hooks: settingsHooks,
+  versions: { drafts: true },
+  hooks: {
+    ...settingsHooks,
+    beforeOperation: [
+      ({ args, req }) => {
+        if (
+          args.draft &&
+          args.overrideAccess !== true &&
+          req.user?.role !== 'admin' &&
+          req.user?.role !== 'editor'
+        )
+          throw new Forbidden(req.t)
+        return args
+      },
+    ],
+  },
   access: { read: () => true, update: isEditor },
   fields: [
     { name: 'companyLegalName', type: 'text' },

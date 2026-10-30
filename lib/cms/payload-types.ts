@@ -322,6 +322,177 @@ export interface Page {
             blockName?: string | null
             blockType: 'comparisonTable'
           }
+        | {
+            title: string
+            note?: string | null
+            items: {
+              title: string
+              description: string
+              id?: string | null
+            }[]
+            id?: string | null
+            blockName?: string | null
+            blockType: 'processSteps'
+          }
+        | {
+            title: string
+            items?:
+              | {
+                  date: string
+                  title: string
+                  description: string
+                  id?: string | null
+                }[]
+              | null
+            id?: string | null
+            blockName?: string | null
+            blockType: 'timeline'
+          }
+        | {
+            title: string
+            items?:
+              | {
+                  name: string
+                  role: string
+                  body: string
+                  photo?: (number | null) | Media
+                  placeholder: string
+                  id?: string | null
+                }[]
+              | null
+            experienceApproved?: boolean | null
+            experienceLabel?: string | null
+            id?: string | null
+            blockName?: string | null
+            blockType: 'bioCards'
+          }
+        | {
+            title: string
+            closeLabel: string
+            openLabel: string
+            items?:
+              | {
+                  title: string
+                  caption: string
+                  image?: (number | null) | Media
+                  placeholder: string
+                  id?: string | null
+                }[]
+              | null
+            id?: string | null
+            blockName?: string | null
+            blockType: 'proofGallery'
+          }
+        | {
+            title: string
+            body: string
+            attribution: string
+            id?: string | null
+            blockName?: string | null
+            blockType: 'research'
+          }
+        | {
+            title: string
+            placeholder: string
+            notice: string
+            bullets?:
+              | {
+                  text: string
+                  id?: string | null
+                }[]
+              | null
+            copy: {
+              firstName: string
+              email: string
+              phone: string
+              consentLegend: string
+              submit: string
+              pending: string
+              success: string
+              retry: string
+              message: string
+              unavailable: string
+            }
+            id?: string | null
+            blockName?: string | null
+            blockType: 'magnet'
+          }
+        | {
+            title: string
+            copy: {
+              timezone: string
+              previousMonth: string
+              nextMonth: string
+              chooseDay: string
+              chooseTime: string
+              loading: string
+              emptySlots: string
+              unavailable: string
+              fallbackTitle: string
+              fallbackUnavailable: string
+              retry: string
+              name: string
+              email: string
+              phone: string
+              questions: string
+              consentLegend: string
+              submit: string
+              pending: string
+              success: string
+              error: string
+              invalid: string
+              chooseSlot: string
+              slotTaken: string
+              queued: string
+              confirmed: string
+              noReceipt: string
+              calendarTitle: string
+              download: string
+              google: string
+              reference: string
+            }
+            id?: string | null
+            blockName?: string | null
+            blockType: 'booking'
+          }
+        | {
+            title: string
+            copy: {
+              timezone: string
+              previousMonth: string
+              nextMonth: string
+              chooseDay: string
+              chooseTime: string
+              loading: string
+              emptySlots: string
+              unavailable: string
+              fallbackTitle: string
+              fallbackUnavailable: string
+              retry: string
+              name: string
+              email: string
+              phone: string
+              questions: string
+              consentLegend: string
+              submit: string
+              pending: string
+              success: string
+              error: string
+              invalid: string
+              chooseSlot: string
+              slotTaken: string
+              queued: string
+              confirmed: string
+              noReceipt: string
+              calendarTitle: string
+              download: string
+              google: string
+              reference: string
+            }
+            id?: string | null
+            blockName?: string | null
+            blockType: 'bookingReceipt'
+          }
       )[]
     | null
   updatedAt: string
@@ -594,6 +765,193 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T
               blockName?: T
             }
+        processSteps?:
+          | T
+          | {
+              title?: T
+              note?: T
+              items?:
+                | T
+                | {
+                    title?: T
+                    description?: T
+                    id?: T
+                  }
+              id?: T
+              blockName?: T
+            }
+        timeline?:
+          | T
+          | {
+              title?: T
+              items?:
+                | T
+                | {
+                    date?: T
+                    title?: T
+                    description?: T
+                    id?: T
+                  }
+              id?: T
+              blockName?: T
+            }
+        bioCards?:
+          | T
+          | {
+              title?: T
+              items?:
+                | T
+                | {
+                    name?: T
+                    role?: T
+                    body?: T
+                    photo?: T
+                    placeholder?: T
+                    id?: T
+                  }
+              experienceApproved?: T
+              experienceLabel?: T
+              id?: T
+              blockName?: T
+            }
+        proofGallery?:
+          | T
+          | {
+              title?: T
+              closeLabel?: T
+              openLabel?: T
+              items?:
+                | T
+                | {
+                    title?: T
+                    caption?: T
+                    image?: T
+                    placeholder?: T
+                    id?: T
+                  }
+              id?: T
+              blockName?: T
+            }
+        research?:
+          | T
+          | {
+              title?: T
+              body?: T
+              attribution?: T
+              id?: T
+              blockName?: T
+            }
+        magnet?:
+          | T
+          | {
+              title?: T
+              placeholder?: T
+              notice?: T
+              bullets?:
+                | T
+                | {
+                    text?: T
+                    id?: T
+                  }
+              copy?:
+                | T
+                | {
+                    firstName?: T
+                    email?: T
+                    phone?: T
+                    consentLegend?: T
+                    submit?: T
+                    pending?: T
+                    success?: T
+                    retry?: T
+                    message?: T
+                    unavailable?: T
+                  }
+              id?: T
+              blockName?: T
+            }
+        booking?:
+          | T
+          | {
+              title?: T
+              copy?:
+                | T
+                | {
+                    timezone?: T
+                    previousMonth?: T
+                    nextMonth?: T
+                    chooseDay?: T
+                    chooseTime?: T
+                    loading?: T
+                    emptySlots?: T
+                    unavailable?: T
+                    fallbackTitle?: T
+                    fallbackUnavailable?: T
+                    retry?: T
+                    name?: T
+                    email?: T
+                    phone?: T
+                    questions?: T
+                    consentLegend?: T
+                    submit?: T
+                    pending?: T
+                    success?: T
+                    error?: T
+                    invalid?: T
+                    chooseSlot?: T
+                    slotTaken?: T
+                    queued?: T
+                    confirmed?: T
+                    noReceipt?: T
+                    calendarTitle?: T
+                    download?: T
+                    google?: T
+                    reference?: T
+                  }
+              id?: T
+              blockName?: T
+            }
+        bookingReceipt?:
+          | T
+          | {
+              title?: T
+              copy?:
+                | T
+                | {
+                    timezone?: T
+                    previousMonth?: T
+                    nextMonth?: T
+                    chooseDay?: T
+                    chooseTime?: T
+                    loading?: T
+                    emptySlots?: T
+                    unavailable?: T
+                    fallbackTitle?: T
+                    fallbackUnavailable?: T
+                    retry?: T
+                    name?: T
+                    email?: T
+                    phone?: T
+                    questions?: T
+                    consentLegend?: T
+                    submit?: T
+                    pending?: T
+                    success?: T
+                    error?: T
+                    invalid?: T
+                    chooseSlot?: T
+                    slotTaken?: T
+                    queued?: T
+                    confirmed?: T
+                    noReceipt?: T
+                    calendarTitle?: T
+                    download?: T
+                    google?: T
+                    reference?: T
+                  }
+              id?: T
+              blockName?: T
+            }
       }
   updatedAt?: T
   createdAt?: T
@@ -710,6 +1068,7 @@ export interface SiteSetting {
       }[]
     | null
   ghlTrackingId?: string | null
+  _status?: ('draft' | 'published') | null
   updatedAt?: string | null
   createdAt?: string | null
 }
@@ -753,6 +1112,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         id?: T
       }
   ghlTrackingId?: T
+  _status?: T
   updatedAt?: T
   createdAt?: T
   globalType?: T

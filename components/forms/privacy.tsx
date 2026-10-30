@@ -7,6 +7,7 @@ import 'vanilla-cookieconsent/dist/cookieconsent.css'
 import './privacy.css'
 import { captureAttribution } from '@/components/forms/attribution'
 import { getTrackingId } from '@/components/forms/tracking-settings'
+import { tierSchema } from '@/lib/contracts'
 import { flushEvents, setTrackingConsent, track } from '@/lib/track'
 let trackingScript: HTMLScriptElement | undefined
 export function openPrivacyPreferences() {
@@ -29,6 +30,24 @@ export function PrivacyControls() {
   const viewedRef = useRef<string | null>(null)
   useEffect(() => {
     captureAttribution()
+    function recordClick(event: MouseEvent) {
+      if (!(event.target instanceof Element)) return
+      const link = event.target.closest<HTMLAnchorElement>('a[href]')
+      if (!link) return
+      const path = new URL(link.href, window.location.href).pathname
+      const tier = tierSchema.safeParse(path.split('/')[2])
+      if (path.startsWith('/packages/') && tier.success)
+        track('package_clicked', { tier: tier.data })
+      if (
+        ['/book', '/contact', '/packages', '/the-honest-marketer'].includes(
+          path
+        ) ||
+        (path.startsWith('/packages/') && tier.success)
+      )
+        track('cta_clicked', { href: path })
+    }
+    document.addEventListener('click', recordClick)
+    return () => document.removeEventListener('click', recordClick)
   }, [])
   useEffect(() => {
     let active = true

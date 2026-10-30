@@ -280,3 +280,55 @@ jobs:
             test-results/
             .lighthouseci/
           retention-days: 7
+
+  p6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: hnst
+          POSTGRES_PASSWORD: hnst
+          POSTGRES_DB: hnst_p6_e2e_p3_review
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U hnst"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://hnst:hnst@127.0.0.1:5432/hnst_p6_e2e_p3_review
+      NEXT_PUBLIC_BASE_URL: http://localhost:3003
+      NEXT_PUBLIC_API_MOCKS: '1'
+      PAYLOAD_SECRET: disposable-ci-payload-secret-at-least-32-characters
+      ALTCHA_HMAC_KEY: disposable-ci-altcha-key-at-least-32-characters
+      P6_MOCKS_TESTS: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version-file: package.json
+      - name: Prepare disposable P6 content and mocks
+        run: |
+          rm -f .env .env.development .env.production
+          bun install --frozen-lockfile
+          bunx payload migrate
+          NODE_ENV=production bun run seed
+          NODE_ENV=production bun e2e/p3-setup.ts
+          NODE_ENV=production bun lib/cms/seed-wave3.ts
+          NODE_ENV=production bun e2e/p6-setup.ts
+      - run: bunx playwright install --with-deps chromium webkit
+      - run: bun run build
+      - name: Booking, content, consent, drafts and accessibility
+        run: bunx playwright test --config e2e/p6-production.config.ts e2e/p6.e2e.ts
+      - name: Upload production screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: p6-production-evidence
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14

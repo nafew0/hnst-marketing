@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 import { PackageDetailContent } from '@/components/sections/standard/pages/package-detail'
 import { WindowPage } from '@/components/ui/window'
-import { getPackages } from '@/lib/cms/data'
+import { getPackages, readContext } from '@/lib/cms/data'
 import { routeAlternates } from '@/lib/seo/alternates'
 
 interface Props {
@@ -12,7 +12,8 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tier } = await params
   const item = (await getPackages()).find((p) => p.tier === tier)
-  return {
+  const context = await readContext()
+  const metadata: Metadata = {
     title: item?.name ?? 'Package not found',
     description: item
       ? `${item.name}: ${item.turnaround}. Explore the deliverables and start a conversation.`
@@ -20,6 +21,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: routeAlternates(`/packages/${tier}`),
     openGraph: { images: ['/og'] },
   }
+  if (context?.preview) metadata.robots = { index: false, follow: false }
+  return metadata
 }
 export default async function PackagePage({ params }: Props) {
   const { tier } = await params

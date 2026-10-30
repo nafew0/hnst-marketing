@@ -2,30 +2,51 @@ import { notFound } from 'next/navigation'
 import { z } from 'zod'
 
 import { PackageInterestForm } from '@/components/forms/lead-form'
+import { PackageReveal } from '@/components/sections/signature/package-reveal'
 import {
   PageHero,
-  Price,
+  ComparisonTable,
   FaqList,
   consentCopy,
 } from '@/components/sections/standard/catalog'
+import { DraftIndicator } from '@/components/sections/standard/draft-indicator'
+import { packageFacts } from '@/components/sections/standard/package-facts'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Section, Container } from '@/components/ui/section'
-import { getPackages, getFaqs, getSettings } from '@/lib/cms/data'
+import {
+  getPackages,
+  getFaqs,
+  getSettings,
+  getPage,
+  readContext,
+} from '@/lib/cms/data'
 import { serviceSchema } from '@/lib/seo/cms'
 import { JsonLd } from '@/lib/seo/json-ld'
 
+import s from '@/components/sections/standard/package-reveal.module.css'
+
 export async function PackageDetailContent({ tier }: { tier: string }) {
-  const [packages, faqs, settings] = await Promise.all([
+  const [packages, faqs, settings, catalog, context] = await Promise.all([
     getPackages(),
     getFaqs(),
     getSettings(),
+    getPage('packages'),
+    readContext(),
   ])
   const item = packages.find((p) => p.tier === tier)
   if (!item) notFound()
   const legal = z.object({ slug: z.string() }).safeParse(item.legalDoc)
   return (
     <>
+      <DraftIndicator
+        visible={
+          context?.preview === true &&
+          (item._status === 'draft' ||
+            settings?._status === 'draft' ||
+            faqs.some((faq) => faq._status === 'draft'))
+        }
+      />
       <JsonLd data={serviceSchema(item)} />
       <PageHero
         title={item.name}
@@ -35,7 +56,17 @@ export async function PackageDetailContent({ tier }: { tier: string }) {
       <Section>
         <Container className="grid dr-gap-48 dt:grid-cols-2">
           <div className="flex flex-col dr-gap-32">
-            <Price item={item} />
+            <Heading as="h2" size="h3">
+              {item.name}
+            </Heading>
+            <PackageReveal
+              items={[packageFacts(item)]}
+              compareToggle={false}
+              className={s.detailReveal ?? ''}
+            />
+            {item.valueLabel && (
+              <p className="caption text-silver">{item.valueLabel}</p>
+            )}
             {item.deliverables?.map((d) => (
               <div key={d.id ?? d.title}>
                 <Heading as="h2" size="h3">
@@ -65,6 +96,22 @@ export async function PackageDetailContent({ tier }: { tier: string }) {
               consent={consentCopy(settings)}
             />
           </div>
+        </Container>
+      </Section>
+      <Section>
+        <Container className="flex flex-col dr-gap-32">
+          {catalog?.blocks?.find(
+            (block) => block.blockType === 'comparisonTable'
+          )?.title && (
+            <Heading>
+              {
+                catalog.blocks.find(
+                  (block) => block.blockType === 'comparisonTable'
+                )?.title
+              }
+            </Heading>
+          )}
+          <ComparisonTable items={packages} />
         </Container>
       </Section>
       <Section>

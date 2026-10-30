@@ -4,6 +4,7 @@ import { useId, useRef } from 'react'
 
 import { captureAttribution } from '@/components/forms/attribution'
 import { Captcha } from '@/components/forms/captcha'
+import { ConsentFields } from '@/components/forms/consent-fields'
 import {
   Form,
   Messages,
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/form'
 import { InputField, TextareaField } from '@/components/ui/form/fields'
 import { addValidator } from '@/components/ui/form/hook'
+import type { LeadCopy } from '@/lib/cms/form-copy'
 import {
   emailSchema,
   nameSchema,
@@ -35,6 +37,7 @@ interface Props {
   consent: ConsentCopy
   type: 'contact' | 'package' | 'magnet'
   tier?: Tier
+  copy?: LeadCopy | undefined
 }
 function PhoneConsentError() {
   const { state } = useFormContext()
@@ -62,7 +65,7 @@ function ServerErrors() {
     </ul>
   )
 }
-export function LeadForm({ consent, type, tier }: Props) {
+export function LeadForm({ consent, type, tier, copy }: Props) {
   const id = useId()
   const router = useRouter()
   const keyRef = useRef<string | null>(null)
@@ -148,28 +151,28 @@ export function LeadForm({ consent, type, tier }: Props) {
       <InputField
         id={`${id}-firstName`}
         name="firstName"
-        label="First name"
+        label={copy?.firstName ?? 'First name'}
         required
       />
       <InputField
         id={`${id}-email`}
         name="email"
         type="email"
-        label="Email"
+        label={copy?.email ?? 'Email'}
         required
       />
       <InputField
         id={`${id}-phone`}
         name="phone"
         type="tel"
-        label="Phone (optional, international format)"
+        label={copy?.phone ?? 'Phone (optional, international format)'}
       />
       <PhoneConsentError />
       {type !== 'magnet' && (
         <TextareaField
           id={`${id}-message`}
           name="message"
-          label="Tell us about your business"
+          label={copy?.message ?? 'Tell us about your business'}
         />
       )}
       <div hidden aria-hidden="true">
@@ -181,37 +184,21 @@ export function LeadForm({ consent, type, tier }: Props) {
           tabIndex={-1}
         />
       </div>
-      <fieldset className="flex flex-col dr-gap-16">
-        <legend className="dr-mb-12 p font-[500]">
-          Stay in touch (optional)
-        </legend>
-        <label className="flex items-start dr-gap-12 p">
-          <input
-            type="checkbox"
-            name="consent.email"
-            className="mt-[4px] size-[20px] shrink-0 appearance-auto accent-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
-          />
-          <span>{consent.email}</span>
-        </label>
-        <label className="flex items-start dr-gap-12 p">
-          <input
-            type="checkbox"
-            name="consent.sms"
-            className="mt-[4px] size-[20px] shrink-0 appearance-auto accent-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
-          />
-          <span>{consent.sms}</span>
-        </label>
-      </fieldset>
+      <ConsentFields
+        consent={consent}
+        legend={copy?.consentLegend ?? 'Stay in touch (optional)'}
+      />
       <Captcha />
       <ServerErrors />
       <Messages role="alert" />
       <SubmitButton
         className="min-h-[48px] rounded-full cta"
-        pendingText="Sending…"
-        successText="Received"
-        errorText="Try again"
+        pendingText={copy?.pending ?? 'Sending…'}
+        successText={copy?.success ?? 'Received'}
+        errorText={copy?.retry ?? 'Try again'}
       >
-        {type === 'magnet' ? 'Send me the guide' : 'Start the conversation'}
+        {copy?.submit ??
+          (type === 'magnet' ? 'Send me the guide' : 'Start the conversation')}
       </SubmitButton>
     </Form>
   )
@@ -228,6 +215,12 @@ export function PackageInterestForm({
 }) {
   return <LeadForm type="package" consent={consent} tier={tier} />
 }
-export function MagnetForm({ consent }: { consent: ConsentCopy }) {
-  return <LeadForm type="magnet" consent={consent} />
+export function MagnetForm({
+  consent,
+  copy,
+}: {
+  consent: ConsentCopy
+  copy?: LeadCopy | undefined
+}) {
+  return <LeadForm type="magnet" consent={consent} copy={copy} />
 }
