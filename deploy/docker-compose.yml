@@ -1,0 +1,77 @@
+# Full stack for the VM. Local development uses docker-compose.dev.yml (database
+# only) plus `bun dev` and `bun worker/index.ts`. This file is not required
+# until the site leaves localhost.
+
+services:
+  web:
+    image: hnst-web:current
+    build:
+      context: ..
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgres://hnst:${POSTGRES_PASSWORD:-hnst}@db:5432/hnst
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    image: hnst-worker:current
+    build:
+      context: ..
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgres://hnst:${POSTGRES_PASSWORD:-hnst}@db:5432/hnst
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hnst
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hnst}
+      POSTGRES_DB: hnst
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hnst -d hnst']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - ${MEDIA_DIR:-/srv/media}:/srv/media:ro
+    depends_on:
+      - web
+
+  uptime:
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3001:3001'
+    volumes:
+      - uptime:/app/data
+
+volumes:
+  pgdata:
+  caddy-data:
+  caddy-config:
+  uptime:

@@ -1,3 +1,4 @@
+import type { ServiceSchema, FaqSchema } from './cms'
 import { SITE } from './site'
 
 /**
@@ -98,6 +99,8 @@ export interface ArticleSchema {
 }
 
 export type JsonLdSchema =
+  | ServiceSchema
+  | FaqSchema
   | OrganizationSchema
   | WebSiteSchema
   | BreadcrumbListSchema

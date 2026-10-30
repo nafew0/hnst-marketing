@@ -9,6 +9,7 @@ import { useDeviceDetection } from '@/hooks/use-device-detection'
 import {
   capabilitiesFor,
   type DeviceCapabilities,
+  type DeviceTier,
   resolveDeviceTier,
 } from './device-tier-rules'
 
@@ -124,4 +125,23 @@ export function useDeviceTier(): DeviceTierContextValue {
     throw new Error('useDeviceTier must be used within <DeviceTierProvider>')
   }
   return context
+}
+
+/**
+ * Forces a tier for its subtree; `undefined` passes the detected one through.
+ * For the /lab/3d tier switcher and tests, never for production pages.
+ */
+export function DeviceTierOverride({
+  tier,
+  children,
+}: {
+  tier: DeviceTier | undefined
+  children: ReactNode
+}) {
+  const detected = useDeviceTier()
+  const value: DeviceTierContextValue =
+    tier === undefined
+      ? detected
+      : { state: capabilitiesFor(tier, 'override'), meta: { ready: true } }
+  return <DeviceTierContext value={value}>{children}</DeviceTierContext>
 }

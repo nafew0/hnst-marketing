@@ -1,0 +1,23 @@
+# Postgres 17 for localhost when 5432 is already taken.
+#   docker compose -f deploy/docker-compose.localhost.yml up -d
+#   DATABASE_URL=postgres://hnst:hnst@127.0.0.1:5433/hnst
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hnst
+      POSTGRES_PASSWORD: hnst
+      POSTGRES_DB: hnst
+    ports:
+      - '127.0.0.1:5433:5432'
+    volumes:
+      - p2pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hnst -d hnst']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  p2pg:

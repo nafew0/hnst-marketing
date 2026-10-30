@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 
 import { BASE_URL } from '@/lib/seo/site'
 
-const DISALLOW = ['/api/draft-mode/']
+const DISALLOW = ['/api/', '/admin/', '/cms-preview', '/thanks/']
 
 /**
  * One `*` group covers every crawler, AI answer engines included: a bot with

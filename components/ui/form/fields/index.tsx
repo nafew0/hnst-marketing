@@ -58,7 +58,10 @@ export function InputField({
   const { errors, isActive } = state
   const { register } = actions
   const fieldName = name ?? id
-  const error = errors[fieldName]
+  const apiError = state.formState?.fieldErrors?.[fieldName]
+  const error = apiError
+    ? { state: true, message: apiError }
+    : errors[fieldName]
 
   return (
     <Field.Root
@@ -127,7 +130,10 @@ export function TextareaField({
   const { errors, isActive } = state
   const { register } = actions
   const fieldName = name ?? id
-  const error = errors[fieldName]
+  const apiError = state.formState?.fieldErrors?.[fieldName]
+  const error = apiError
+    ? { state: true, message: apiError }
+    : errors[fieldName]
   const reg = register(fieldName)
 
   return (

@@ -1,9 +1,14 @@
+// First, before any component: this sheet declares the CSS layer order, and a
+// component's `@layer components` loaded earlier would flip it, letting Tailwind's
+// reset override every component style.
+import '@/lib/styles/css/index.css'
 import { TransformProvider } from 'hamo'
 import type { Metadata, Viewport } from 'next'
 import { draftMode } from 'next/headers'
 import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
+import { PrivacyControls } from '@/components/forms/privacy'
 import { DeviceTierProvider } from '@/components/motion/device-tier'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
@@ -16,6 +21,7 @@ import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
+import { fontsVariable } from '@/lib/styles/fonts'
 
 const APP_NAME = SITE.name
 const APP_DEFAULT_TITLE = SITE.name
@@ -76,50 +82,59 @@ if (env.NEXT_PUBLIC_FACEBOOK_APP_ID) {
 }
 
 export const viewport: Viewport = {
-  // Matches the server-rendered `data-theme="dark"` in app/layout.tsx; <Theme>
+  // Matches the server-rendered `data-theme="dark"` in this site layout; <Theme>
   // rewrites it per route.
   themeColor: themes.dark.primary,
   colorScheme: 'normal',
 }
 
 /**
- * App-wide providers, metadata and analytics for every route except /studio,
- * which sits outside this group so Studio doesn't pull in the rAF loop,
+ * App-wide providers, metadata and analytics for every route except /admin,
+ * which sits outside this group so Payload doesn't pull in the rAF loop,
  * toasts, Visual Editing or JSON-LD.
  */
 export default async function AppLayout({ children }: PropsWithChildren) {
   const { isEnabled: isDraftMode } = await draftMode()
   return (
-    <>
-      {/* On every page, not just home: deep pages are landed on directly far more often. */}
-      <JsonLd data={organizationSchema()} />
-      <JsonLd data={websiteSchema()} />
-      <Suspense fallback={null}>
-        <Link
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-gap focus:left-gap focus:z-9999 focus:rounded-full focus:bg-gold focus:dr-px-16 focus:dr-py-8 focus:text-void focus:ring-2 focus:ring-starlight focus:outline-none"
-        >
-          Skip to main content
-        </Link>
-      </Suspense>
-      <RealViewport>
-        <ToastProvider>
-          <TransformProvider>
-            {/*
+    <html
+      lang="en"
+      dir="ltr"
+      className={fontsVariable}
+      data-theme="dark"
+      suppressHydrationWarning
+    >
+      <body>
+        {/* On every page, not just home: deep pages are landed on directly far more often. */}
+        <JsonLd data={organizationSchema()} />
+        <JsonLd data={websiteSchema()} />
+        <Suspense fallback={null}>
+          <Link
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-gap focus:left-gap focus:z-9999 focus:rounded-full focus:bg-gold focus:dr-px-16 focus:dr-py-8 focus:text-void focus:ring-2 focus:ring-starlight focus:outline-none"
+          >
+            Skip to main content
+          </Link>
+        </Suspense>
+        <RealViewport>
+          <ToastProvider>
+            <TransformProvider>
+              {/*
               DO NOT add Header or Footer here.
               They are included in the <Wrapper> component used by each page.
               See: components/layout/wrapper/index.tsx
             */}
-            <DeviceTierProvider>{children}</DeviceTierProvider>
-          </TransformProvider>
-          <ToastViewport />
-        </ToastProvider>
-      </RealViewport>
-      <OptionalFeatures />
-      <ApiMocks />
+              <DeviceTierProvider>{children}</DeviceTierProvider>
+            </TransformProvider>
+            <ToastViewport />
+          </ToastProvider>
+        </RealViewport>
+        <OptionalFeatures />
+        <ApiMocks />
+        <PrivacyControls />
 
-      {/* Not patched in draft mode, to avoid conflicts. */}
-      <ReactTempus patch={!isDraftMode} />
-    </>
+        {/* Not patched in draft mode, to avoid conflicts. */}
+        <ReactTempus patch={!isDraftMode} />
+      </body>
+    </html>
   )
 }

@@ -32,7 +32,15 @@ import {
  * Merged into every environment; scope one to a single environment inside
  * `composeCsp`.
  */
-export const PROJECT_CSP_EXTRA_SOURCES: CspSources = {}
+export const PROJECT_CSP_EXTRA_SOURCES: CspSources = {
+  'script-src': ['https://link.msgsndr.com'],
+  'connect-src': [
+    'https://link.msgsndr.com',
+    'https://services.leadconnectorhq.com',
+    'https://backend.leadconnectorhq.com',
+  ],
+  'worker-src': ["'self'", 'blob:'],
+}
 
 // Resolved from import.meta.url, not process.cwd(), so it holds wherever
 // `next build`/`next dev` was invoked from.
@@ -117,15 +125,14 @@ const FRAME_ANCESTORS = ["'self'", 'https://*.sanity.studio']
  * Directives in output order. Fixed so the composed header is deterministic
  * across builds.
  *
- * `worker-src` is absent: `lib/webgl/**` has no decoder workers, and the one
- * `blob:` use (`lib/dev/theatre/studio`'s save-file download link) is
- * dev-only and not a worker or fetch. Add it if a worker appears.
+ * `worker-src` permits same-origin MSW and ALTCHA blob workers.
  *
  * `media-src` is present for `checkIsAutoplaySupported()` in
  * `lib/hooks/use-device-detection.ts`, which probes with a `data:video/mp4`
  * source on every route.
  */
 const DIRECTIVE_ORDER: CspDirective[] = [
+  'worker-src',
   'script-src',
   'style-src',
   'img-src',

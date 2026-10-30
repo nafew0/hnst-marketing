@@ -12,6 +12,7 @@ import { expect, test } from '@playwright/test'
 const UNKNOWN_URLS = [
   '/this-route-does-not-exist-e2e',
   '/articles/this-article-does-not-exist-e2e',
+  '/thanks/toString',
 ]
 
 for (const url of UNKNOWN_URLS) {
@@ -59,18 +60,9 @@ for (const url of UNKNOWN_URLS) {
 
     // DOM text is sentence case; CSS uppercases it.
     await expect(page.getByRole('heading', { name: '404' })).toBeVisible()
-    await expect(page.getByText('Page not found')).toBeVisible()
     await expect(
-      page.getByRole('link', { name: 'Agent index' })
-    ).toHaveAttribute('href', '/ai')
-    await expect(page.getByRole('link', { name: 'llms.txt' })).toHaveAttribute(
-      'href',
-      '/llms.txt'
-    )
-    await expect(page.getByRole('link', { name: 'Sitemap' })).toHaveAttribute(
-      'href',
-      '/sitemap.xml'
-    )
+      page.getByRole('link', { name: 'Back to HONEST' })
+    ).toHaveAttribute('href', '/')
 
     // Apart from the document's own 404 line filtered above, the 404 view
     // logs nothing.

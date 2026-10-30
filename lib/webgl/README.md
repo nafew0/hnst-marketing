@@ -7,11 +7,11 @@ WebGL 2 rendering with a persistent root canvas, built on `@react-three/fiber`'s
 [ARCHITECTURE.md § Code Patterns](../../ARCHITECTURE.md#code-patterns) (WebGL
 Element Lifecycle).
 
-Worked example: `app/(site)/(examples)/webgl` (`/webgl` in dev): cubes that
-take their size and place from boxes CSS lays out, hold them through scroll and
-resize, and follow a parallax transform published through hamo's
-`TransformProvider`. Contributor-facing, noindex, and deleted by
-`setup:project` with the rest of the examples group.
+Worked example: `app/(site)/lab/webgl` (`/lab/webgl`, noindex): spinning
+cubes that take their size and place from dashed boxes CSS lays out and hold
+them through scroll and resize. It is the fixture for
+`e2e/render-on-demand.e2e.ts`. Satus's `/webgl` example group, with its
+parallax and mipmap demos, is not in this fork.
 
 ## Canvas strategy
 
@@ -70,7 +70,7 @@ signals keep it drawing:
 
 A scene that animates on its own (a `useFrame` spin, a time uniform) freezes
 once the grace window ends unless it calls `useHoldAwake(isVisible)` from
-`@/webgl/utils/awake`. The `/webgl` cube takes a `useLease()` hold from its
+`@/webgl/utils/awake`. The `/lab/webgl` cube takes a `useLease()` hold from its
 `useWebGLRect` callback instead, so its visibility never becomes React state.
 State held inside the canvas that changes the picture without moving through
 the tunnel (a material color set from a canvas-side `useState`) calls `wake()`
@@ -121,14 +121,10 @@ that loads the image again (usually from the HTTP cache).
 
 Image textures use mipmaps with trilinear filtering and up to 4x anisotropy,
 so a plane drawn smaller than its source doesn't shimmer as it scrolls.
-`/webgl` demonstrates it with a 2048px test pattern drawn as planes a fifth of
-its width or less (`app/(site)/(examples)/webgl/_components/test-pattern`),
-served `unoptimized` so the plane gets the full file rather than a candidate
-near display size. In development a panel in the page's corner turns mipmaps
-off on every image texture (the `imageMipmaps` key of the Orchestra store, read
-in `lib/webgl/components/image/webgl.tsx`) and shows the canvas DPR, so the
-adaptive DPR can be watched under DevTools CPU throttling. Leaving the page
-turns mipmaps back on.
+In development the `imageMipmaps` key of the Orchestra store (read in
+`lib/webgl/components/image/webgl.tsx`) turns mipmaps off on every image
+texture to compare; Satus's `/webgl` page had a panel for it and a 2048px test
+pattern, neither of which is in this fork.
 
 ## Hooks
 

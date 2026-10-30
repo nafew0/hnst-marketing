@@ -29,6 +29,8 @@ export type DeviceTierReason =
   | 'low-memory'
   | 'gpu-tier-2'
   | 'gpu-tier-3'
+  /** Forced by `<DeviceTierOverride>` (the /lab/3d tier switcher). */
+  | 'override'
 
 export interface DeviceTierInput {
   reducedMotion: boolean

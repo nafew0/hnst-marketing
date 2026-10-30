@@ -1,3 +1,4 @@
+import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 
 // Relative import: Next's config loader mis-resolves `@/*` aliases in
@@ -233,4 +234,4 @@ const nextConfig: NextConfig = {
   ],
 }
 
-export default nextConfig
+export default withPayload(nextConfig)

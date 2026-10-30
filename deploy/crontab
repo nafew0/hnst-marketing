@@ -1,0 +1,5 @@
+# Install on the VM: crontab deploy/crontab
+# Dumps stay on the server for 14 days. Copy them off the box if you want a second copy.
+15 3 * * * cd /opt/hnst-web && BACKUP_DIR=/srv/backups COMPOSE_FILE=deploy/docker-compose.yml ./deploy/backup.sh >> /var/log/hnst-backup.log 2>&1
+# Weekly media archive (Sundays), 4 weeks kept.
+45 3 * * 0 tar -czf /srv/backups/media-$(date +\%Y\%m\%d).tar.gz -C /srv media && find /srv/backups -name 'media-*.tar.gz' -mtime +28 -delete
