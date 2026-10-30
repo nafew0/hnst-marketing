@@ -1,0 +1,128 @@
+{
+  "base": "d7f704f",
+  "mode": "production build, disposable published CMS fixtures, API mocks enabled; 1 mobile Lighthouse run per route",
+  "baseline": {
+    "/": 85,
+    "/packages": 84,
+    "/contact": 80
+  },
+  "routes": [
+    {
+      "route": "/about",
+      "performance": 95,
+      "accessibility": 100,
+      "fcpMs": 1367,
+      "lcpMs": 2872,
+      "tbtMs": 4,
+      "cls": 0
+    },
+    {
+      "route": "/book",
+      "performance": 85,
+      "accessibility": 100,
+      "fcpMs": 1364,
+      "lcpMs": 4374,
+      "tbtMs": 21,
+      "cls": 9.016892695604882e-5
+    },
+    {
+      "route": "/contact",
+      "performance": 85,
+      "accessibility": 100,
+      "fcpMs": 1357,
+      "lcpMs": 4362,
+      "tbtMs": 2,
+      "cls": 0
+    },
+    {
+      "route": "/how-it-works",
+      "performance": 88,
+      "accessibility": 100,
+      "fcpMs": 1362,
+      "lcpMs": 3917,
+      "tbtMs": 4,
+      "cls": 0
+    },
+    {
+      "route": "/packages",
+      "performance": 85,
+      "accessibility": 100,
+      "fcpMs": 1358,
+      "lcpMs": 4363,
+      "tbtMs": 2,
+      "cls": 0
+    },
+    {
+      "route": "/packages/basic-diy",
+      "performance": 85,
+      "accessibility": 100,
+      "fcpMs": 1362,
+      "lcpMs": 4330,
+      "tbtMs": 17,
+      "cls": 0.0007552115722627057
+    },
+    {
+      "route": "/packages/diamond",
+      "performance": 85,
+      "accessibility": 100,
+      "fcpMs": 1357,
+      "lcpMs": 4288,
+      "tbtMs": 11,
+      "cls": 0
+    },
+    {
+      "route": "/packages/executive",
+      "performance": 85,
+      "accessibility": 100,
+      "fcpMs": 1358,
+      "lcpMs": 4291,
+      "tbtMs": 12,
+      "cls": 0.0010081360842740274
+    },
+    {
+      "route": "/packages/founder",
+      "performance": 80,
+      "accessibility": 100,
+      "fcpMs": 1358,
+      "lcpMs": 4291,
+      "tbtMs": 275,
+      "cls": 0.0010711790803875306
+    },
+    {
+      "route": "/proof",
+      "performance": 86,
+      "accessibility": 100,
+      "fcpMs": 1358,
+      "lcpMs": 4119,
+      "tbtMs": 3,
+      "cls": 0
+    },
+    {
+      "route": "/thanks/booking",
+      "performance": 86,
+      "accessibility": 100,
+      "fcpMs": 1211,
+      "lcpMs": 4222,
+      "tbtMs": 8,
+      "cls": 0
+    },
+    {
+      "route": "/thanks/magnet",
+      "performance": 88,
+      "accessibility": 100,
+      "fcpMs": 1214,
+      "lcpMs": 3857,
+      "tbtMs": 17,
+      "cls": 0
+    },
+    {
+      "route": "/the-honest-marketer",
+      "performance": 88,
+      "accessibility": 100,
+      "fcpMs": 1362,
+      "lcpMs": 3918,
+      "tbtMs": 4,
+      "cls": 0
+    }
+  ]
+}

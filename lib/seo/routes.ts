@@ -67,11 +67,24 @@ async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
         where: {
           and: [
             { _status: { equals: 'published' } },
-            { slug: { in: ['packages', 'contact', 'link-in-bio'] } },
+            {
+              slug: {
+                in: [
+                  'packages',
+                  'contact',
+                  'link-in-bio',
+                  'how-it-works',
+                  'about',
+                  'proof',
+                  'the-honest-marketer',
+                  'book',
+                ],
+              },
+            },
           ],
         },
         overrideAccess: false,
-        limit: 10,
+        limit: 20,
       }),
     ])
     return {

@@ -37,19 +37,28 @@ test('hero text never starts fully transparent (LCP-safe)', async ({
   await page.goto('/')
   // Only animations on elements that hold text: an opacity-0 start would make
   // the first paint not count for LCP. Decorative layers (the flare) may.
-  const startOpacities = await page.evaluate(() =>
-    document
-      .getAnimations()
-      .flatMap((animation) => {
-        const effect = animation.effect
-        if (!(effect instanceof KeyframeEffect)) return []
-        const text = effect.target?.textContent?.trim() ?? ''
-        return text ? effect.getKeyframes() : []
-      })
-      .map((frame) => frame.opacity)
-      .filter((opacity) => opacity !== undefined)
-      .map(Number)
-  )
+  const startOpacities = await page.evaluate(() => {
+    const samples: number[] = []
+    for (const animation of document.getAnimations()) {
+      const effect = animation.effect
+      if (
+        !(effect instanceof KeyframeEffect) ||
+        !(effect.target instanceof Element) ||
+        !effect.target.textContent?.trim()
+      )
+        continue
+      if (!effect.getKeyframes().some((frame) => frame.opacity !== undefined))
+        continue
+      const previousTime = animation.currentTime
+      const running = animation.playState === 'running'
+      animation.pause()
+      animation.currentTime = 0
+      samples.push(Number(getComputedStyle(effect.target).opacity))
+      animation.currentTime = previousTime
+      if (running) animation.play()
+    }
+    return samples
+  })
   expect(startOpacities.length).toBeGreaterThan(0)
   for (const opacity of startOpacities) expect(opacity).toBeGreaterThan(0)
 })

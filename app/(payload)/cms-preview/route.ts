@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     return new Response('Unauthorized', { status: 401 })
   const path = new URL(request.url).searchParams.get('path') ?? '/packages'
   if (
-    !/^\/(?:packages(?:\/[a-z-]+)?|legal\/[a-z-]+|contact|link-in-bio)$/u.test(
+    !/^\/(?:packages(?:\/[a-z-]+)?|legal\/[a-z-]+|contact|link-in-bio|how-it-works|about|proof|the-honest-marketer|book|thanks\/(?:booking|magnet))$/u.test(
       path
     )
   )

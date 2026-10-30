@@ -22,7 +22,7 @@ export async function pageMetadata(
     alternates: routeAlternates(`/${slug}`),
     openGraph: { title, description, images: [imageUrl ?? '/og'] },
   }
-  if (page?._status === 'draft')
+  if (!page || page._status === 'draft')
     metadata.robots = { index: false, follow: false }
   return metadata
 }

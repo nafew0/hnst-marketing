@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { PageShell, PageHero } from '@/components/sections/standard/catalog'
+import {
+  loadPageContent,
+  StandardPageContent,
+} from '@/components/sections/standard/pages/content'
 import { Button } from '@/components/ui/button'
 import { Section, Container } from '@/components/ui/section'
 export const metadata: Metadata = {
@@ -23,6 +27,14 @@ export default async function ThanksPage({
 }) {
   const { type } = await params
   if (!Object.hasOwn(messages, type)) notFound()
+  if (type === 'booking' || type === 'magnet') {
+    const content = await loadPageContent(`thanks-${type}`)
+    return (
+      <PageShell>
+        <StandardPageContent {...content} />
+      </PageShell>
+    )
+  }
   const message = Object.entries(messages).find(([key]) => key === type)?.[1]
   return (
     <PageShell>
