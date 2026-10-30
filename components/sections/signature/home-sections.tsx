@@ -2,6 +2,7 @@ import { DraftMark } from './draft-mark'
 import { GoldenPlatter } from './golden-platter'
 import { Hero } from './hero'
 import { HowItWorks } from './how-it-works'
+import { Packages } from './packages'
 
 /**
  * The homepage story, S1–S7. Shared by `/` and `/lab/home`, which renders it
@@ -13,6 +14,7 @@ export function HomeSections() {
       <Hero />
       <GoldenPlatter />
       <HowItWorks />
+      <Packages />
       <DraftMark />
     </>
   )
