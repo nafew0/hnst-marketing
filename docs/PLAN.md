@@ -121,6 +121,13 @@ The visuals are generated in code, in the style of the brand artwork: the nebula
   - The clips listed under P7 "Nafew provides" are no longer needed.
 - **P5 change:** the media scripts (`scripts/media`) become optional. §8's Grok Imagine prompts stay as reference for the look only.
 
+### E3. Page windows (Nafew, 30 Oct 2026)
+
+The main pages (`/packages`, `/packages/[tier]`, `/how-it-works`, `/proof`, `/about`, `/the-honest-marketer`, `/book`, `/contact`) open as macOS-style windows over the current page, with red to close, yellow to minimise and green for full screen. Every other route stays a plain page. Each page keeps its real URL, and a direct visit gets the complete server-rendered page.
+
+- **P7W (Claude, new, `docs/phases/P7W.md`):** the window frame, dock, route slot and homepage pause.
+- **P6 change (Astra):** pages stay normal routes, with each page's content in its own component. See `docs/phases/P6.md` § Windows. Astra builds no window UI.
+
 ### F. Hosting
 
 - **Build output:** `output: 'standalone'` is set.
