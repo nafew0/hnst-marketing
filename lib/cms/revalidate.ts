@@ -6,6 +6,12 @@ function invalidate() {
   for (const route of [
     '/packages',
     '/contact',
+    '/how-it-works',
+    '/about',
+    '/proof',
+    '/the-honest-marketer',
+    '/book',
+    '/thanks',
     '/link-in-bio',
     '/legal',
     '/sitemap.xml',

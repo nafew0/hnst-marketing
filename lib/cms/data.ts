@@ -77,7 +77,7 @@ export const getLegal = cache(async (slug: string) => {
   })
   return result.docs[0] ?? null
 })
-export const getSettings = unstable_cache(
+const getPublishedSettings = unstable_cache(
   async () => {
     const cms = await getCms()
     return cms
@@ -101,4 +101,16 @@ export const getFaqs = cache(async () => {
       limit: 100,
     })
   ).docs
+})
+
+export const getSettings = cache(async () => {
+  const ctx = await readContext()
+  if (ctx?.preview)
+    return ctx.cms.findGlobal({
+      slug: 'site-settings',
+      draft: true,
+      user: ctx.user,
+      overrideAccess: false,
+    })
+  return getPublishedSettings()
 })
