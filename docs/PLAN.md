@@ -35,6 +35,7 @@ P1 forked Satus v3 and kept its conventions instead of re-creating the plan's or
 
 - **Engineering rules: `AGENTS.md` is binding.** It covers oxlint and oxfmt (no ESLint or Prettier), React Compiler (no `useMemo`, `useCallback` or `memo`), `@/components/ui/link` and `@/components/ui/image` (never raw `<a>` or `<img>`), hamo instead of raw layout reads and observers, and OKLCH colours. It also bans lint-disable comments.
 - **Quality gate: `bun run check`.** It runs lint, format, types, `bun test`, colours, contracts, contrast and the lint-disable count, and must pass before every PR.
+- **Lighthouse CI and autocannon are not dependencies.** Their transitive packages fail `bun audit`, so run them on demand: `bunx @lhci/cli@0.15.1 autorun` (P9) and `bunx autocannon@8` (P8).
 - **Tests: `bun test` replaces Vitest.** Satus's rule applies: list failure modes first, prefer E2E for complex behaviour, and keep unit tests for isolated systems and cross-module invariants.
 - **Runtime versions:**
   - Node ≥ 24.20 (`.nvmrc`) and Bun 1.4.4.
