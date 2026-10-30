@@ -101,9 +101,25 @@ P1 forked Satus v3 and kept its conventions instead of re-creating the plan's or
   - detect-gpu's benchmark data is self-hosted in `public/gpu-benchmarks/`, so there is no unpkg request.
 
 - **3D:** use Satus's persistent root `<Canvas>` (`lib/features`) with `<WebGLTunnel>` and `useWebGLRect`, which is the r3f-scroll-rig pattern already built in.
-  - The canvas renders on demand, so call `useHoldAwake` while animating.
-  - Bloom goes through vanilla `postprocessing` (Satus `PostProcessing`); `@react-three/postprocessing` is not installed.
-  - Read colours from `brand`, never from literals.
+  - The canvas sits **behind the page** (`z-index: -1`, P4). A section that shows 3D needs a transparent background.
+  - Every scene goes through `<ViewportScene>` (P4, `components/three/README.md`). It renders its children with their own perspective camera into an offscreen HDR target and composites them onto the root canvas with tone mapping. The root canvas stays orthographic, `linear` and `flat`.
+  - The canvas renders on demand. `ViewportScene` holds it awake while a scene is on screen and `animate` is set.
+  - Bloom (tier 3) is the scenes' own dual-filter bloom (`components/three/soft-bloom.ts`), not Satus `PostProcessing`. That bloom works on a full-screen canvas, not per scene; UnrealBloomPass was also measured, at about 5 ms a frame on the hero. `@react-three/postprocessing` is not installed.
+  - The emblem's letters come from the logo's own glyph outlines, not drei `Text3D` with a converted Bodoni Moda. They are exact, and no typeface JSON ships.
+  - Read colours from `brand` through `brandColor()`, never from literals.
+
+### E2. Code over footage (Nafew, 30 Oct 2026)
+
+The visuals are generated in code, in the style of the brand artwork: the nebula gas, brushed gold, the golden platter and the dunes. They are not built from the brand image and video library. That library is too large to ship and is not needed. The decision applies from P4 on:
+
+- **Live scenes first.** Tiers 2–3 see `components/three` scenes rendered live.
+- **Images only as code renders.** A tier 0–1 fallback is a poster rendered from the same scene (`/lab/3d` → Render poster → `public/posters/`). A scroll film is a frame set rendered from a code scene (Render sequence), not an AI video.
+- **P7 changes:**
+  - S1 drops the hero video loop: `NebulaGas` + `Starfield` + `Emblem3D` run live.
+  - S2's chapters are frame sets rendered from code scenes; S3 already uses `DuneTerrain`.
+  - S6's molten-gold hover is `GoldGlintPlane`'s reveal, not a video loop.
+  - The clips listed under P7 "Nafew provides" are no longer needed.
+- **P5 change:** the media scripts (`scripts/media`) become optional. §8's Grok Imagine prompts stay as reference for the look only.
 
 ### F. Hosting
 
