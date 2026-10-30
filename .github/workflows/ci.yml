@@ -29,6 +29,18 @@ jobs:
       DATABASE_URL: postgres://hnst:hnst@127.0.0.1:5432/hnst
       NEXT_PUBLIC_BASE_URL: http://localhost:3003
       P3_BASE_URL: http://localhost:3003
+      ERROR_REPORT_TOKEN: leakcheck-ERROR_REPORT_TOKEN
+      SANITY_API_READ_TOKEN: leakcheck-SANITY_API_READ_TOKEN
+      SANITY_REVALIDATE_SECRET: leakcheck-SANITY_REVALIDATE_SECRET
+      SHOPIFY_STOREFRONT_ACCESS_TOKEN: leakcheck-SHOPIFY_STOREFRONT_ACCESS_TOKEN
+      SHOPIFY_REVALIDATE_SECRET: leakcheck-SHOPIFY_REVALIDATE_SECRET
+      HUBSPOT_ACCESS_TOKEN: leakcheck-HUBSPOT_ACCESS_TOKEN
+      MAILCHIMP_API_KEY: leakcheck-MAILCHIMP_API_KEY
+      CLOUDFLARE_TURNSTILE_SECRET_KEY: leakcheck-CLOUDFLARE_TURNSTILE_SECRET_KEY
+      GHL_PIT: leakcheck-GHL_PIT
+      GHL_WORKFLOW_SECRET: leakcheck-GHL_WORKFLOW_SECRET
+      PAYLOAD_SECRET: leakcheck-PAYLOAD_SECRET-padding-to-32-characters
+      ALTCHA_HMAC_KEY: leakcheck-ALTCHA_HMAC_KEY-padding-to-32-characters
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-node@v4
@@ -40,8 +52,6 @@ jobs:
       - name: Prepare isolated CI environment
         run: |
           rm -f .env .env.development .env.production
-          echo "PAYLOAD_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
-          echo "ALTCHA_HMAC_KEY=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - run: bun install --frozen-lockfile
       - name: Seed disposable CMS
         run: |
@@ -51,6 +61,8 @@ jobs:
         run: bun run check
       - name: Production build (mocks disabled)
         run: bun run build
+      - name: Verify server secrets stay out of browser output
+        run: bunx playwright test --config e2e/p3.config.ts --project chromium --grep 'server secrets'
       - name: Install browsers
         run: bunx playwright install --with-deps chromium webkit
       - name: Production Lighthouse budgets

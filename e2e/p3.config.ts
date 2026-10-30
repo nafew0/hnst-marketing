@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: '.',
-  testMatch: 'p3*.e2e.ts',
+  testMatch: ['p3*.e2e.ts', 'secrets-in-bundle.e2e.ts'],
   workers: 1,
   timeout: 60000,
   use: {
