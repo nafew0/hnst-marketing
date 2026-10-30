@@ -13,7 +13,7 @@ ANIMATION: anime.js 4.5 only (no GSAP, no framer-motion), loaded lazily. Use the
 
 QUALITY GATE: `bun run check` must pass (oxlint, oxfmt, types, bun test, colours, contracts, contrast, lint-disable counts). Never add a lint-disable comment, @ts-ignore or @ts-expect-error: fix the code. Node >= 24.20 (`nvm use`), Bun 1.4.4.
 
-BRANCH: <coder>/<phase>-<feature> (e.g. grok/p2-leads-api). PR into dev. Small commits with conventional messages (feat:, fix:, docs:, chore:, refactor:); the commit-msg hook enforces them.
+BRANCH: <coder>/<phase>-<feature> (e.g. grok/p2-leads-api). PR into main. Small commits with conventional messages (feat:, fix:, docs:, chore:, refactor:); the commit-msg hook enforces them.
 
 DONE MEANS: `bun run check` passes; your phase's acceptance criteria are demonstrably met (write how you verified them in the PR); no console errors; no secrets in code or client bundles; docs updated for anything you added.
 

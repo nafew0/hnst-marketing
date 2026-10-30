@@ -121,6 +121,13 @@ The visuals are generated in code, in the style of the brand artwork: the nebula
   - The clips listed under P7 "Nafew provides" are no longer needed.
 - **P5 change:** the media scripts (`scripts/media`) become optional. §8's Grok Imagine prompts stay as reference for the look only.
 
+### E3. Page windows (Nafew, 30 Oct 2026)
+
+The main pages (`/packages`, `/packages/[tier]`, `/how-it-works`, `/proof`, `/about`, `/the-honest-marketer`, `/book`, `/contact`) open as macOS-style windows over the current page, with red to close, yellow to minimise and green for full screen. Every other route stays a plain page. Each page keeps its real URL, and a direct visit gets the complete server-rendered page.
+
+- **P7W (Claude, new, `docs/phases/P7W.md`):** the window frame, dock, route slot and homepage pause.
+- **P6 change (Astra):** pages stay normal routes, with each page's content in its own component. See `docs/phases/P6.md` § Windows. Astra builds no window UI.
+
 ### F. Hosting
 
 - **Build output:** `output: 'standalone'` is set.
@@ -166,6 +173,10 @@ Every phase is built and accepted **on localhost**. There is no VM, staging host
 5. Run the launch QA script (§9), get the Founder's sign-off, switch DNS to `hnst.marketing`, and tag `v1.0.0`.
 
 ---
+
+### I. Main only (Nafew, 30 Oct 2026)
+
+There is no `dev` branch workflow. Every phase branch opens its PR straight into `main`, so CI runs on each PR, and anything older that says `dev` means `main`. Nothing deploys from `main` until the Founder's go (§ H), so merging isn't going live.
 
 ## TL;DR
 
@@ -318,7 +329,7 @@ OWNERSHIP: You may ONLY create/edit files listed under "Files you own" in your p
 CONTRACTS: lib/contracts is the source of truth for every API request/response. Never edit it. Front end uses MSW mocks when NEXT_PUBLIC_API_MOCKS=1.
 COLOURS/FONTS: never type a hex colour or font name — use CSS variables / Tailwind theme / import { brand } from '@/brand.config'.
 ANIMATION: anime.js 4.5 only (no GSAP, no framer-motion). Respect useReducedMotion() and DeviceTier.
-BRANCH: <coder>/<phase>-<feature> (e.g., grok/p2-leads-api). PR into dev. Small commits, conventional messages.
+BRANCH: <coder>/<phase>-<feature> (e.g., grok/p2-leads-api). PR into main. Small commits, conventional messages.
 DONE MEANS: typecheck + lint + unit tests pass; your phase's acceptance criteria are demonstrably met (write how you verified them in the PR); no console errors; no secrets in code or client bundles; README/docs updated for anything you added.
 NEVER: add dependencies without listing them in the PR for approval; delete others' files; commit .env; call GoHighLevel from the browser.
 ```
