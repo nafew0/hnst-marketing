@@ -1,0 +1,174 @@
+@layer components {
+  .section {
+    position: relative;
+    color: var(--color-starlight);
+    background: radial-gradient(
+      in oklab 70% 60% at 50% 30%,
+      color-mix(in oklab, var(--color-nebula-deep) 70%, transparent),
+      transparent
+    );
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(32px);
+    padding-block: mobile-vw(72px);
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: mobile-vw(16px);
+  }
+
+  .arc {
+    display: none;
+  }
+
+  .steps {
+    position: relative;
+  }
+
+  /* Mobile: a straight rail takes the arc's job. */
+  .rail {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: mobile-vw(5px);
+    width: 1px;
+    background: color-mix(in oklab, var(--color-gold) 22%, transparent);
+  }
+
+  .railFill {
+    height: 100%;
+    background: var(--color-gold);
+    transform-origin: top;
+    will-change: transform;
+  }
+
+  .list {
+    display: grid;
+    gap: mobile-vw(32px);
+  }
+
+  .step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(6px);
+    padding-left: mobile-vw(32px);
+  }
+
+  .node {
+    position: absolute;
+    top: mobile-vw(4px);
+    left: 0;
+    width: mobile-vw(11px);
+    height: mobile-vw(11px);
+    border: 1px solid var(--color-gold);
+    border-radius: 50%;
+    background: var(--color-gold);
+    box-shadow: 0 0 mobile-vw(14px)
+      color-mix(in oklab, var(--color-gold) 70%, transparent);
+    transition:
+      background-color var(--duration-fast) var(--ease-out-expo),
+      box-shadow var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .number,
+  .title {
+    color: var(--color-gold);
+    transition: color var(--duration-fast) var(--ease-out-expo);
+  }
+
+  /* Scrubbing: a step waits in starlight until the line reaches it. */
+  .list[data-scrubbing] .step:not([data-lit]) {
+    .node {
+      background: var(--color-void);
+      box-shadow: none;
+    }
+
+    .number {
+      color: var(--color-silver);
+    }
+
+    .title {
+      color: var(--color-starlight);
+    }
+  }
+
+  @media (--desktop) {
+    .stage {
+      gap: desktop-vw(32px);
+      justify-content: center;
+      padding-block: desktop-vw(120px);
+    }
+
+    .intro {
+      gap: desktop-vw(20px);
+      max-width: columns(8);
+    }
+
+    .arc {
+      display: block;
+      margin-top: desktop-vw(16px);
+      margin-bottom: desktop-vw(-24px);
+    }
+
+    .rail {
+      display: none;
+    }
+
+    .list {
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--gap);
+    }
+
+    .step {
+      align-items: center;
+      gap: desktop-vw(8px);
+      padding-left: 0;
+      text-align: center;
+    }
+
+    /* The arc is width × 80/1200 tall, directly above. --lift is how far up it
+       each column's centre meets the curve, as a share of that height. */
+    .step:nth-child(1),
+    .step:nth-child(5) {
+      --lift: 0.214;
+    }
+
+    .step:nth-child(2),
+    .step:nth-child(4) {
+      --lift: 0.466;
+    }
+
+    .step:nth-child(3) {
+      --lift: 0.55;
+    }
+
+    .node {
+      top: calc(var(--layout-width) * -0.0667 * var(--lift));
+      left: 50%;
+      width: desktop-vw(13px);
+      height: desktop-vw(13px);
+      translate: -50% -50%;
+      box-shadow: 0 0 desktop-vw(18px)
+        color-mix(in oklab, var(--color-gold) 70%, transparent);
+    }
+  }
+
+  @media (--desktop) and (--motion-ok) {
+    .track {
+      height: 220svh;
+    }
+
+    .stage {
+      position: sticky;
+      top: 0;
+      min-height: 100svh;
+    }
+  }
+}
