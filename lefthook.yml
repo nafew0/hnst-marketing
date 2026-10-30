@@ -29,7 +29,7 @@ commit-msg:
   commands:
     # {1} is the path git passes to the hook: the message file.
     conventional:
-      run: bun lib/scripts/check-commit-msg.ts {1}
+      run: bun lib/scripts/check-commit-msg.ts "{1}"
 
 # Build stays CI-only (too slow for a local pre-push gate). Tests (~4s) and
 # the manifest check (~1s) are cheap enough to run here, so a push can't land
