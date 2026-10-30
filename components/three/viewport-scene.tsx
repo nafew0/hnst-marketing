@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import { useRect } from 'hamo'
+import { type Rect, useRect } from 'hamo'
 import dynamic from 'next/dynamic'
 import { type ReactNode, type RefObject, useRef, useState } from 'react'
 
@@ -38,6 +38,14 @@ interface ViewportSceneProps {
   exposure?: number
   /** Receives a function that renders the current frame to a WebP blob. */
   captureRef?: RefObject<CaptureFn | null>
+  /** False keeps the poster up: the scene's content isn't loaded yet. */
+  enabled?: boolean
+  /**
+   * The tall track of a `position: sticky; top: 0` scene. hamo measures a
+   * sticky element where it would sit unpinned, so the scene needs the track
+   * to stay on the pinned element.
+   */
+  pinTrack?: Rect
 }
 
 /**
@@ -56,13 +64,15 @@ export function ViewportScene({
   bloom,
   exposure = 1,
   captureRef,
+  enabled = true,
+  pinTrack,
 }: ViewportSceneProps) {
   const { state } = useDeviceTier()
   const rootCanvasMounted = useRootCanvasMounted()
   const [setRectRef, rect] = useRect({ ignoreTransform: true })
   const ownCaptureRef = useRef<CaptureFn>(null)
 
-  const live = rootCanvasMounted && state?.liveWebGL === true
+  const live = enabled && rootCanvasMounted && state?.liveWebGL === true
   const bloomStrength = state?.bloom ? (bloom ?? brand.three.bloomStrength) : 0
   // One renderer per live configuration; bloom on/off rebuilds its passes.
   const rendererKey = `${id}:${bloomStrength > 0 ? 'bloom' : 'plain'}`
@@ -86,6 +96,7 @@ export function ViewportScene({
             key={rendererKey}
             id={id}
             rect={rect}
+            pinTrack={pinTrack}
             camera={camera}
             bloomStrength={bloomStrength}
             maxDpr={state.maxDpr}

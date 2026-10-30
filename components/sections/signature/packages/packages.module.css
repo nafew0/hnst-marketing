@@ -1,0 +1,23 @@
+@layer components {
+  .section {
+    position: relative;
+    padding-block: mobile-vw(72px);
+    color: var(--color-starlight);
+
+    @media (--desktop) {
+      padding-block: desktop-vw(120px);
+    }
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: mobile-vw(16px);
+
+    @media (--desktop) {
+      gap: desktop-vw(20px);
+      max-width: columns(8);
+    }
+  }
+}

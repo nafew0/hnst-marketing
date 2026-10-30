@@ -29,29 +29,40 @@ vec3 skyColor(vec2 screen) {
 }
 `
 
+// Long ridged dunes across the view.
+const DUNE_RIDGE = /* glsl */ `
+float duneRidge(vec2 p) {
+  float ridge = 1.0 - abs(snoise(vec3(p.x * 0.07, p.y * 0.22, 0.0)));
+  return pow(ridge, 2.2) * 1.9;
+}
+`
+
 const TERRAIN_VERTEX = /* glsl */ `
 varying vec3 vWorld;
 varying vec3 vNormal;
 varying float vDepth;
 varying vec4 vClip;
+varying vec2 vDune;
 ${SIMPLEX_3D}
-float duneHeight(vec2 p) {
-  // Long ridged dunes across the view, broad swells, and fine wind ripples.
-  float ridge = 1.0 - abs(snoise(vec3(p.x * 0.07, p.y * 0.22, 0.0)));
-  float h = pow(ridge, 2.2) * 1.9;
-  h += snoise(vec3(p * 0.045, 3.0)) * 1.3;
+${DUNE_RIDGE}
+float swell(vec2 p) {
+  // Broad swells and fine wind ripples on top of the ridges.
+  float h = snoise(vec3(p * 0.045, 3.0)) * 1.3;
   h += snoise(vec3(p.x * 0.8, p.y * 2.6, 7.0)) * 0.035;
   return h;
 }
 void main() {
   vec3 p = position;
-  float h = duneHeight(p.xz);
+  float h = swell(p.xz);
   float e = 0.18;
-  vec3 n = normalize(vec3(h - duneHeight(p.xz + vec2(e, 0.0)), e, h - duneHeight(p.xz + vec2(0.0, e))));
-  p.y += h;
+  // The ridges' sharp crests are shaded per pixel: interpolated across a quad
+  // they read as facets. Only the gentle swells take a vertex normal.
+  vec3 n = normalize(vec3(h - swell(p.xz + vec2(e, 0.0)), e, h - swell(p.xz + vec2(0.0, e))));
+  vDune = p.xz;
+  p.y += h + duneRidge(p.xz);
   vec4 world = modelMatrix * vec4(p, 1.0);
   vWorld = world.xyz;
-  vNormal = normalize(mat3(modelMatrix) * n);
+  vNormal = n;
   vec4 view = viewMatrix * world;
   vDepth = -view.z;
   gl_Position = projectionMatrix * view;
@@ -70,9 +81,17 @@ varying vec3 vWorld;
 varying vec3 vNormal;
 varying float vDepth;
 varying vec4 vClip;
+varying vec2 vDune;
 ${SKY}
+${SIMPLEX_3D}
+${DUNE_RIDGE}
 void main() {
-  vec3 n = normalize(vNormal);
+  float e = 0.05;
+  float r = duneRidge(vDune);
+  vec3 ridge = vec3(r - duneRidge(vDune + vec2(e, 0.0)), e, r - duneRidge(vDune + vec2(0.0, e)));
+  vec3 swell = normalize(vNormal);
+  // Slopes add; the plane's model matrix only translates.
+  vec3 n = normalize(vec3(swell.x / swell.y + ridge.x / e, 1.0, swell.z / swell.y + ridge.z / e));
   vec3 toCamera = normalize(cameraPosition - vWorld);
   float diffuse = max(dot(n, uSunDirection), 0.0);
   // Golden hour: long warm light, cool violet-dusk shadows, glints on crests.
@@ -146,6 +165,8 @@ export interface DuneTerrainProps {
   cameraGlideRef?: RefObject<number>
   /** Fixed glide when no ref is given. */
   cameraGlide?: number
+  /** False when the parent scene moves the camera itself (the S2 film). */
+  moveCamera?: boolean
 }
 
 /**
@@ -155,6 +176,7 @@ export interface DuneTerrainProps {
 export function DuneTerrain({
   cameraGlideRef,
   cameraGlide = 0,
+  moveCamera = true,
 }: DuneTerrainProps) {
   const [dunes] = useState(createDunes)
   useEffect(
@@ -167,7 +189,7 @@ export function DuneTerrain({
   )
 
   useFrame((state) => {
-    glide(state, cameraGlideRef?.current ?? cameraGlide)
+    if (moveCamera) glide(state, cameraGlideRef?.current ?? cameraGlide)
   })
 
   return (

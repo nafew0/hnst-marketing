@@ -31,6 +31,8 @@
 	--color-nebula-haze: oklch(0.4368 0.0507 309.43);
 	--color-nebula-deep: oklch(0.2678 0.0558 299.53);
 	--color-nebula-tint: oklch(0.7583 0.0913 298.77);
+	--color-nebula-teal: oklch(0.6758 0.1121 221.72);
+	--color-nebula-rose: oklch(0.6933 0.1505 7.13);
 	--color-amber: oklch(0.6678 0.1531 42.62);
 	--color-success: oklch(0.7248 0.0910 147.31);
 	--color-warning: oklch(0.7596 0.1382 70.35);

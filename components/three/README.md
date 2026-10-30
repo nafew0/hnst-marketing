@@ -42,6 +42,10 @@ Tier 0 and tier 1 (reduced motion, Save-Data, phones, narrow or software-GPU scr
 | `DuneTerrain`    | Simplex dunes lit by a golden-hour sun, fogged into the sky behind them, so the plane has no visible edge.                                                                                                                                                                                                    | `cameraGlideRef` / `cameraGlide` (0–1)                                           |
 | `GoldGlintPlane` | Brushed gold with an anisotropic streak (faint at rest, bright on hover) and a molten reveal edge. For the package cards.                                                                                                                                                                                     | `hover`, `reveal` (0–1)                                                          |
 
+`PlanetRim` is the hero's dark planet with its gold horizon and a small moon, all in one full-view shader. `NebulaGas` and `Starfield` take a `fieldRef` (`pointer-field.ts`) to react to hover and clicks.
+
+`FilmWorld` is S2's film from one progress value: cold clutter that dissolves into gold, a ring of 26 points, then a thinning veil over the dunes. It is rendered to frames on `/lab/posters`, never shown live.
+
 Building blocks: `goldMaterial()`, `smokedGlassMaterial()`, `<StudioLights>` (six Lightformers baked once into the environment), `withDissolve(material)`, and `brandColor(name)`. three cannot parse `oklch()`, so `brandColor` converts `brand.config.ts` OKLCH to linear sRGB. Every colour comes from the config: change `nebula-glow` and the gas re-colours.
 
 ## Budgets
@@ -57,9 +61,14 @@ Building blocks: `goldMaterial()`, `smokedGlassMaterial()`, `<StudioLights>` (si
 
 In development, every lab card has **Render poster**. It re-renders the scene at 1600 px wide, whatever the live DPR, and saves `public/posters/<id>.webp` through the dev-only `POST /lab/3d/poster` route (404 in production). **Render demo sequence** on the dunes card saves 48 frames and a `manifest.json` to `public/posters/sequence/` for `ScrollSequence`. Re-render after changing a scene, so tier 0–1 visitors see what tier 3 sees.
 
+## Using a scene in a section
+
+Load the scene with `useLazyWorld(load)` and pass `enabled={World !== null}`, so three.js stays out of the first load and the poster stays up until the scene can draw. A scene in a pinned section also needs `pinTrack` (the rect of its tall parent): hamo measures a sticky element where it would sit unpinned. See `components/sections/signature/README.md`. `/lab/posters` renders the homepage's posters and film.
+
 ## Gotchas
 
 - **anime.js animations and timelines are thenables.** They settle on complete. Returning one from an `async` function, or from a `.then` callback, waits for it to finish, and a paused timeline never finishes. Build them synchronously once `loadAnime()` has resolved (see `createPlatterTimeline`), and give revert callbacks block bodies.
 - Mutate three objects in plain helper functions outside the component (`react/immutability`).
 - The anti-slop lint bans the word "shape" in any identifier, including three's API. Reach `toShapes` through a constant key (`emblem-geometry.ts`).
+- The canvas is behind the page, so a parent's `overflow` or `border-radius` can't clip a scene. Mask in the shader (`GoldGlintPlane`'s `corner`).
 - A flat gold face mirrors one direction of the environment. If a surface reads black, add or move a Lightformer where its reflection points; don't brighten the material.

@@ -1,0 +1,220 @@
+@layer components {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(24px);
+
+    @media (--desktop) {
+      gap: desktop-vw(32px);
+    }
+  }
+
+  .banner {
+    color: var(--color-gold);
+  }
+
+  .controls {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .grid {
+    display: grid;
+    gap: mobile-vw(16px);
+
+    @media (--desktop) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--gap);
+      align-items: stretch;
+    }
+
+    /* Compare: full-width rows, the recommendation first. */
+    &[data-view='compare'] {
+      @media (--desktop) {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .featured {
+        order: -1;
+      }
+    }
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    overflow: clip;
+    isolation: isolate;
+    border: 1px solid color-mix(in oklab, var(--color-gold) 26%, transparent);
+    border-radius: mobile-vw(20px);
+    color: var(--color-starlight);
+    transition: border-color var(--duration-fast) var(--ease-out-expo);
+
+    @media (--desktop) {
+      border-radius: desktop-vw(24px);
+    }
+
+    @media (--hover) {
+      &:hover {
+        border-color: var(--color-gold);
+      }
+    }
+
+    &:focus-within {
+      border-color: var(--color-gold);
+    }
+  }
+
+  /* Stays a card on the page's dark even with no gold behind it (compare). */
+  .card[data-compare] {
+    background: var(--color-void-2);
+  }
+
+  .featured {
+    border-color: var(--color-gold);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-gold) 35%, transparent),
+      0 24px 80px -32px var(--color-nebula-glow);
+  }
+
+  .gold {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  /* The card's own translucent face: the gold shows through at rest, stronger
+     on hover, and never enough to threaten the text's contrast. */
+  .face {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: mobile-vw(14px);
+    padding: mobile-vw(24px);
+    background: color-mix(in oklab, var(--color-void) 88%, transparent);
+    transition: background-color var(--duration-fast) var(--ease-out-expo);
+
+    @media (--desktop) {
+      gap: desktop-vw(16px);
+      padding: desktop-vw(28px);
+    }
+  }
+
+  .featured .face {
+    background: color-mix(in oklab, var(--color-void) 80%, transparent);
+  }
+
+  @media (--hover) {
+    .card:hover .face {
+      background: color-mix(in oklab, var(--color-void) 66%, transparent);
+    }
+
+    .card:hover .summary {
+      color: var(--color-starlight);
+    }
+  }
+
+  .card[data-compare] .face {
+    background: transparent;
+  }
+
+  .head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: mobile-vw(8px);
+
+    @media (--desktop) {
+      gap: desktop-vw(10px);
+      min-height: desktop-vw(88px);
+      justify-content: flex-end;
+    }
+  }
+
+  .card[data-compare] .head {
+    min-height: 0;
+  }
+
+  .badge {
+    align-self: flex-start;
+  }
+
+  .name {
+    color: var(--color-gold);
+  }
+
+  .price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 mobile-vw(10px);
+    font-variant-numeric: tabular-nums;
+
+    @media (--desktop) {
+      gap: 0 desktop-vw(10px);
+    }
+  }
+
+  /* The stated value, struck through by a line that draws across it. */
+  .value {
+    position: relative;
+    color: var(--color-silver);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 52%;
+      right: 0;
+      left: 0;
+      height: 1px;
+      background: currentcolor;
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+
+    &[data-struck]::after {
+      transform: scaleX(1);
+    }
+
+    @media (--motion-ok) {
+      &::after {
+        transition: transform 700ms var(--ease-out-expo);
+      }
+    }
+  }
+
+  .summary {
+    color: var(--color-silver);
+  }
+
+  .turnaround {
+    margin-top: auto;
+    color: var(--color-gold);
+  }
+
+  .cta {
+    align-self: stretch;
+    text-align: center;
+  }
+
+  .compare {
+    display: grid;
+    gap: mobile-vw(10px);
+
+    @media (--desktop) {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: var(--gap);
+    }
+  }
+
+  .compareRow {
+    display: flex;
+    flex-direction: column;
+    gap: mobile-vw(2px);
+
+    @media (--desktop) {
+      gap: desktop-vw(4px);
+    }
+  }
+}

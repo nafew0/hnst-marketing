@@ -3,14 +3,31 @@
   inset: 0 0 auto;
   z-index: 20;
   height: var(--header-height);
-  /* Legible over any hero without a solid bar; P7 adds the solid-on-scroll
-     state. */
+  /* Legible over any hero without a solid bar. */
   background: linear-gradient(
     in oklab to bottom,
     color-mix(in oklab, var(--color-void) 85%, transparent),
     transparent
   );
   color: var(--color-starlight);
+
+  /* Solid once the page has scrolled under it (set from the header's Lenis
+     callback). Opacity on a layer: a background change would repaint. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-bottom: 1px solid
+      color-mix(in oklab, var(--color-gold) 14%, transparent);
+    background: color-mix(in oklab, var(--color-void-deep) 92%, transparent);
+    opacity: 0;
+    transition: opacity var(--duration-fast) var(--ease-out-expo);
+  }
+
+  &[data-solid]::before {
+    opacity: 1;
+  }
 }
 
 .bar {

@@ -6,6 +6,7 @@ import type { Timeline } from 'animejs'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import {
   BoxGeometry,
+  type Camera,
   type Group,
   IcosahedronGeometry,
   InstancedBufferAttribute,
@@ -16,6 +17,7 @@ import {
   SphereGeometry,
   TorusGeometry,
   Vector2,
+  Vector3,
 } from 'three'
 
 import { brand } from '@/brand.config'
@@ -35,6 +37,8 @@ const BOT_COUNT = 26
 /** Deliverables sit on a ring this far out, at this size, so they read. */
 const PROP_RING = 1.36
 const PROP_SCALE = 1.35
+/** A label's anchor above the dish: clear of the tallest prop. */
+const LABEL_HEIGHT = 1.1
 
 /** 20-point half-profile (radius, height) of a shallow dish with a lip and foot. */
 const PLATTER_PROFILE: [number, number][] = [
@@ -202,6 +206,10 @@ export interface PlatterState {
   bots: { value: number }
 }
 
+function createLabelPoints(): PlatterLabelPoint[] {
+  return Array.from({ length: PROP_COUNT }, () => ({ x: 0, y: 0, reveal: 0 }))
+}
+
 function createState(): PlatterState {
   return {
     rise: { value: 0 },
@@ -254,11 +262,46 @@ function apply(
   parts.botUniforms.uAppear.value = state.bots.value
 }
 
+/** One deliverable as seen on screen: view coordinates (-1–1) and its reveal. */
+export interface PlatterLabelPoint {
+  x: number
+  y: number
+  reveal: number
+}
+
+const labelPosition = new Vector3()
+
+/** Where each deliverable's label belongs this frame, just above its prop. */
+function projectLabels(
+  group: Group,
+  camera: Camera,
+  state: PlatterState,
+  points: PlatterLabelPoint[]
+) {
+  group.updateWorldMatrix(true, false)
+  points.forEach((point, i) => {
+    const angle = (i / PROP_COUNT) * Math.PI * 2
+    labelPosition
+      .set(
+        Math.cos(angle) * PROP_RING,
+        LABEL_HEIGHT,
+        Math.sin(angle) * PROP_RING
+      )
+      .applyMatrix4(group.matrixWorld)
+      .project(camera)
+    point.x = labelPosition.x
+    point.y = labelPosition.y
+    point.reveal = state.props[i]?.value ?? 0
+  })
+}
+
 export interface GoldenPlatterProps {
   /** 0–1. Controls the timeline directly (scroll); omit to play it once. */
   progress?: number
   /** Receives the `platterTimeline` once anime.js has loaded. */
-  onPlatterTimeline?: (timeline: Timeline) => void
+  onPlatterTimeline?: ((timeline: Timeline) => void) | undefined
+  /** Called every frame with each deliverable's place on screen. */
+  onLabels?: ((points: readonly PlatterLabelPoint[]) => void) | undefined
   lights?: boolean
 }
 
@@ -269,12 +312,14 @@ export interface GoldenPlatterProps {
 export function GoldenPlatter({
   progress,
   onPlatterTimeline,
+  onLabels,
   lights = true,
 }: GoldenPlatterProps) {
   const [parts] = useState(createParts)
   const [state] = useState(createState)
   const [timeline, setTimeline] = useState<Timeline | null>(null)
   const groupRef = useRef<Group>(null)
+  const [points] = useState(createLabelPoints)
 
   useEffect(() => () => disposeParts(parts), [parts])
 
@@ -293,19 +338,25 @@ export function GoldenPlatter({
   }, [state])
 
   useEffect(() => {
-    if (!timeline) return
-    onPlatterTimeline?.(timeline)
-    if (progress === undefined) timeline.play()
-  }, [timeline, onPlatterTimeline, progress])
-
-  useEffect(() => {
     if (timeline && progress !== undefined) {
       timeline.seek(progress * timeline.duration)
     }
   }, [timeline, progress])
 
-  useFrame((_, delta) => {
+  // After the seek above: a parent scrubbing the timeline has the last word, or
+  // reloading part-way down the page would reset the dish to empty.
+  useEffect(() => {
+    if (!timeline) return
+    onPlatterTimeline?.(timeline)
+    if (progress === undefined) timeline.play()
+  }, [timeline, onPlatterTimeline, progress])
+
+  useFrame(({ camera }, delta) => {
     apply(parts, groupRef.current, state, delta)
+    if (onLabels && groupRef.current) {
+      projectLabels(groupRef.current, camera, state, points)
+      onLabels(points)
+    }
   })
 
   const [bible, lab, calendar, website, funnel, bot] = parts.props

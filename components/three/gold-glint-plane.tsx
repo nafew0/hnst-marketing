@@ -1,7 +1,7 @@
 'use client'
 
 import { type RootState, useFrame } from '@react-three/fiber'
-import { useEffect, useState } from 'react'
+import { type RefObject, useEffect, useState } from 'react'
 import { PerspectiveCamera, ShaderMaterial, Vector2 } from 'three'
 
 import { brandColor } from './color'
@@ -12,6 +12,7 @@ uniform float uTime;
 uniform float uHover;
 uniform float uReveal;
 uniform float uAspect;
+uniform float uCorner;
 uniform vec2 uPointer;
 uniform vec3 uDark;
 uniform vec3 uGold;
@@ -40,7 +41,13 @@ void main() {
   float shown = step(p.y + wobble, edge);
   float rim = smoothstep(0.045, 0.0, abs(p.y + wobble - edge)) * step(uReveal, 0.999);
   vec3 molten = uLight * rim * 2.4;
-  gl_FragColor = vec4(color * shown + molten, max(shown, rim));
+  // The canvas sits behind the page, so a card's overflow can't clip this: the
+  // rounded corners are cut here. Premultiplied, like the rest of the output.
+  vec2 half_ = vec2(uAspect, 1.0) * 0.5;
+  vec2 corner = abs((p - 0.5) * vec2(uAspect, 1.0)) - half_ + uCorner;
+  float outside = length(max(corner, 0.0)) + min(max(corner.x, corner.y), 0.0) - uCorner;
+  float mask = uCorner > 0.0 ? smoothstep(0.0, -0.003, outside) : 1.0;
+  gl_FragColor = vec4(color * shown + molten, max(shown, rim)) * mask;
 }
 `
 
@@ -51,6 +58,7 @@ function createMaterial() {
       uHover: { value: 0 },
       uReveal: { value: 1 },
       uAspect: { value: 1 },
+      uCorner: { value: 0 },
       uPointer: { value: new Vector2(0.5, 0.5) },
       uDark: { value: brandColor('gold-metal-1') },
       uGold: { value: brandColor('gold') },
@@ -64,12 +72,18 @@ function createMaterial() {
   })
 }
 
+function setCorner(material: ShaderMaterial, corner: number) {
+  const uniform = material.uniforms.uCorner
+  if (uniform) uniform.value = corner
+}
+
 function step(
   material: ShaderMaterial,
   state: RootState,
   delta: number,
   hover: number,
-  reveal: number
+  reveal: number,
+  pointer: RefObject<{ x: number; y: number }> | undefined
 ) {
   const { uniforms } = material
   if (uniforms.uTime) uniforms.uTime.value += delta
@@ -83,8 +97,8 @@ function step(
     uniforms.uAspect.value = state.camera.aspect
   }
   uniforms.uPointer?.value.set(
-    state.pointer.x * 0.5 + 0.5,
-    state.pointer.y * 0.5 + 0.5
+    pointer ? pointer.current.x : state.pointer.x * 0.5 + 0.5,
+    pointer ? pointer.current.y : state.pointer.y * 0.5 + 0.5
   )
 }
 
@@ -93,15 +107,40 @@ export interface GoldGlintPlaneProps {
   hover?: number
   /** 0–1: molten reveal from the bottom. */
   reveal?: number
+  /** Read every frame instead of `hover`, so moving it costs no renders. */
+  hoverRef?: RefObject<number>
+  /** Read every frame instead of `reveal`. */
+  revealRef?: RefObject<number>
+  /** The pointer over this plane (0–1, y up); defaults to the whole window. */
+  pointerRef?: RefObject<{ x: number; y: number }>
+  /** Rounded corners, as a share of the plane's height. Default none. */
+  corner?: number
 }
 
 /** Package-card surface: brushed gold with an anisotropic glint. */
-export function GoldGlintPlane({ hover = 0, reveal = 1 }: GoldGlintPlaneProps) {
+export function GoldGlintPlane({
+  hover = 0,
+  reveal = 1,
+  hoverRef,
+  revealRef,
+  pointerRef,
+  corner = 0,
+}: GoldGlintPlaneProps) {
   const [material] = useState(createMaterial)
   useEffect(() => () => material.dispose(), [material])
+  useEffect(() => {
+    setCorner(material, corner)
+  }, [material, corner])
 
   useFrame((state, delta) => {
-    step(material, state, delta, hover, reveal)
+    step(
+      material,
+      state,
+      delta,
+      hoverRef?.current ?? hover,
+      revealRef?.current ?? reveal,
+      pointerRef
+    )
   })
 
   return (

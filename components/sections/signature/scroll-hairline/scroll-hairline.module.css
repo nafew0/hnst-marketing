@@ -1,0 +1,19 @@
+@layer components {
+  .story {
+    position: relative;
+  }
+
+  .line {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 30;
+    height: 2px;
+    background: var(--color-gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    will-change: transform;
+    pointer-events: none;
+  }
+}
