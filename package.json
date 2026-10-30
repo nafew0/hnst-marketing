@@ -50,7 +50,10 @@
     "check:colors": "bun ./lib/scripts/check-colors.ts",
     "contracts:openapi": "bun ./lib/scripts/generate-openapi.ts",
     "contracts:check": "bun ./lib/scripts/generate-openapi.ts --check",
-    "handoff": "bun ./lib/scripts/prepare-handoff.ts"
+    "handoff": "bun ./lib/scripts/prepare-handoff.ts",
+    "seed": "bun ./lib/cms/seed.ts",
+    "cms:types": "payload generate:types",
+    "cms:importmap": "payload generate:importmap"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^9.1.0",
