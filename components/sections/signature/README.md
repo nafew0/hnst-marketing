@@ -27,7 +27,7 @@ import { PackageReveal } from '@/components/sections/signature/package-reveal'
 
 Everything is in `copy.ts`, typed, and **unapproved**. The wording is `HonestMarketing AI/HONEST-Website-Wave3-Inputs.md` § 2, and several lines depend on the open Founder decisions in § 1. `copyStatus: 'draft'` shows a small fixed "Draft copy" label on every environment until the text is signed off. Open facts read "To be confirmed". S5's steps are a typed fallback (`fallbackSteps`) that `<HowItWorks steps={…}>` replaces once P3's CMS is merged.
 
-S7's screens are "pending" slates until Nafew supplies real client-zero screenshots: add `image` to an entry in `proofShots` and the slate becomes the screenshot. No results or testimonials are invented.
+S7's screens are marked sample mock-ups (`components/sections/standard/stand-ins.ts`) until Nafew supplies real client-zero screenshots: add `image` to an entry in `proofShots` and the slate becomes the screenshot. No results or testimonials are invented.
 
 ## Writing a section
 

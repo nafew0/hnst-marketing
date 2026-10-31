@@ -19,14 +19,14 @@ export function Footer() {
           fetched at the width that shows it (lazy skips display: none). */}
       <div className={s.scene} aria-hidden="true">
         <Image
-          src="/footer/horizon-mobile.webp"
+          src="/footer/dunes-walk-mobile.webp"
           alt=""
           fill
           sizes="100vw"
           className="mobile-only"
         />
         <Image
-          src="/footer/horizon.webp"
+          src="/footer/dunes-walk.webp"
           alt=""
           fill
           sizes="100vw"
@@ -52,34 +52,37 @@ export function Footer() {
           <Button href={bookCall.href}>{bookCall.label}</Button>
         </div>
 
-        <nav aria-label="Footer" className={s.columns}>
-          <ul className={s.list}>
-            {footerNav.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className={cn(s.link, 'link uppercase')}>
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <ul className={s.list}>
-            {legalNav.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className={cn(s.link, 'link uppercase')}>
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-      <div className="dr-layout-block">
-        <p
-          className={cn(s.legal, 'caption text-starlight')}
-          suppressHydrationWarning
-        >
-          © {YEAR} HONEST Marketing, a DBA of Honest Media Group.
-        </p>
+        <div className={s.aside}>
+          <nav aria-label="Footer" className={s.columns}>
+            <ul className={s.list}>
+              {footerNav.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(s.link, 'link uppercase')}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <ul className={s.list}>
+              {legalNav.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(s.link, 'link uppercase')}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <p className="caption text-starlight" suppressHydrationWarning>
+            © {YEAR} HONEST Marketing, a DBA of Honest Media Group.
+          </p>
+        </div>
       </div>
     </footer>
   )

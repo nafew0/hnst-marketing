@@ -11,10 +11,6 @@
   }
 }
 
-:global(body):has(.dock) {
-  padding-bottom: var(--dock-space);
-}
-
 /* Measured for what part of a tall page is on screen. */
 .viewport {
   position: fixed;

@@ -106,6 +106,16 @@
   }
 }
 
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(32px);
+
+  @media (--desktop) {
+    gap: desktop-vw(32px);
+  }
+}
+
 .columns {
   display: flex;
   gap: mobile-vw(48px);
@@ -130,16 +140,5 @@
     &:hover {
       color: var(--color-gold);
     }
-  }
-}
-
-.legal {
-  margin-top: mobile-vw(48px);
-  padding-top: mobile-vw(20px);
-  border-top: 1px solid color-mix(in oklab, var(--color-gold) 30%, transparent);
-
-  @media (--desktop) {
-    margin-top: desktop-vw(56px);
-    padding-top: desktop-vw(24px);
   }
 }

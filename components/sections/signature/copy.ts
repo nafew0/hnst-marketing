@@ -1,3 +1,4 @@
+import { homeProofStandIns } from '@/components/sections/standard/stand-ins'
 import type { Tier } from '@/lib/contracts'
 
 /**
@@ -236,19 +237,31 @@ export const turnCopy = {
 export interface ProofShot {
   label: string
   caption: string
-  /** Real, labelled client-zero screenshot. Absent: an honest "pending" slate. */
+  /** Real, labelled client-zero screenshot, or a marked sample until then. Absent: a "pending" slate. */
   image?: { src: string; alt: string; width: number; height: number }
 }
 
 const proofShots: readonly ProofShot[] = [
-  { label: 'Brand Bible', caption: 'HONEST’s own Brand Bible in Notion.' },
-  { label: 'Research Lab', caption: 'HONEST’s own market research.' },
-  { label: 'Pipeline', caption: 'HONEST’s own pipeline in GoHighLevel.' },
+  {
+    label: 'Brand Bible',
+    caption: 'HONEST’s own Brand Bible in Notion.',
+    image: homeProofStandIns.brandBible,
+  },
+  {
+    label: 'Research Lab',
+    caption: 'HONEST’s own market research.',
+    image: homeProofStandIns.researchLab,
+  },
+  {
+    label: 'Pipeline',
+    caption: 'HONEST’s own pipeline in GoHighLevel.',
+    image: homeProofStandIns.pipeline,
+  },
 ]
 
 /**
  * S7. Nafew supplies these (docs/phases/P6.md: HONEST's real Notion and GHL,
- * with private data blurred). Until then the slates say what will go there; no
+ * with private data blurred). Until then these are marked sample mock-ups; no
  * invented results or testimonials.
  */
 export const proofCopy = {

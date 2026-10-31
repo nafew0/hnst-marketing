@@ -9,6 +9,11 @@ import {
 } from '@/components/sections/standard/catalog'
 import { ProcessSteps } from '@/components/sections/standard/process-steps'
 import { ProofGallery } from '@/components/sections/standard/proof-gallery'
+import {
+  bioStandIns,
+  ebookCoverStandIn,
+  proofStandIns,
+} from '@/components/sections/standard/stand-ins'
 import { Heading } from '@/components/ui/heading'
 import { Image } from '@/components/ui/image'
 import { bookingCopySchema, leadCopySchema } from '@/lib/cms/form-copy'
@@ -65,8 +70,8 @@ export function Wave3Block({
       return (
         <>
           <div className="grid dr-gap-24 dt:grid-cols-2">
-            {block.items?.map((item) => {
-              const photo = mediaImage(item.photo)
+            {block.items?.map((item, index) => {
+              const photo = mediaImage(item.photo) ?? bioStandIns[index]
               return (
                 <article
                   key={item.id ?? item.name}
@@ -110,7 +115,7 @@ export function Wave3Block({
             title: item.title,
             caption: item.caption,
             placeholder: item.placeholder,
-            image: mediaImage(item.image),
+            image: mediaImage(item.image) ?? proofStandIns[index] ?? null,
           }))}
         />
       )
@@ -129,12 +134,12 @@ export function Wave3Block({
       return (
         <div className="grid items-start dr-gap-32 dt:grid-cols-2">
           <div className="flex flex-col dr-gap-24">
-            <div className="flex min-h-[240px] flex-col justify-center rounded-[16px] border border-gold/30 bg-nebula-deep dr-p-32">
-              <p className="h2 text-gold">{block.title}</p>
-              <p className="dr-mt-24 caption text-silver">
-                {block.placeholder}
-              </p>
-            </div>
+            <Image
+              {...ebookCoverStandIn}
+              alt={`${block.title} eBook cover`}
+              sizes="(min-width: 800px) 45vw, 90vw"
+              className="h-auto w-full rounded-[16px] border border-gold/30"
+            />
             <ul className="dr-space-y-12 list-disc dr-pl-24 p">
               {block.bullets?.map((item) => (
                 <li key={item.id ?? item.text}>{item.text}</li>
