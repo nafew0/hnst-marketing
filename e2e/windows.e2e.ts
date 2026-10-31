@@ -214,8 +214,9 @@ test('a form that succeeds lands on its thank-you page with the window gone', as
   await expect(windowOf(page)).toBeHidden()
 })
 
-test('a minimised icon can be dismissed, and holds one per page', async ({
+test('a minimised icon can be cleared, and holds one per page', async ({
   page,
+  isMobile,
 }) => {
   await page.goto('/lab')
   await openFixture(page)
@@ -226,7 +227,14 @@ test('a minimised icon can be dismissed, and holds one per page', async ({
   await expect(
     page.getByRole('button', { name: 'Restore Window fixture' })
   ).toHaveCount(1)
-  await page.getByRole('button', { name: 'Dismiss Window fixture' }).click()
+  // Phones have no hover for the ×: restore it, then red.
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Restore Window fixture' }).click()
+    await closeControl(page).click()
+  } else {
+    await page.getByRole('navigation', { name: 'Dock' }).hover()
+    await page.getByRole('button', { name: 'Dismiss Window fixture' }).click()
+  }
   await expect(
     page.getByRole('button', { name: 'Restore Window fixture' })
   ).toHaveCount(0)

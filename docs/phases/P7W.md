@@ -22,16 +22,16 @@
 
 **Closing is deliberate.** Clicking outside a window does not close it. The window is modal, and the page behind is inert, including the header.
 
-| Control      | Result                                                                                                     |
-| ------------ | ---------------------------------------------------------------------------------------------------------- |
-| Red          | Closes the window and returns to the page it opened over, at the same scroll position                      |
-| Esc          | Same as red. Required for keyboard users. A lightbox or menu inside the window closes first                |
-| Browser Back | From the first window, closes it. Inside a window, steps back through its pages                            |
-| Yellow       | Funnels the window into its dock icon (the genie), then returns to the page underneath                     |
-| Dock icon    | Restores a minimised window as it was, including scroll and half-filled forms. It can also be dismissed    |
-| Green        | Toggles between the normal window and filling the browser window. This is not the browser's Fullscreen API |
+| Control      | Result                                                                                                                                                         |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Red          | Closes the window and returns to the page it opened over, at the same scroll position                                                                          |
+| Esc          | Same as red. Required for keyboard users. A lightbox or menu inside the window closes first                                                                    |
+| Browser Back | From the first window, closes it. Inside a window, steps back through its pages                                                                                |
+| Yellow       | Funnels the window into its dock icon (the genie), then returns to the page underneath                                                                         |
+| Dock icon    | Restores a minimised window as it was, including scroll and half-filled forms. It can also be dismissed with a × on hover; on phones, restore it and press red |
+| Green        | Toggles between the normal window and filling the browser window. This is not the browser's Fullscreen API                                                     |
 
-**The dock** (Nafew, 31 Oct 2026) is always there, like the macOS Dock: one app icon per main page, drawn from that page's world, with magnification on hover and a light under anything running. Clicking another icon keeps the current window as it is, behind. Anything else open, such as a package tier, gets its own icon past a divider. Green full screen hides the dock. It must not cover the "Privacy choices" control. Running windows last for the visit and clear on a full reload. Tier 0 and reduced motion skip the genie.
+**The dock** (Nafew, 31 Oct 2026) is always there, like the macOS Dock: one vector app icon per main page on a glass bar, with magnification on hover and a dot under anything running. Clicking another icon keeps the current window as it is, behind. Anything else open, such as a package tier, gets its own icon past a divider. Green full screen hides the dock. It must not cover the "Privacy choices" control. Running windows last for the visit and clear on a full reload. Tier 0 and reduced motion skip the genie.
 
 **Minimised state lives in memory only.** Never write visitors' form values to `localStorage` or `sessionStorage`. Tick boxes keep what the visitor chose, and consent is never ticked on their behalf.
 
