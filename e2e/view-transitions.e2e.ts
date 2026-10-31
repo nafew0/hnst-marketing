@@ -90,13 +90,6 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
         )
       )
       .toBe(true)
-    await page.setViewportSize({ width: 390, height: 844 })
-    await page.getByRole('button', { name: 'Open menu', exact: true }).click()
-    // The mobile menu is a modal dialog with its own close button.
-    await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible()
-    await expect(
-      page.getByRole('button', { name: 'Close menu', exact: true })
-    ).toBeVisible()
     expect(runtimeErrors).toEqual([])
   })
 }

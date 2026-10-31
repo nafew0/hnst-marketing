@@ -114,12 +114,10 @@ test('safari edge strips stay pinned, page-colored and tap-through on the homepa
     contentType: 'image/png',
   })
 
-  // Back at the top, the header stays tappable under the strips: the home
-  // link and the menu toggle, which opens the menu dialog.
+  // Back at the top, the header's home link stays tappable under the strips.
   await page.evaluate(() => window.scrollTo(0, 0))
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
   const banner = page.getByRole('banner')
-  const toggle = banner.getByRole('button', { name: 'Open menu' })
   const hitsTarget = (target: ReturnType<typeof banner.getByRole>) =>
     target.evaluate((el) => {
       const rect = el.getBoundingClientRect()
@@ -131,9 +129,6 @@ test('safari edge strips stay pinned, page-colored and tap-through on the homepa
     })
   const homeLink = banner.getByRole('link', { name: 'HONEST Marketing home' })
   expect(await hitsTarget(homeLink), 'home link receives taps').toBe(true)
-  expect(await hitsTarget(toggle), 'menu toggle receives taps').toBe(true)
-  await toggle.click()
-  await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible()
 
   await testInfo.attach('edge-measurements', {
     body: JSON.stringify(

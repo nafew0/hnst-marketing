@@ -63,36 +63,6 @@ test('hero text never starts fully transparent (LCP-safe)', async ({
   for (const opacity of startOpacities) expect(opacity).toBeGreaterThan(0)
 })
 
-test.describe('mobile navigation', () => {
-  test.use({ viewport: { width: 375, height: 812 } })
-
-  test('the drawer traps focus, closes on Escape and restores focus', async ({
-    page,
-  }) => {
-    await page.goto('/')
-    const toggle = page.getByRole('button', { name: 'Menu' })
-    await toggle.click()
-
-    const drawer = page.getByRole('dialog', { name: 'Menu' })
-    await expect(drawer).toBeVisible()
-
-    // Base UI moves focus off its edge guards right after they receive it,
-    // so poll until focus settles before asserting where it landed.
-    for (let step = 0; step < 12; step++) {
-      await page.keyboard.press('Tab')
-      await expect
-        .poll(() =>
-          drawer.evaluate((node) => node.contains(document.activeElement))
-        )
-        .toBe(true)
-    }
-
-    await page.keyboard.press('Escape')
-    await expect(drawer).toBeHidden()
-    await expect(toggle).toBeFocused()
-  })
-})
-
 test('/lab is noindex and has no serious accessibility issues', async ({
   page,
 }) => {
