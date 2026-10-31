@@ -13,6 +13,7 @@ ROOT=/srv/hnst
 REPO=$ROOT/repo
 RELEASES=$ROOT/releases
 CURRENT=$ROOT/current
+BUILD_ROOT=$ROOT/buildroot
 ENV_FILE=/etc/hnst/hnst.env
 HEALTH_URL=http://127.0.0.1:3100/api/health
 KEEP=3
@@ -55,6 +56,27 @@ as_hnst() {
     cd "$1"; shift
     "$@"
   ' "$ENV_FILE" "$REPO" "$@"
+}
+
+# Next's native compiler needs glibc 2.29 and AlmaLinux 8 has 2.28, so the build
+# runs in an Ubuntu folder (hnst-buildroot). The built site runs on the host. The
+# mounts live in a private namespace and vanish when the build ends.
+build_in_root() {
+  [ -x "$BUILD_ROOT/usr/bin/env" ] || die "no build folder; run: sudo hnst-buildroot"
+  nice -n 10 ionice -c 2 -n 7 unshare --mount --propagation private bash -c '
+    set -euo pipefail
+    root=$0
+    mount --bind /srv/hnst/repo "$root/srv/hnst/repo"
+    mount --bind /opt/hnst "$root/opt/hnst"
+    mount -o remount,bind,ro "$root/opt/hnst"
+    mount --bind /etc/hnst "$root/etc/hnst"
+    mount -o remount,bind,ro "$root/etc/hnst"
+    mount -t proc proc "$root/proc"
+    mount --bind /dev "$root/dev"
+    chroot --userspec="$(id -u hnst):$(id -g hnst)" "$root" /usr/bin/env -i \
+      HOME=/srv/hnst PATH=/opt/hnst/node/bin:/opt/hnst/bun:/usr/bin:/bin \
+      bash -c "set -euo pipefail; set -a; . /etc/hnst/hnst.env; set +a; cd /srv/hnst/repo; bun run build"
+  ' "$BUILD_ROOT"
 }
 
 live_release() {
@@ -135,7 +157,7 @@ if [ "$seed" -eq 1 ]; then
 fi
 
 echo "== build"
-as_hnst nice -n 10 ionice -c 2 -n 7 bun run build
+build_in_root
 
 echo "== release"
 release=$RELEASES/$(date -u +%Y%m%d%H%M%S)-$sha
@@ -176,6 +198,7 @@ for unit in hnst-web.service hnst-worker.service; do
     echo "note: $unit changed in the repo. Reinstall it by hand and run systemctl daemon-reload."
 done
 install -m 755 "$REPO/deploy/native/hnst-backup" /usr/local/bin/hnst-backup
+install -m 755 "$REPO/deploy/native/hnst-buildroot" /usr/local/bin/hnst-buildroot
 install -m 755 "$REPO/deploy/native/hnst-update" /usr/local/bin/hnst-update
 
 echo "deployed $(basename "$release")"
