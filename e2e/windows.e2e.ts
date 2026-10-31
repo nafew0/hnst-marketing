@@ -60,6 +60,11 @@ async function openFixture(page: Page) {
   await expect(windowOf(page).getByRole('heading')).toHaveText('Window fixture')
 }
 
+async function openFixtureFromLab(page: Page) {
+  await page.goto('/lab')
+  await openFixture(page)
+}
+
 for (const from of ['/', '/packages']) {
   for (const href of MAIN_PAGES) {
     if (href === from) continue
@@ -209,7 +214,9 @@ test('a form that succeeds lands on its thank-you page with the window gone', as
   await expect(windowOf(page)).toBeHidden()
 })
 
-test('a chip can be dismissed, and holds one per page', async ({ page }) => {
+test('a minimised icon can be dismissed, and holds one per page', async ({
+  page,
+}) => {
   await page.goto('/lab')
   await openFixture(page)
   await minimiseControl(page).click()
@@ -221,7 +228,7 @@ test('a chip can be dismissed, and holds one per page', async ({ page }) => {
   ).toHaveCount(1)
   await page.getByRole('button', { name: 'Dismiss Window fixture' }).click()
   await expect(
-    page.getByRole('navigation', { name: 'Minimised windows' })
+    page.getByRole('button', { name: 'Restore Window fixture' })
   ).toHaveCount(0)
 })
 
@@ -235,7 +242,7 @@ test('the dock does not cover the privacy control', async ({ page }) => {
     .getByRole('button', { name: 'Privacy choices' })
     .boundingBox()
   const dock = await page
-    .getByRole('navigation', { name: 'Minimised windows' })
+    .getByRole('navigation', { name: 'Dock' })
     .boundingBox()
   if (!(privacy && dock)) throw new Error('Expected both to be on screen')
   const apart =
@@ -262,9 +269,10 @@ test('a lightbox stacks inside the window, and Esc closes only the lightbox', as
   await expect(page).toHaveURL(/\/lab$/u)
 })
 
-test('keyboard: Tab stays inside, focus returns, and the controls and dock work', async ({
+test('keyboard: Tab stays in the window and dock, focus returns, and the controls and dock work', async ({
   page,
   isMobile,
+  browserName,
 }) => {
   test.skip(isMobile, 'Phones have no Tab key')
   await page.goto('/')
@@ -273,8 +281,8 @@ test('keyboard: Tab stays inside, focus returns, and the controls and dock work'
   await link.focus()
   await page.keyboard.press('Enter')
   await expect(windowOf(page)).toBeVisible()
-  // Base UI's invisible focus guards take a stop as focus wraps round, and the
-  // browser passes through `body`. What matters is that no page element is hit.
+  // Base UI's invisible focus guards take a stop, and the browser passes through
+  // `body` as focus wraps round. What matters is that no page element is hit.
   const focused = new Set<string>()
   for (let press = 0; press < 60; press += 1) {
     await page.keyboard.press('Tab')
@@ -282,6 +290,7 @@ test('keyboard: Tab stays inside, focus returns, and the controls and dock work'
       await page.evaluate(() => {
         const element = document.activeElement
         if (element?.closest('[data-window]')) return 'window'
+        if (element?.closest('[data-window-dock]')) return 'dock'
         return element?.hasAttribute('data-base-ui-focus-guard')
           ? 'guard'
           : `outside: ${element?.tagName}`
@@ -289,11 +298,15 @@ test('keyboard: Tab stays inside, focus returns, and the controls and dock work'
     )
   }
   expect(focused.has('window')).toBe(true)
+  // Safari's Tab skips links by default, and most dock icons are links.
+  if (browserName === 'chromium') expect(focused.has('dock')).toBe(true)
   expect(
     [...focused].filter(
       (item) => item.startsWith('outside') && item !== 'outside: BODY'
     )
   ).toEqual([])
+  // From inside the window: Esc from the dock leaves focus on the dock.
+  await windowOf(page).locator('[data-window-scroller]').focus()
   await page.keyboard.press('Escape')
   await expect(windowOf(page)).toBeHidden()
   await expect(link).toBeFocused()
@@ -412,16 +425,14 @@ test.describe('without JavaScript', () => {
   })
 })
 
-test('direct visit: red goes home, and yellow goes home with a chip that restores the form', async ({
+test('direct visit: red goes home, and yellow goes home with an icon that restores the form', async ({
   page,
 }) => {
   await page.goto('/contact')
   await hydrated(page.getByRole('link', { name: 'Close window' }))
   await page.getByRole('link', { name: 'Close window' }).click()
   await expect(page).toHaveURL(/\/$/u)
-  await expect(
-    page.getByRole('navigation', { name: 'Minimised windows' })
-  ).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^Restore /u })).toHaveCount(0)
 
   await page.goto('/contact')
   const name = page.locator('[data-window-direct] input[name="firstName"]')
@@ -451,6 +462,86 @@ test('the consent banner still works with a window open', async ({ page }) => {
   await page.locator('#cc-main button[data-role="necessary"]').first().click()
   await expect(banner).toBeHidden()
   await expect(windowOf(page)).toBeVisible()
+})
+
+test('the dock switches windows, and the first keeps its form', async ({
+  page,
+}) => {
+  await openFixtureFromLab(page)
+  const draft = windowOf(page).locator('input[name="draft"]')
+  await draft.fill('kept')
+  const dock = page.getByRole('navigation', { name: 'Dock' })
+  await dock.getByRole('link', { name: 'Contact', exact: true }).click()
+  await expect(page).toHaveURL(/\/contact$/u)
+  await expect(page.locator('[data-window]')).toHaveCount(1)
+  await dock.getByRole('button', { name: 'Restore Window fixture' }).click()
+  await expect(page).toHaveURL(/\/lab\/window$/u)
+  await expect(draft).toHaveValue('kept')
+  await minimiseControl(page).click()
+  await expect(windowOf(page)).toBeHidden()
+  await expect(
+    dock.getByRole('button', { name: 'Restore Window fixture' })
+  ).toBeVisible()
+})
+
+test('yellow plays the genie into the icon, and restoring plays it back', async ({
+  page,
+}) => {
+  await page.goto('/lab')
+  await openFixture(page)
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        document.querySelector('[data-window]')?.getAttribute('data-static')
+      )
+    )
+    .toBeNull()
+  await page.waitForTimeout(1500)
+  await minimiseControl(page).click()
+  await expect
+    .poll(() =>
+      page
+        .locator('[data-window]')
+        .evaluate((element: HTMLElement) => element.style.clipPath)
+    )
+    .toContain('polygon')
+  await expect(windowOf(page)).toBeHidden()
+  await page.getByRole('button', { name: 'Restore Window fixture' }).click()
+  await expect(windowOf(page)).toBeVisible()
+  await expect
+    .poll(() =>
+      page
+        .locator('[data-window]')
+        .evaluate((element: HTMLElement) => element.style.clipPath)
+    )
+    .toBe('')
+  await expect(windowOf(page).getByRole('heading')).toHaveText('Window fixture')
+})
+
+test('every page has an icon in the dock, and it opens that page', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const dock = page.getByRole('navigation', { name: 'Dock' })
+  for (const name of [
+    'Home',
+    'Packages',
+    'How it works',
+    'Proof',
+    'About',
+    'The HONEST Marketer',
+    'Contact',
+    'Book a call',
+  ])
+    await expect(dock.getByRole('link', { name, exact: true })).toBeVisible()
+  const about = dock.getByRole('link', { name: 'About', exact: true })
+  await hydrated(about)
+  await about.click()
+  await expect(page).toHaveURL(/\/about$/u)
+  await expect(windowOf(page)).toBeVisible()
+  await dock.getByRole('link', { name: 'Home', exact: true }).click()
+  await expect(page).toHaveURL(/\/$/u)
+  await expect(windowOf(page)).toBeHidden()
 })
 
 test('consent can be changed from inside a window', async ({ page }) => {

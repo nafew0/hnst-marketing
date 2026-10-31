@@ -32,7 +32,7 @@
 
   @media (--desktop) {
     &:not([data-fullscreen]) {
-      inset: 4vh max(var(--safe), calc((100vw - 1240px) / 2));
+      inset: 3vh max(var(--safe), calc((100vw - 1240px) / 2)) var(--dock-space);
       border: 1px solid color-mix(in oklab, var(--color-gold) 22%, transparent);
       border-radius: 14px;
       box-shadow: 0 32px 96px
@@ -203,6 +203,11 @@
   overscroll-behavior: contain;
   outline: none;
 
+  /* Phones have no room around the window, so the dock floats over its end. */
+  @media (--mobile) {
+    padding-bottom: var(--dock-space);
+  }
+
   &[data-active] {
     visibility: visible;
   }
@@ -266,82 +271,4 @@
       top: 0;
     }
   }
-}
-
-/* Centred on desktop, above the page's corner pills on phones. */
-.dock {
-  position: fixed;
-  bottom: 56px;
-  left: 12px;
-  z-index: 50;
-  display: flex;
-  flex-wrap: wrap-reverse;
-  gap: 8px;
-  max-width: calc(100vw - 24px);
-
-  @media (--desktop) {
-    bottom: 12px;
-    left: 50%;
-    justify-content: center;
-    max-width: 50vw;
-    transform: translateX(-50%);
-  }
-}
-
-.chip {
-  display: flex;
-  align-items: stretch;
-  min-width: 0;
-  border: 1px solid color-mix(in oklab, var(--color-gold) 40%, transparent);
-  border-radius: 999px;
-  background: var(--color-void);
-  color: var(--color-starlight);
-  font-size: 13px;
-}
-
-.restore {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  min-height: 44px;
-  padding-inline: 14px 6px;
-  border-radius: 999px 0 0 999px;
-
-  @media (--desktop) {
-    min-height: 32px;
-  }
-}
-
-.chipDot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-window-minimise);
-}
-
-.chipTitle {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dismiss {
-  display: grid;
-  flex: none;
-  width: 44px;
-  place-items: center;
-  border-radius: 0 999px 999px 0;
-  color: var(--color-silver);
-
-  @media (--desktop) {
-    width: 28px;
-  }
-}
-
-.restore:focus-visible,
-.dismiss:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: -2px;
 }

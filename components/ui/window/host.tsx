@@ -26,9 +26,6 @@ export function WindowHost() {
   const hasContent = useWindows((state) =>
     state.entries.some((entry) => entry.content !== null || !entry.minimised)
   )
-  const hasMinimised = useWindows((state) =>
-    state.entries.some((entry) => entry.minimised)
-  )
   const lenis = useLenis()
 
   useEffect(() => {
@@ -41,9 +38,12 @@ export function WindowHost() {
   useEffect(() => {
     if (!open) return
     lenis?.lock()
+    const root = document.documentElement
+    root.style.overflow = 'hidden'
     const resumeDrawing = pauseDrawing()
     return () => {
       lenis?.unlock()
+      root.style.overflow = ''
       resumeDrawing()
     }
   }, [open, lenis])
@@ -51,7 +51,7 @@ export function WindowHost() {
   return (
     <>
       {(open || hasContent) && <WindowDialog />}
-      {hasMinimised && !open && <WindowDock />}
+      <WindowDock />
     </>
   )
 }

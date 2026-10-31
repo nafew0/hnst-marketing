@@ -11,6 +11,7 @@ import { worldHost, WorldSky } from '@/components/world'
 import { closeWindow, focusWindow, minimiseWindow } from './actions'
 import { TitleBar } from './controls'
 import { applyDraft } from './drafts'
+import { genieOut, registerSurface, useMeasure } from './genie'
 import {
   clearDraft,
   toggleFullscreen,
@@ -56,11 +57,6 @@ function Pane({ entry, active }: { entry: WindowEntry; active: boolean }) {
   )
 }
 
-/** Base UI hides everything outside a modal, but consent must stay readable. */
-function exposeConsent() {
-  document.getElementById('cc-main')?.removeAttribute('aria-hidden')
-}
-
 /** The one visible window. Minimised pages stay mounted, invisible, behind it. */
 export function WindowDialog() {
   const entries = useWindows((state) => state.entries)
@@ -71,22 +67,29 @@ export function WindowDialog() {
   const titleId = useId()
   const openedRef = useRef(false)
   const [popup, setPopup] = useState<HTMLElement | null>(null)
+  const [backdrop, setBackdrop] = useState<HTMLElement | null>(null)
+  const [setMeasureRef, measure] = useMeasure()
   const open = active !== undefined
 
-  // Base UI's modal only hides the page from screen readers and wraps focus, so
-  // the browser could still tab into it. The consent banner stays usable.
+  useEffect(() => {
+    setMeasureRef(popup)
+    if (!popup) return
+    return registerSurface({ element: popup, backdrop, measure })
+  }, [popup, backdrop, measure, setMeasureRef])
+
+  // Not Base UI's modal, which would shut the dock out too: real `inert` on the
+  // rest, so Tab moves between the window and the dock and hits nothing behind.
   useEffect(() => {
     if (!open || !popup) return
     const behind = [...document.body.children].filter(
       (element) =>
         !element.contains(popup) &&
         element.id !== 'cc-main' &&
+        !element.hasAttribute('data-window-dock') &&
         element.tagName !== 'SCRIPT'
     )
     for (const element of behind) element.setAttribute('inert', '')
-    const frame = requestAnimationFrame(exposeConsent)
     return () => {
-      cancelAnimationFrame(frame)
       for (const element of behind) element.removeAttribute('inert')
     }
   }, [open, popup])
@@ -100,13 +103,14 @@ export function WindowDialog() {
   return (
     <Dialog.Root
       open={open}
+      modal={false}
       disablePointerDismissal
       onOpenChange={(open, details) => {
         if (!open && details.reason === 'escape-key') closeWindow()
       }}
     >
       <Dialog.Portal keepMounted>
-        <Dialog.Backdrop className={s.backdrop} />
+        <Dialog.Backdrop ref={setBackdrop} className={s.backdrop} />
         <Dialog.Popup
           ref={setPopup}
           className={s.window}
@@ -127,13 +131,19 @@ export function WindowDialog() {
             fullscreen={fullscreen}
             onClose={closeWindow}
             onMinimise={() => {
-              if (active) minimiseWindow(active)
+              if (!active) return
+              if (!device?.motionMedia || !popup) {
+                minimiseWindow(active)
+                return
+              }
+              void genieOut(
+                { element: popup, backdrop, measure },
+                active.href,
+                () => minimiseWindow(active)
+              )
             }}
             onToggleFullscreen={toggleFullscreen}
-            onPrivacy={() => {
-              exposeConsent()
-              openPrivacyPreferences()
-            }}
+            onPrivacy={openPrivacyPreferences}
           />
           <div className={s.panes}>
             {entries.map((entry) => (

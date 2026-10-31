@@ -1,0 +1,254 @@
+/* The space the dock takes, which pages and windows keep clear. */
+:root {
+  --dock-size: min(40px, calc((100vw - 76px) / 8));
+  --dock-space: calc(var(--dock-size) + 80px);
+
+  @media (--desktop) {
+    --dock-size: 52px;
+    --dock-space: calc(var(--dock-size) + 32px);
+  }
+}
+
+:global(body):has(.dock) {
+  padding-bottom: var(--dock-space);
+}
+
+/* Measured for what part of a tall page is on screen. */
+.viewport {
+  position: fixed;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.dock {
+  position: fixed;
+  bottom: 56px;
+  left: 50%;
+  z-index: 102;
+  max-width: calc(100vw - 16px);
+  transform: translateX(-50%);
+
+  /* A window covers the corner pills, so the dock can drop to the edge. */
+  &[data-open] {
+    bottom: 8px;
+  }
+
+  @media (--desktop) {
+    bottom: 10px;
+  }
+}
+
+/* Green is full screen, and macOS gives the whole screen over to the window. */
+@media (--desktop) {
+  :global(body):has([data-fullscreen]) .dock {
+    display: none;
+  }
+}
+
+.bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: calc(var(--dock-size) + 14px);
+  padding: 6px;
+  border: 1px solid color-mix(in oklab, var(--color-gold) 26%, transparent);
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--color-void-deep) 58%, transparent);
+  box-shadow: 0 16px 48px
+    color-mix(in oklab, var(--color-void-deep) 70%, transparent);
+  backdrop-filter: blur(24px) saturate(1.4);
+
+  @media (--mobile) {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  @media (--desktop) {
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 24px;
+  }
+}
+
+.tile {
+  position: relative;
+  flex: none;
+  width: var(--dock-size);
+  height: var(--dock-size);
+
+  @media (--desktop) {
+    margin-bottom: 0;
+
+    @media (--motion-ok) {
+      transition:
+        width var(--duration-fast) var(--ease-out-expo),
+        height var(--duration-fast) var(--ease-out-expo);
+    }
+  }
+}
+
+/* The macOS magnification: the icon under the cursor, then its neighbours. */
+@media (--desktop) and (--hover) {
+  .tile:has(+ .tile:hover),
+  .tile:hover + .tile {
+    width: calc(var(--dock-size) * 1.2);
+    height: calc(var(--dock-size) * 1.2);
+  }
+
+  .tile:hover {
+    width: calc(var(--dock-size) * 1.5);
+    height: calc(var(--dock-size) * 1.5);
+  }
+}
+
+.app {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 23%;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+.icon {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border-radius: 23%;
+  background: var(--color-void);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--color-starlight) 22%, transparent),
+    0 4px 10px color-mix(in oklab, var(--color-void-deep) 60%, transparent);
+}
+
+.art {
+  object-fit: cover;
+}
+
+/* A dark wash keeps the symbol readable over any world. */
+.icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    in oklab 180deg,
+    color-mix(in oklab, var(--color-starlight) 14%, transparent),
+    color-mix(in oklab, var(--color-void-deep) 46%, transparent)
+  );
+}
+
+.glyph {
+  position: relative;
+  z-index: 1;
+  width: 54%;
+  height: 54%;
+  fill: none;
+  stroke: var(--color-starlight);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+  filter: drop-shadow(
+    0 1px 2px color-mix(in oklab, var(--color-void-deep) 80%, transparent)
+  );
+}
+
+.label {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in oklab, var(--color-gold) 26%, transparent);
+  border-radius: 8px;
+  background: var(--color-void);
+  color: var(--color-starlight);
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+
+  @media (--mobile) {
+    display: none;
+  }
+}
+
+.tile:hover .label,
+.app:focus-visible ~ .label {
+  opacity: 1;
+}
+
+/* Open or minimised, as the small light under a running macOS app. */
+.running {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  display: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  transform: translateX(-50%);
+}
+
+.tile[data-running] .running {
+  display: block;
+}
+
+.dismiss {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  z-index: 2;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-void);
+  color: var(--color-starlight);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--color-starlight) 40%, transparent);
+
+  @media (--mobile) {
+    top: 0;
+    left: 0;
+  }
+
+  @media (--hover) {
+    opacity: 0;
+
+    .tile:hover &,
+    &:focus-visible {
+      opacity: 1;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 1px;
+  }
+}
+
+.dismissGlyph {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+
+.divider {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  margin-inline: 4px;
+  background: color-mix(in oklab, var(--color-starlight) 24%, transparent);
+}

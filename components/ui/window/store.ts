@@ -94,6 +94,18 @@ export function setMinimised(
   }))
 }
 
+/**
+ * Another icon was clicked: this window stays as it is, like a macOS app in the
+ * background, instead of being replaced when the next page mounts.
+ */
+export function parkActive() {
+  setState(({ entries, activeHref }) => ({
+    entries: entries.map((entry) =>
+      entry.href === activeHref ? { ...entry, minimised: true } : entry
+    ),
+  }))
+}
+
 /** Shows a minimised window at once; the URL catches up behind it. */
 export function setRestored(href: string) {
   setState(({ entries }) => ({

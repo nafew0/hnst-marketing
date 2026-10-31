@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import type { ReactNode } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
 
 import { Link } from '@/components/ui/link'
 
@@ -33,7 +33,7 @@ interface TitleBarProps {
   /** A direct visit's red and yellow are links home, so they work without JavaScript. */
   home?: boolean
   onClose?: () => void
-  onMinimise: () => void
+  onMinimise: (event: MouseEvent) => void
   /** A modal hides the page's "Privacy choices", and consent must stay reachable. */
   onPrivacy?: () => void
 }

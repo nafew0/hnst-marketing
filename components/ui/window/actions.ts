@@ -1,3 +1,4 @@
+import { isGenieLeaving, stopGenie } from './genie'
 import { returnToBase } from './history'
 import { setMinimised, type WindowEntry } from './store'
 
@@ -8,6 +9,8 @@ function scrollerOf(href: string) {
 }
 
 export function closeWindow() {
+  if (isGenieLeaving()) return
+  stopGenie()
   returnToBase()
 }
 

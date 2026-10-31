@@ -1,12 +1,22 @@
 'use client'
 
 import cn from 'clsx'
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import type { Route } from 'next'
+import { useRouter } from 'next/navigation'
+import {
+  type MouseEvent,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
+import { useDeviceTier } from '@/components/motion/device-tier'
 import { worldHost, WorldSky } from '@/components/world'
 
 import { TitleBar } from './controls'
 import { captureDraft } from './drafts'
+import { genieOut, useMeasure } from './genie'
 import { setMinimised } from './store'
 
 import s from './window.module.css'
@@ -25,6 +35,13 @@ interface DirectWindowProps {
 export function DirectWindow({ href, title, children }: DirectWindowProps) {
   const [fullscreen, setFullscreen] = useState(false)
   const frameRef = useRef<HTMLDivElement>(null)
+  const [setMeasureRef, measure] = useMeasure()
+  const { state: device } = useDeviceTier()
+  const router = useRouter()
+
+  useEffect(() => {
+    setMeasureRef(frameRef.current)
+  }, [setMeasureRef])
 
   useEffect(() => {
     if (!fullscreen) return
@@ -51,13 +68,19 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
         title={title}
         fullscreen={fullscreen}
         onToggleFullscreen={() => setFullscreen((value) => !value)}
-        onMinimise={() => {
-          if (!frameRef.current) return
-          setMinimised({
-            href,
-            title,
-            draft: captureDraft(frameRef.current),
-          })
+        onMinimise={(event: MouseEvent) => {
+          const element = frameRef.current
+          if (!element) return
+          // The link's own navigation would cut the genie short.
+          if (device?.motionMedia) event.preventDefault()
+          const draft = captureDraft(element)
+          const settleHome = () => {
+            setMinimised({ href, title, draft })
+            router.push('/' satisfies Route)
+          }
+          if (device?.motionMedia)
+            void genieOut({ element, measure }, href, settleHome)
+          else setMinimised({ href, title, draft })
         }}
       />
       <WorldSky />
