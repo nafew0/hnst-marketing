@@ -40,7 +40,7 @@ The script uses the `db` service of `COMPOSE_FILE` (default `docker-compose.dev.
 
 ## Server
 
-The site runs natively on a server shared with other apps, because nginx already owns ports 80 and 443 there and Docker must stay off. `deploy/native/` holds its systemd services, nginx template, `hnst-update` (update, rollback, health check), `hnst-backup` and cron schedule. `/api/health` and `/api/webhooks/*` stay open when `SITE_PASSWORD` gates staging. Media lives at `/srv/media`, with CMS uploads in `/srv/media/uploads`; nginx serves `/media/*` with a one-year immutable cache.
+The site runs natively on a server shared with other apps, because nginx already owns ports 80 and 443 there and Docker must stay off. `deploy/native/` holds its systemd services, nginx template, `hnst-update` (update, rollback, health check), `hnst-backup`, `hnst-buildroot` and cron schedule. Next's native compiler needs glibc 2.29 and AlmaLinux 8 has 2.28, so the build runs in an Ubuntu folder that `hnst-buildroot` creates; the built site runs on the host. `/api/health` and `/api/webhooks/*` stay open when `SITE_PASSWORD` gates staging. Media lives at `/srv/media`, with CMS uploads in `/srv/media/uploads`; nginx serves `/media/*` with a one-year immutable cache.
 
 The server's address and the step-by-step commands are in the private `HONEST-Website-Deploy-Plan.md`, because this repo is public.
 

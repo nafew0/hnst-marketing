@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Creates the Ubuntu folder hnst-update builds in, under the app's own home. No
+# host package changes. Run once: sudo hnst-buildroot
+set -euo pipefail
+
+ROOT=/srv/hnst/buildroot
+BASE=https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release
+FILE=ubuntu-base-24.04.5-base-amd64.tar.gz
+SHA256=e77b6f10c2590cef872b33ee9f635a0e3fd1f57fb074c0e52b5c7f56147a0c86
+
+[ "$(id -u)" -eq 0 ] || { echo "run with sudo" >&2; exit 1; }
+[ ! -e "$ROOT" ] || { echo "$ROOT already exists" >&2; exit 1; }
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+curl -fsSL -o "$work/$FILE" "$BASE/$FILE"
+echo "$SHA256  $work/$FILE" | sha256sum -c -
+
+install -d -m 755 "$ROOT"
+tar -xzf "$work/$FILE" --numeric-owner -C "$ROOT"
+install -d -m 755 "$ROOT/srv" "$ROOT/opt/hnst" "$ROOT/etc/hnst"
+install -d -o hnst -g hnst -m 755 "$ROOT/srv/hnst" "$ROOT/srv/hnst/repo"
+cp /etc/resolv.conf "$ROOT/etc/resolv.conf"
+printf '127.0.0.1 localhost\n::1 localhost\n' > "$ROOT/etc/hosts"
+echo "hnst:x:$(id -u hnst):$(id -g hnst)::/srv/hnst:/bin/bash" >> "$ROOT/etc/passwd"
+echo "hnst:x:$(id -g hnst):" >> "$ROOT/etc/group"
+echo "created $ROOT"
