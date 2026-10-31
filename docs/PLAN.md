@@ -128,6 +128,10 @@ The main pages (`/packages`, `/packages/[tier]`, `/how-it-works`, `/proof`, `/ab
 - **P7W (Claude, new, `docs/phases/P7W.md`):** the window frame, dock, route slot and homepage pause.
 - **P6 change (Astra):** pages stay normal routes, with each page's content in its own component. See `docs/phases/P6.md` § Windows. Astra builds no window UI.
 
+### E4. Page worlds (Nafew, 31 Oct 2026)
+
+Inner pages take the homepage's cinematic flavour. Each page has a looping brand-library clip behind its headline and another between its sections, over a shared nebula, with content on glass panels. This narrows § E2: the homepage stays code-generated, and inner pages use footage. Clips live in `public/worlds`, each under `check:assets`' 2 MB limit, with poster-only at tier 0. Components: `components/world/**`; the page-to-clip map is `components/world/worlds.ts`.
+
 ### F. Hosting
 
 - **Build output:** `output: 'standalone'` is set.

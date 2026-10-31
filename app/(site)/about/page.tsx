@@ -1,5 +1,5 @@
-import { PageShell } from '@/components/sections/standard/catalog'
 import { AboutContent } from '@/components/sections/standard/pages/about'
+import { WindowPage } from '@/components/ui/window'
 import { pageMetadata } from '@/lib/seo/cms'
 
 export function generateMetadata() {
@@ -8,8 +8,8 @@ export function generateMetadata() {
 
 export default function AboutPage() {
   return (
-    <PageShell>
+    <WindowPage href="/about" title="About">
       <AboutContent />
-    </PageShell>
+    </WindowPage>
   )
 }

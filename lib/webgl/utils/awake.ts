@@ -70,8 +70,25 @@ export function useLease(): Lease {
   return lease
 }
 
+let pauses = 0
+
+/**
+ * Stops drawing until the returned release is called (idempotent), whatever is
+ * holding the canvas awake: a page window covers it. It keeps its last frame.
+ */
+export function pauseDrawing(): () => void {
+  pauses++
+  let released = false
+  return () => {
+    if (released) return
+    released = true
+    pauses--
+    wake()
+  }
+}
+
 export function isAwake(now: number) {
-  return holds > 0 || now < awakeUntil
+  return pauses === 0 && (holds > 0 || now < awakeUntil)
 }
 
 let sleeps = 0

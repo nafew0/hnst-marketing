@@ -1,0 +1,236 @@
+/* The space the dock takes, which pages and windows keep clear. */
+:root {
+  --dock-size: min(34px, calc((100vw - 94px) / 8));
+  --dock-gap: 8px;
+  --dock-space: calc(var(--dock-size) + 80px);
+
+  @media (--desktop) {
+    --dock-size: 44px;
+    --dock-gap: 13px;
+    --dock-space: calc(var(--dock-size) + 40px);
+  }
+}
+
+:global(body):has(.dock) {
+  padding-bottom: var(--dock-space);
+}
+
+/* Measured for what part of a tall page is on screen. */
+.viewport {
+  position: fixed;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.dock {
+  position: fixed;
+  bottom: 56px;
+  left: 50%;
+  z-index: 102;
+  max-width: calc(100vw - 16px);
+  transform: translateX(-50%);
+
+  /* A window covers the corner pills, so the dock can drop to the edge. */
+  &[data-open] {
+    bottom: 8px;
+  }
+
+  @media (--desktop) {
+    bottom: 10px;
+  }
+}
+
+/* Green is full screen, and macOS gives the whole screen over to the window. */
+@media (--desktop) {
+  :global(body):has([data-fullscreen]) .dock {
+    display: none;
+  }
+}
+
+.defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* Glass: the page shows through, blurred, with light along the top edge. */
+.bar {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--dock-gap);
+  height: calc(var(--dock-size) + 20px);
+  padding: 8px 10px 10px;
+  border: 1px solid color-mix(in oklab, var(--color-starlight) 24%, transparent);
+  border-radius: 20px;
+  background: linear-gradient(
+    in oklab 180deg,
+    color-mix(in oklab, var(--color-starlight) 16%, transparent),
+    color-mix(in oklab, var(--color-starlight) 7%, transparent)
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-starlight) 28%, transparent),
+    0 18px 50px color-mix(in oklab, var(--color-void-deep) 55%, transparent);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8);
+  backdrop-filter: blur(28px) saturate(1.8);
+
+  @media (--mobile) {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  @media (--desktop) {
+    padding-inline: 13px;
+    border-radius: 22px;
+  }
+}
+
+.tile {
+  position: relative;
+  flex: none;
+  width: var(--dock-size);
+  height: var(--dock-size);
+
+  @media (--desktop) {
+    @media (--motion-ok) {
+      transition:
+        width var(--duration-fast) var(--ease-out-expo),
+        height var(--duration-fast) var(--ease-out-expo);
+    }
+  }
+}
+
+/* The macOS magnification: the icon under the cursor, then its neighbours. */
+@media (--desktop) and (--hover) {
+  .tile:has(+ .tile:hover),
+  .tile:hover + .tile {
+    width: calc(var(--dock-size) * 1.16);
+    height: calc(var(--dock-size) * 1.16);
+  }
+
+  .tile:hover {
+    width: calc(var(--dock-size) * 1.4);
+    height: calc(var(--dock-size) * 1.4);
+  }
+}
+
+.app {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 22%;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+.icon {
+  display: block;
+  overflow: visible;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(
+    0 2px 4px color-mix(in oklab, var(--color-void-deep) 45%, transparent)
+  );
+}
+
+.mark {
+  filter: drop-shadow(
+    0 1px 1px color-mix(in oklab, var(--color-void-deep) 28%, transparent)
+  );
+}
+
+.label {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in oklab, var(--color-starlight) 24%, transparent);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--color-void-deep) 62%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  color: var(--color-starlight);
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+
+  @media (--mobile) {
+    display: none;
+  }
+}
+
+.tile:hover .label,
+.app:focus-visible ~ .label {
+  opacity: 1;
+}
+
+/* Open or minimised: the small dot under a running macOS app. */
+.running {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  display: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-starlight);
+  transform: translateX(-50%);
+}
+
+.tile[data-running] .running {
+  display: block;
+}
+
+/* Hover only. A phone's icon is too small to share, and red clears a restored window. */
+.dismiss {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  z-index: 2;
+  display: none;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-void);
+  color: var(--color-starlight);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--color-starlight) 40%, transparent);
+
+  @media (--hover) {
+    display: grid;
+    opacity: 0;
+
+    .tile:hover &,
+    &:focus-visible {
+      opacity: 1;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 1px;
+  }
+}
+
+.dismissGlyph {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+
+.divider {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  margin-inline: 4px;
+  background: color-mix(in oklab, var(--color-starlight) 24%, transparent);
+}

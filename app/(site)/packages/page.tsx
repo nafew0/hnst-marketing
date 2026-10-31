@@ -1,5 +1,5 @@
-import { PageShell } from '@/components/sections/standard/catalog'
 import { PackagesContent } from '@/components/sections/standard/pages/packages'
+import { WindowPage } from '@/components/ui/window'
 import { pageMetadata } from '@/lib/seo/cms'
 
 export function generateMetadata() {
@@ -8,8 +8,8 @@ export function generateMetadata() {
 
 export default function PackagesPage() {
   return (
-    <PageShell>
+    <WindowPage href="/packages" title="Packages">
       <PackagesContent />
-    </PageShell>
+    </WindowPage>
   )
 }

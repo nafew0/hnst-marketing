@@ -22,20 +22,20 @@
 
 **Closing is deliberate.** Clicking outside a window does not close it. The window is modal, and the page behind is inert, including the header.
 
-| Control      | Result                                                                                                     |
-| ------------ | ---------------------------------------------------------------------------------------------------------- |
-| Red          | Closes the window and returns to the page it opened over, at the same scroll position                      |
-| Esc          | Same as red. Required for keyboard users. A lightbox or menu inside the window closes first                |
-| Browser Back | From the first window, closes it. Inside a window, steps back through its pages                            |
-| Yellow       | Hides the window, returns to the page underneath and adds a chip for it to a small dock                    |
-| Dock chip    | Restores that window as it was, including scroll and half-filled forms. Each chip can also be dismissed    |
-| Green        | Toggles between the normal window and filling the browser window. This is not the browser's Fullscreen API |
+| Control      | Result                                                                                                                                                         |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Red          | Closes the window and returns to the page it opened over, at the same scroll position                                                                          |
+| Esc          | Same as red. Required for keyboard users. A lightbox or menu inside the window closes first                                                                    |
+| Browser Back | From the first window, closes it. Inside a window, steps back through its pages                                                                                |
+| Yellow       | Funnels the window into its dock icon (the genie), then returns to the page underneath                                                                         |
+| Dock icon    | Restores a minimised window as it was, including scroll and half-filled forms. It can also be dismissed with a × on hover; on phones, restore it and press red |
+| Green        | Toggles between the normal window and filling the browser window. This is not the browser's Fullscreen API                                                     |
 
-**The dock** appears only while something is minimised, and holds at most one chip per page. It must not cover the "Privacy choices" control. It lasts for the visit and empties on a full reload.
+**The dock** (Nafew, 31 Oct 2026) is always there, like the macOS Dock: one vector app icon per main page on a glass bar, with magnification on hover and a dot under anything running. Clicking another icon keeps the current window as it is, behind. Anything else open, such as a package tier, gets its own icon past a divider. Green full screen hides the dock. It must not cover the "Privacy choices" control. Running windows last for the visit and clear on a full reload. Tier 0 and reduced motion skip the genie.
 
 **Minimised state lives in memory only.** Never write visitors' form values to `localStorage` or `sessionStorage`. Tick boxes keep what the visitor chose, and consent is never ticked on their behalf.
 
-**Direct visits, refreshes, crawlers and no-JS** get the complete page server-rendered at its real URL, with `Header`, `Footer`, `<main>` and normal page scrolling. It sits in the window frame over a static CSS or poster background, with no live 3D. Here red goes to `/`, and yellow goes to `/` with a chip. This is what Lighthouse and search engines see.
+**Direct visits, refreshes, crawlers and no-JS** get the complete page server-rendered at its real URL, with `Header`, `Footer`, `<main>` and normal page scrolling. It sits in the window frame over a static CSS or poster background, with no live 3D. Here red goes to `/`, and yellow goes to `/`, leaving the window in its dock icon. This is what Lighthouse and search engines see.
 
 **Phones (under the `dt:` breakpoint)** always use the full-screen form. Keep the three controls, with larger tap targets. Green is hidden because it has nothing to do there.
 
@@ -51,7 +51,7 @@
 
 - Use Base UI's `Dialog` (`@base-ui/react/dialog`), labelled by the page title. Move focus into the window on opening and return it to the triggering link on closing, or to a sensible element if that link has gone.
 - Each dot has a hit area of at least 24×24 px on desktop and 44×44 px on phones, however small it looks.
-- Names: "Close window", "Minimise window", "Enter full screen" and "Exit full screen". Dock chips: "Restore {title}".
+- Names: "Close window", "Minimise window", "Enter full screen" and "Exit full screen". Dock icons: the page's name, or "Restore {title}" while minimised.
 - Colour can't be the only signal. Show each dot's symbol on hover and keyboard focus, and always on touch screens. Focus rings must be visible, and each dot needs 3:1 contrast against the title bar.
 - The page's `<h1>` stays in the content. The title bar's text isn't a heading.
 - Announce the new page. `document.title` must update for intercepted routes as well.

@@ -51,6 +51,29 @@ const palette = {
   success: 'oklch(0.7248 0.0910 147.31)', // #7fb685
   warning: 'oklch(0.7596 0.1382 70.35)', // #e8a040
   danger: 'oklch(0.6484 0.1456 27.89)', // #d9675b
+
+  // Page window controls (docs/phases/P7W.md): UI only, free to tune
+  'window-close': 'oklch(0.6936 0.1964 26.36)', // #ff5f57
+  'window-minimise': 'oklch(0.8348 0.1612 80.91)', // #febc2e
+  'window-zoom': 'oklch(0.7280 0.2173 144.71)', // #28c840
+
+  // Dock app icons (docs/phases/P7W.md): UI only, free to tune
+  'dock-sky-1': 'oklch(0.7886 0.1225 230.83)', // #5ac8fa
+  'dock-sky-2': 'oklch(0.5757 0.2332 260.36)', // #0a6cff
+  'dock-amber-1': 'oklch(0.8615 0.1423 82.66)', // #ffc857
+  'dock-amber-2': 'oklch(0.6967 0.1749 49.87)', // #f0761d
+  'dock-green-1': 'oklch(0.8233 0.1809 150.25)', // #5be584
+  'dock-green-2': 'oklch(0.6449 0.1659 152.15)', // #0fa958
+  'dock-rose-1': 'oklch(0.7550 0.1659 355.91)', // #ff7eb3
+  'dock-rose-2': 'oklch(0.5603 0.2531 313.65)', // #a726d9
+  'dock-graphite-1': 'oklch(0.6493 0.0118 286.07)', // #8e8e96
+  'dock-graphite-2': 'oklch(0.3282 0.0140 285.60)', // #34343c
+  'dock-indigo-1': 'oklch(0.3581 0.1281 288.71)', // #3d2b7a
+  'dock-indigo-2': 'oklch(0.1846 0.0669 287.11)', // #120b2e
+  'dock-paper-1': 'oklch(0.9886 0.0026 286.35)', // #fbfbfd
+  'dock-paper-2': 'oklch(0.8426 0.0099 273.34)', // #c9cbd2
+  'dock-red': 'oklch(0.6233 0.2232 28.66)', // #f0352b
+  'dock-ink': 'oklch(0.2282 0.0077 285.78)', // #1c1c20
 } as const
 
 /** Theme roles consumed by Satus components (`--color-primary` etc.). */

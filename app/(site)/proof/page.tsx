@@ -1,5 +1,5 @@
-import { PageShell } from '@/components/sections/standard/catalog'
 import { ProofContent } from '@/components/sections/standard/pages/proof'
+import { WindowPage } from '@/components/ui/window'
 import { pageMetadata } from '@/lib/seo/cms'
 
 export function generateMetadata() {
@@ -8,8 +8,8 @@ export function generateMetadata() {
 
 export default function ProofPage() {
   return (
-    <PageShell>
+    <WindowPage href="/proof" title="Proof">
       <ProofContent />
-    </PageShell>
+    </WindowPage>
   )
 }

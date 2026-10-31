@@ -44,6 +44,8 @@ function toRoute(relativePagePath: string): string | null {
     .filter((segment) => segment.length > 0 && segment !== 'page.tsx')
 
   if (segments.some((segment) => segment.includes('['))) return null
+  // A parallel slot (`@window`) fills in a page; it isn't a URL of its own.
+  if (segments.some((segment) => segment.startsWith('@'))) return null
 
   const staticSegments = segments.filter(
     (segment) => !(segment.startsWith('(') && segment.endsWith(')'))

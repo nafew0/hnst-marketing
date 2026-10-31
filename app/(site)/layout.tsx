@@ -5,7 +5,7 @@ import '@/lib/styles/css/index.css'
 import { TransformProvider } from 'hamo'
 import type { Metadata, Viewport } from 'next'
 import { draftMode } from 'next/headers'
-import { type PropsWithChildren, Suspense } from 'react'
+import { type PropsWithChildren, type ReactNode, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
 import { PrivacyControls } from '@/components/forms/privacy'
@@ -13,6 +13,7 @@ import { DeviceTierProvider } from '@/components/motion/device-tier'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
+import { WindowHost } from '@/components/ui/window/host'
 import { ApiMocks } from '@/lib/contracts/mocks/api-mocks'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
@@ -93,7 +94,10 @@ export const viewport: Viewport = {
  * which sits outside this group so Payload doesn't pull in the rAF loop,
  * toasts, Visual Editing or JSON-LD.
  */
-export default async function AppLayout({ children }: PropsWithChildren) {
+export default async function AppLayout({
+  children,
+  window: windowSlot,
+}: PropsWithChildren<{ window: ReactNode }>) {
   const { isEnabled: isDraftMode } = await draftMode()
   return (
     <html
@@ -123,7 +127,11 @@ export default async function AppLayout({ children }: PropsWithChildren) {
               They are included in the <Wrapper> component used by each page.
               See: components/layout/wrapper/index.tsx
             */}
-              <DeviceTierProvider>{children}</DeviceTierProvider>
+              <DeviceTierProvider>
+                {children}
+                {windowSlot}
+                <WindowHost />
+              </DeviceTierProvider>
             </TransformProvider>
             <ToastViewport />
           </ToastProvider>

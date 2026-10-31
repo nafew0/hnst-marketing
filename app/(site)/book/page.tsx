@@ -1,5 +1,5 @@
-import { PageShell } from '@/components/sections/standard/catalog'
 import { BookContent } from '@/components/sections/standard/pages/book'
+import { WindowPage } from '@/components/ui/window'
 import { pageMetadata } from '@/lib/seo/cms'
 
 export function generateMetadata() {
@@ -8,8 +8,8 @@ export function generateMetadata() {
 
 export default function BookPage() {
   return (
-    <PageShell>
+    <WindowPage href="/book" title="Book a call">
       <BookContent />
-    </PageShell>
+    </WindowPage>
   )
 }

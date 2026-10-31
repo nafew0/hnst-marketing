@@ -1,15 +1,23 @@
 import { ScrollArea } from '@base-ui/react/scroll-area'
 import { RichText } from '@payloadcms/richtext-lexical/react'
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 
 import type { ConsentCopy } from '@/components/forms/lead-form'
 import { Wrapper } from '@/components/layout/wrapper'
 import { PackageReveal } from '@/components/sections/signature/package-reveal'
 import { packageFacts } from '@/components/sections/standard/package-facts'
 import { Wave3Block } from '@/components/sections/standard/wave3-blocks'
-import { Button } from '@/components/ui/button'
-import { Heading, Eyebrow } from '@/components/ui/heading'
+import { Heading } from '@/components/ui/heading'
 import { Container, Section } from '@/components/ui/section'
+import {
+  type WorldClip,
+  WorldBand,
+  WorldClosing,
+  WorldHero,
+  worldFor,
+  worldHost,
+  WorldSky,
+} from '@/components/world'
 import type { Faq, Package, Page } from '@/lib/cms/payload-types'
 import type { SiteSetting } from '@/lib/cms/payload-types'
 import { faqSchema } from '@/lib/seo/cms'
@@ -24,29 +32,31 @@ export function consentCopy(settings: SiteSetting | null): ConsentCopy {
   }
 }
 export function PageShell({ children }: { children: ReactNode }) {
-  return <Wrapper lenis={false}>{children}</Wrapper>
+  return (
+    <Wrapper lenis={false} className={worldHost}>
+      <WorldSky />
+      {children}
+    </Wrapper>
+  )
 }
 export function PageHero({
   title,
   description,
   eyebrow = 'HONEST MARKETING',
+  clip = 'silk',
 }: {
   title: string
   description?: string | null | undefined
   eyebrow?: string | null | undefined
+  clip?: WorldClip
 }) {
   return (
-    <Section spacing="lg" className="border-b border-gold/20">
-      <Container className="flex max-w-[1100px] flex-col dr-gap-24">
-        <Eyebrow>{eyebrow}</Eyebrow>
-        <Heading as="h1" size="display">
-          {title}
-        </Heading>
-        {description && (
-          <p className="max-w-[660px] p-big text-silver">{description}</p>
-        )}
-      </Container>
-    </Section>
+    <WorldHero
+      clip={clip}
+      title={title}
+      eyebrow={eyebrow}
+      description={description}
+    />
   )
 }
 export function Price({ item }: { item: Package }) {
@@ -143,9 +153,12 @@ export function FaqList({ items }: { items: Faq[] }) {
   return (
     <>
       <JsonLd data={faqSchema(items)} />
-      <div>
+      <div className="rounded-[16px] border bg-void-2 dr-px-32 dr-py-8">
         {items.map((item) => (
-          <details key={item.id} className="border-b border-gold/20 dr-py-24">
+          <details
+            key={item.id}
+            className="border-b border-gold/20 dr-py-24 last:border-b-0"
+          >
             <summary className="cursor-pointer p-big">{item.question}</summary>
             <p className="dr-pt-16 p text-silver">{item.answer}</p>
           </details>
@@ -165,46 +178,62 @@ export function ContentBlocks({
   faqs: Faq[]
   settings?: SiteSetting | null
 }) {
+  const world = worldFor(page.slug)
+  // After the first section, on pages with enough sections to want a break.
+  const bandAfter = (page.blocks?.length ?? 0) > 3 ? 1 : -1
   return (
     <>
-      {page.blocks?.map((block) => {
+      {page.blocks?.map((block, index) => {
         if (block.blockType === 'hero')
           return (
             <PageHero
               key={block.id}
+              clip={world.hero}
               title={block.title}
               description={block.description}
               eyebrow={block.eyebrow}
             />
           )
+        if (block.blockType === 'cta')
+          return (
+            <WorldClosing
+              key={block.id}
+              clip={world.closing}
+              title={block.title}
+              description={block.description}
+              href={block.href}
+              label={block.label}
+            />
+          )
         return (
-          <Section key={block.id}>
-            <Container className="flex flex-col dr-gap-32">
-              <Heading>{block.title}</Heading>
-              {block.blockType === 'packageGrid' && (
-                <PackageGrid items={packages} />
-              )}
-              {block.blockType === 'comparisonTable' && (
-                <ComparisonTable items={packages} />
-              )}
-              {block.blockType === 'faqList' && (
-                <FaqList
-                  items={faqs.filter(
-                    (item) =>
-                      !block.category || item.category === block.category
-                  )}
-                />
-              )}
-              {block.blockType === 'richText' && <RichText data={block.body} />}
-              <Wave3Block block={block} settings={settings} />
-              {block.blockType === 'cta' && (
-                <>
-                  <p className="p text-silver">{block.description}</p>
-                  <Button href={block.href}>{block.label}</Button>
-                </>
-              )}
-            </Container>
-          </Section>
+          <Fragment key={block.id}>
+            <Section>
+              <Container className="flex flex-col dr-gap-32">
+                <Heading>{block.title}</Heading>
+                {block.blockType === 'packageGrid' && (
+                  <PackageGrid items={packages} />
+                )}
+                {block.blockType === 'comparisonTable' && (
+                  <ComparisonTable items={packages} />
+                )}
+                {block.blockType === 'faqList' && (
+                  <FaqList
+                    items={faqs.filter(
+                      (item) =>
+                        !block.category || item.category === block.category
+                    )}
+                  />
+                )}
+                {block.blockType === 'richText' && (
+                  <div className="rounded-[16px] border bg-void-2 dr-p-32">
+                    <RichText data={block.body} />
+                  </div>
+                )}
+                <Wave3Block block={block} settings={settings} />
+              </Container>
+            </Section>
+            {index === bandAfter && <WorldBand clip={world.band} />}
+          </Fragment>
         )
       })}
     </>

@@ -1,5 +1,5 @@
-import { PageShell } from '@/components/sections/standard/catalog'
 import { HonestMarketerContent } from '@/components/sections/standard/pages/the-honest-marketer'
+import { WindowPage } from '@/components/ui/window'
 import { pageMetadata } from '@/lib/seo/cms'
 
 export function generateMetadata() {
@@ -8,8 +8,8 @@ export function generateMetadata() {
 
 export default function HonestMarketerPage() {
   return (
-    <PageShell>
+    <WindowPage href="/the-honest-marketer" title="The HONEST Marketer">
       <HonestMarketerContent />
-    </PageShell>
+    </WindowPage>
   )
 }

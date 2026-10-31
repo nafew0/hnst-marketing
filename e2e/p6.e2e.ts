@@ -583,7 +583,7 @@ test('P6 analytics records booking and package clicks only after consent', async
     .first()
     .click()
   await page
-    .locator('main')
+    .getByRole('dialog')
     .getByRole('link', { name: 'Explore the Founder Package', exact: true })
     .click()
   await expect
@@ -591,7 +591,11 @@ test('P6 analytics records booking and package clicks only after consent', async
     .toContain('booking_step')
   expect(events.join('')).toContain('package_clicked')
   expect(events.join('')).toContain('cta_clicked')
-  await page.getByRole('button', { name: 'Privacy choices' }).click()
+  // The page's own control sits inert behind the window.
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Privacy choices' })
+    .click()
   await page
     .getByRole('button', { name: 'Necessary only', exact: true })
     .click()
