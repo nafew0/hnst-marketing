@@ -1,0 +1,5 @@
+# Install at /etc/cron.d/hnst. Dumps stay on the server for 14 days.
+PATH=/usr/local/bin:/usr/bin:/bin
+30 3 * * * hnst hnst-backup >> /srv/hnst/backups/backup.log 2>&1
+# Weekly media archive (Sundays), 4 weeks kept.
+45 3 * * 0 hnst tar -czf /srv/hnst/backups/media-$(date +\%Y\%m\%d).tar.gz -C /srv media && find /srv/hnst/backups -name 'media-*.tar.gz' -mtime +28 -delete

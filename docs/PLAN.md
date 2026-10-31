@@ -164,12 +164,12 @@ Every phase is built and accepted **on localhost**. There is no VM, staging host
 | P9    | Unchanged: runs against the local production build                                                                                                                                 | n/a                                                                                            |
 | P10   | Performance, polish, real devices over the LAN, final CSP                                                                                                                          | Production cut-over and `v1.0.0`                                                               |
 
-**Go-live** is a new step after P10. Grok runs it with Nafew once the Founder says go:
+**Go-live** is a new step after P10. Claude runs it with Nafew (changed from Grok, 31 Oct), on a server shared with other apps rather than a dedicated VM. It runs natively through `deploy/native/`, with no Docker or Caddy, on the existing nginx and Postgres 16. The server's address and the full commands are in the private `HonestMarketing AI/HONEST-Website-Deploy-Plan.md`. Public DNS and launch still need the Founder's go:
 
-1. Provision the VM (Ubuntu 24.04, ports 22/80/443, SSH keys) and copy `.env` to it (chmod 600).
-2. Point `staging.hnst.marketing` at the VM, set `SITE_ADDRESS` and `SITE_PASSWORD`, and run `deploy/deploy.sh`.
+1. Set up the app user, private Node and Bun, the database and `/etc/hnst/hnst.env`, then test privately through an SSH tunnel.
+2. Point `staging.hnst.marketing` at the server, install the nginx site and certificate, and run `hnst-update`.
 3. Point the GHL workflow webhook at `https://<host>/api/webhooks/ghl-workflow/<secret>`.
-4. Install the crontab, run a restore drill on the VM, and set up Uptime Kuma alerts.
+4. Install the cron schedule, run a restore drill, and set up Uptime Kuma alerts.
 5. Run the launch QA script (§9), get the Founder's sign-off, switch DNS to `hnst.marketing`, and tag `v1.0.0`.
 
 ---

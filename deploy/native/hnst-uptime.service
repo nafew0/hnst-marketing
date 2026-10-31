@@ -1,0 +1,22 @@
+[Unit]
+Description=Uptime Kuma for the HONEST website
+After=network.target
+
+[Service]
+User=hnst
+Group=hnst
+WorkingDirectory=/srv/hnst/uptime-kuma
+Environment=NODE_ENV=production
+Environment=UPTIME_KUMA_HOST=127.0.0.1
+Environment=UPTIME_KUMA_PORT=3001
+ExecStart=/opt/hnst/node/bin/node server/server.js
+Restart=always
+RestartSec=5
+MemoryMax=1G
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

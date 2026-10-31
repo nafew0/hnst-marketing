@@ -38,8 +38,12 @@ BACKUP_DIR=/tmp/hnst-backups ./deploy/backup.sh
 
 The script uses the `db` service of `COMPOSE_FILE` (default `docker-compose.dev.yml`). It will not restore over the database named `hnst`.
 
-## VM, later
+## Server
 
-Ubuntu 24.04, ports 22, 80, and 443 only. `.env` at mode 600. `BACKUP_DIR=/srv/backups`. Install `deploy/crontab`. `deploy/deploy.sh` builds `hnst-web:current` and `hnst-worker:current`, migrates (both migrations run in the worker image), and retags the previous images if `http://127.0.0.1/api/health` does not succeed. `/api/health` and `/api/webhooks/*` stay open when `SITE_PASSWORD` gates staging. Media lives on the host at `/srv/media` (`MEDIA_DIR` to override); the crontab also archives it weekly. Uptime Kuma listens on `127.0.0.1:3001` only. Caddy serves `/media/*` from `/srv/media` with a one-year immutable cache.
+The site runs natively on a server shared with other apps, because nginx already owns ports 80 and 443 there and Docker must stay off. `deploy/native/` holds its systemd services, nginx template, `hnst-update` (update, rollback, health check), `hnst-backup` and cron schedule. `/api/health` and `/api/webhooks/*` stay open when `SITE_PASSWORD` gates staging. Media lives at `/srv/media`, with CMS uploads in `/srv/media/uploads`; nginx serves `/media/*` with a one-year immutable cache.
 
-`payload migrate` runs only after `payload.config.ts` exists (Astra, P3).
+The server's address and the step-by-step commands are in the private `HONEST-Website-Deploy-Plan.md`, because this repo is public.
+
+## Docker files
+
+`docker-compose.yml`, `Caddyfile`, `deploy.sh`, `backup.sh` and `crontab` describe a dedicated VM where Caddy owns ports 80 and 443. The shared server doesn't use them.
