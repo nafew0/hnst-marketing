@@ -1,7 +1,7 @@
 import cn from 'clsx'
 
 import { Button } from '@/components/ui/button'
-import { HorizonDivider } from '@/components/ui/horizon-divider'
+import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
 import { Logo } from '@/components/ui/logo'
 import { bookCall, footerNav, legalNav } from '@/lib/navigation'
@@ -15,7 +15,26 @@ const YEAR = new Date().getFullYear()
 export function Footer() {
   return (
     <footer className={s.footer} data-theme="dark">
-      <HorizonDivider className={s.horizon} />
+      {/* Decorative: astronauts walking into the light. Each image is only
+          fetched at the width that shows it (lazy skips display: none). */}
+      <div className={s.scene} aria-hidden="true">
+        <Image
+          src="/footer/horizon-mobile.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="mobile-only"
+        />
+        <Image
+          src="/footer/horizon.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="desktop-only"
+        />
+        <span className={s.light} />
+      </div>
+
       <div className={cn(s.inner, 'dr-layout-block')}>
         <div className={s.brand}>
           <Link href="/" aria-label="HONEST Marketing home" className={s.home}>
@@ -26,7 +45,7 @@ export function Footer() {
           <p className="eyebrow text-silver uppercase">
             Powered by HONEST SuperIntelligence
           </p>
-          <p className="max-w-[28ch] p-big text-pretty text-silver">
+          <p className="max-w-[28ch] p-big text-pretty text-starlight">
             Complete marketing packages, produced with AI and reviewed by
             people.
           </p>
@@ -54,12 +73,14 @@ export function Footer() {
           </ul>
         </nav>
       </div>
-      <p
-        className={cn(s.legal, 'dr-layout-block caption text-silver')}
-        suppressHydrationWarning
-      >
-        © {YEAR} HONEST Marketing, a DBA of Honest Media Group.
-      </p>
+      <div className="dr-layout-block">
+        <p
+          className={cn(s.legal, 'caption text-starlight')}
+          suppressHydrationWarning
+        >
+          © {YEAR} HONEST Marketing, a DBA of Honest Media Group.
+        </p>
+      </div>
     </footer>
   )
 }

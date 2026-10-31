@@ -1,22 +1,68 @@
 .footer {
   position: relative;
-  padding-block: mobile-vw(56px) mobile-vw(32px);
+  overflow: hidden;
+  isolation: isolate;
+
+  /* The bottom padding leaves the scene's ground and figures clear of the text. */
+  padding-block: mobile-vw(56px) 88vw;
   background: var(--color-void-deep);
   color: var(--color-starlight);
 
   @media (--desktop) {
-    padding-block: desktop-vw(96px) desktop-vw(40px);
+    padding-block: desktop-vw(96px) 27vw;
   }
 }
 
-.horizon {
+/* Pinned to the bottom edge at the art's own ratio, so the horizon holds however
+   tall the text gets. The art's top is the footer colour; the mask hides any seam. */
+.scene {
   position: absolute;
-  inset: 0 0 auto;
-  translate: 0 -50%;
-  height: mobile-vw(40px);
+  inset: auto 0 0;
+  z-index: -1;
+  aspect-ratio: 3 / 5;
+  mask-image: linear-gradient(to bottom, transparent, black 14%);
 
   @media (--desktop) {
-    height: desktop-vw(80px);
+    aspect-ratio: 5 / 3;
+  }
+}
+
+/* The light at the horizon breathes. Matches the sun's place in each image. */
+.light {
+  position: absolute;
+  top: 66%;
+  left: 70%;
+  width: 90vw;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--color-starlight) 55%, transparent),
+    color-mix(in oklab, var(--color-gold) 22%, transparent) 30%,
+    transparent
+  );
+  mix-blend-mode: screen;
+  opacity: 0.35;
+
+  @media (--desktop) {
+    top: 70%;
+    left: 64.5%;
+    width: 44vw;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: breathe 6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.2;
+  }
+
+  to {
+    opacity: 0.6;
   }
 }
 
@@ -90,10 +136,10 @@
 .legal {
   margin-top: mobile-vw(48px);
   padding-top: mobile-vw(20px);
-  border-top: 1px solid color-mix(in oklab, var(--color-gold) 18%, transparent);
+  border-top: 1px solid color-mix(in oklab, var(--color-gold) 30%, transparent);
 
   @media (--desktop) {
-    margin-top: desktop-vw(80px);
+    margin-top: desktop-vw(56px);
     padding-top: desktop-vw(24px);
   }
 }
