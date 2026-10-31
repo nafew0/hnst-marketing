@@ -1,3 +1,8 @@
+/* The site reserves a scrollbar gutter, and full screen means all of the screen. */
+:global(html):has([data-fullscreen]) {
+  scrollbar-gutter: auto;
+}
+
 .backdrop {
   position: fixed;
   inset: 0;

@@ -24,7 +24,9 @@ const MAIN_PAGES = [
   '/contact',
 ]
 
-const windowOf = (page: Page) => page.getByRole('dialog')
+// The consent banner is a dialog too.
+const windowOf = (page: Page) =>
+  page.getByRole('dialog').and(page.locator('[data-window]'))
 const control = (page: Page, name: string) =>
   page.getByRole('button', { name, exact: true })
 const closeControl = (page: Page) => windowOf(page).getByLabel('Close window')
