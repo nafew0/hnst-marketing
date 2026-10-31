@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Backs up the HONEST database on the shared server. Keeps 14 days of dumps.
+#   sudo -u hnst hnst-backup
+#   sudo hnst-backup --restore /srv/hnst/backups/hnst-<time>.dump hnst_restore
+#
+# Restores only into a database named hnst_*, other than the live `hnst`, so it
+# can't touch the site or another app sharing this Postgres.
+set -euo pipefail
+
+BACKUP_DIR=/srv/hnst/backups
+ENV_FILE=/etc/hnst/hnst.env
+
+if [ "${1:-}" = "--restore" ]; then
+  dump=${2:-}
+  target=${3:-hnst_restore}
+  [ "$(id -u)" -eq 0 ] || { echo "restore needs sudo" >&2; exit 1; }
+  [ -n "$dump" ] && [ -f "$dump" ] || { echo "usage: hnst-backup --restore <dump> [hnst_name]" >&2; exit 1; }
+  case "$target" in
+    hnst_*) ;;
+    *) echo "target database must start with hnst_" >&2; exit 1 ;;
+  esac
+  case "$target" in
+    *[!a-z0-9_]*) echo "target database name must be lowercase letters, digits, or underscore" >&2; exit 1 ;;
+  esac
+  sudo -u postgres dropdb --if-exists "$target"
+  sudo -u postgres createdb "$target"
+  sudo -u postgres pg_restore -d "$target" --no-owner --no-privileges --exit-on-error < "$dump"
+  count=$(sudo -u postgres psql -d "$target" -Atc 'SELECT count(*) FROM integration.outbox')
+  echo "restored $dump into $target (integration.outbox rows: $count)"
+  exit 0
+fi
+
+set -a
+. "$ENV_FILE"
+set +a
+
+umask 027
+stamp=$(date -u +%Y%m%dT%H%M%SZ)
+out=$BACKUP_DIR/hnst-$stamp.dump
+pg_dump "$DATABASE_URL" -Fc -f "$out"
+find "$BACKUP_DIR" -name 'hnst-*.dump' -mtime +14 -delete
+echo "$out"

@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+# Updates the HONEST site from origin/main on a server shared with other apps.
+#   sudo hnst-update                  deploy main if it isn't already live
+#   sudo hnst-update --force          rebuild even if main is already live
+#   sudo hnst-update --force --seed   also run the additive CMS seed (first deploy)
+#   sudo hnst-update --rollback       go back to the previous release
+#
+# The site runs from a copy in releases/, so a failed pull or build can't break
+# it. Rollback restores code only: migrations stay applied.
+set -euo pipefail
+
+ROOT=/srv/hnst
+REPO=$ROOT/repo
+RELEASES=$ROOT/releases
+CURRENT=$ROOT/current
+ENV_FILE=/etc/hnst/hnst.env
+HEALTH_URL=http://127.0.0.1:3100/api/health
+KEEP=3
+
+die() {
+  echo "hnst-update: $*" >&2
+  exit 1
+}
+
+[ "$(id -u)" -eq 0 ] || die "run with sudo"
+
+force=0
+seed=0
+rollback=0
+target=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --force) force=1 ;;
+    --seed) seed=1 ;;
+    --rollback)
+      rollback=1
+      if [ $# -gt 1 ]; then
+        target=$2
+        shift
+      fi
+      ;;
+    *) die "unknown option: $1" ;;
+  esac
+  shift
+done
+
+exec 9>/run/hnst-update.lock
+flock -n 9 || die "another update is running"
+
+as_hnst() {
+  sudo -u hnst -H bash -c '
+    set -euo pipefail
+    set -a; . "$0"; set +a
+    export PATH=/opt/hnst/node/bin:/opt/hnst/bun:$PATH
+    cd "$1"; shift
+    "$@"
+  ' "$ENV_FILE" "$REPO" "$@"
+}
+
+live_release() {
+  if [ -L "$CURRENT" ]; then readlink -f "$CURRENT"; fi
+}
+
+switch_to() {
+  ln -sfn "$1" "$CURRENT.next"
+  mv -T "$CURRENT.next" "$CURRENT"
+  chown -h hnst:hnst "$CURRENT"
+  systemctl restart hnst-worker hnst-web
+}
+
+# /api/health's `ok` only covers the database, so a dead worker still says ok.
+# Passes only when the worker has written a heartbeat since `since` (epoch).
+healthy_since() {
+  local since=$1 body beat beat_epoch i
+  for i in $(seq 1 45); do
+    body=$(curl -fsS -m 5 "$HEALTH_URL" 2>/dev/null || true)
+    beat=$(printf '%s' "$body" | sed -n 's/.*"ok":true.*"workerHeartbeat":"\([^"]*\)".*/\1/p')
+    if [ -n "$beat" ]; then
+      beat_epoch=$(date -d "$beat" +%s 2>/dev/null || echo 0)
+      if [ "$beat_epoch" -ge "$since" ]; then return 0; fi
+    fi
+    sleep 2
+  done
+  return 1
+}
+
+previous_release() {
+  local live=$1 name
+  for name in $(ls -1 "$RELEASES" | sort -r); do
+    if [ "$RELEASES/$name" != "$live" ] && [[ "$RELEASES/$name" < "$live" ]]; then
+      echo "$RELEASES/$name"
+      return 0
+    fi
+  done
+}
+
+if [ "$rollback" -eq 1 ]; then
+  live=$(live_release)
+  [ -n "$live" ] || die "no live release"
+  if [ -n "$target" ]; then
+    goal=$RELEASES/$target
+  else
+    goal=$(previous_release "$live")
+  fi
+  [ -n "$goal" ] && [ -d "$goal" ] || die "no release to go back to"
+  since=$(date +%s)
+  switch_to "$goal"
+  healthy_since "$since" || die "$(basename "$goal") is live but failed its health check"
+  echo "rolled back to $(basename "$goal"). The database was not changed."
+  exit 0
+fi
+
+previous=$(live_release)
+
+echo "== pull"
+as_hnst git pull --ff-only origin main
+sha=$(as_hnst git rev-parse --short HEAD)
+if [ "$force" -eq 0 ] && [ -n "$previous" ] && [[ "$(basename "$previous")" == *-"$sha" ]]; then
+  echo "$sha is already live"
+  exit 0
+fi
+
+echo "== install"
+as_hnst bun install --frozen-lockfile --ignore-scripts
+
+echo "== backup"
+as_hnst /usr/local/bin/hnst-backup
+
+echo "== migrate"
+as_hnst bun scripts/migrate.ts
+as_hnst bash -c 'bunx payload migrate </dev/null'
+if [ "$seed" -eq 1 ]; then
+  echo "== seed"
+  as_hnst bun run seed
+fi
+
+echo "== build"
+as_hnst nice -n 10 ionice -c 2 -n 7 bun run build
+
+echo "== release"
+release=$RELEASES/$(date -u +%Y%m%d%H%M%S)-$sha
+as_hnst bash -c '
+  set -euo pipefail
+  mkdir -p "$1.partial/web"
+  cp -a .next/standalone/. "$1.partial/web/"
+  cp -a .next/static "$1.partial/web/.next/static"
+  cp -a public "$1.partial/web/public"
+  rsync -a --exclude .git --exclude .next ./ "$1.partial/src/"
+  mv "$1.partial" "$1"
+' _ "$release"
+
+echo "== switch"
+since=$(date +%s)
+switch_to "$release"
+
+echo "== health"
+if ! healthy_since "$since"; then
+  echo "health check failed; recent logs:" >&2
+  journalctl -u hnst-web -u hnst-worker -n 30 --no-pager >&2 || true
+  if [ -n "$previous" ]; then
+    echo "going back to $(basename "$previous")" >&2
+    switch_to "$previous"
+  fi
+  die "update failed. Migrations stay applied; the backup is in $ROOT/backups."
+fi
+
+# Oldest first, never the live release or the one before it.
+ls -1 "$RELEASES" | grep -v '\.partial$' | sort -r | tail -n +$((KEEP + 1)) | while read -r name; do
+  if [ "$RELEASES/$name" != "$release" ] && [ "$RELEASES/$name" != "$previous" ]; then
+    rm -rf -- "${RELEASES:?}/$name"
+  fi
+done
+
+for unit in hnst-web.service hnst-worker.service; do
+  cmp -s "$REPO/deploy/native/$unit" "/etc/systemd/system/$unit" ||
+    echo "note: $unit changed in the repo. Reinstall it by hand and run systemctl daemon-reload."
+done
+install -m 755 "$REPO/deploy/native/hnst-backup" /usr/local/bin/hnst-backup
+install -m 755 "$REPO/deploy/native/hnst-update" /usr/local/bin/hnst-update
+
+echo "deployed $(basename "$release")"

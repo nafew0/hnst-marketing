@@ -1,0 +1,22 @@
+[Unit]
+Description=HONEST website (Next.js standalone)
+After=network.target postgresql.service
+
+[Service]
+User=hnst
+Group=hnst
+WorkingDirectory=/srv/hnst/current/web
+EnvironmentFile=/etc/hnst/hnst.env
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=3100
+ExecStart=/opt/hnst/node/bin/node server.js
+Restart=always
+RestartSec=5
+MemoryMax=4G
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+[Unit]
+Description=HONEST worker (GoHighLevel delivery)
+After=network.target postgresql.service
+
+[Service]
+User=hnst
+Group=hnst
+WorkingDirectory=/srv/hnst/current/src
+EnvironmentFile=/etc/hnst/hnst.env
+ExecStart=/opt/hnst/bun/bun worker/index.ts
+Restart=always
+RestartSec=5
+MemoryMax=2G
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target
