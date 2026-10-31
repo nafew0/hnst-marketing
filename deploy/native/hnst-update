@@ -157,6 +157,9 @@ if [ "$seed" -eq 1 ]; then
 fi
 
 echo "== build"
+# unstable_cache lives here between builds. Left in place, it prerenders pages
+# from old CMS data for up to an hour. The compiler cache beside it stays.
+as_hnst rm -rf .next/cache/fetch-cache
 build_in_root
 
 echo "== release"
