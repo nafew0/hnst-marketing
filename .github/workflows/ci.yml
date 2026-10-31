@@ -69,7 +69,16 @@ jobs:
         # - GHSA-67mh-4wv8-2f99 esbuild <=0.24 dev-server CORS: only drizzle-kit's
         #   migration CLI uses this esbuild; it never runs a dev server.
         # Re-check both on every Payload upgrade and drop the ignore once fixed.
-        run: bun audit --audit-level=moderate --ignore=GHSA-x8rm-f576-gq67 --ignore=GHSA-67mh-4wv8-2f99
+        #
+        # One dev-tooling advisory has no compatible fix yet either:
+        # - GHSA-g3hv-75wg-m249 minimatch <11.0.1 pattern-expansion DoS: the fix is
+        #   11.x, which removes the makeRe() that deslop-js calls on its incremental
+        #   cache path. minimatch 10 stays only under dev tools (ts-morph, deslop-cli,
+        #   react-scan's react-doctor and its eslint), and they match patterns written
+        #   in this repo, not visitor input. node-pg-migrate and linkinator get 11.x
+        #   through the `glob` override in package.json.
+        # Re-check when deslop-js allows minimatch 11 and drop the ignore once fixed.
+        run: bun audit --audit-level=moderate --ignore=GHSA-x8rm-f576-gq67 --ignore=GHSA-67mh-4wv8-2f99 --ignore=GHSA-g3hv-75wg-m249
 
   e2e:
     runs-on: ubuntu-latest
