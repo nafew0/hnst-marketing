@@ -59,7 +59,7 @@
     "@asteasolutions/zod-to-openapi": "^9.1.0",
     "@base-ui/react": "^1.9.0",
     "@dotenvx/dotenvx": "^2.38.2",
-    "@dotenvx/next-env": "^2.4.12",
+    "@dotenvx/next-env": "^2.5.6",
     "@gohighlevel/api-client": "^3.1.1",
     "@payloadcms/db-postgres": "3.92.0",
     "@payloadcms/next": "3.92.0",
