@@ -74,7 +74,7 @@
     "detect-gpu": "^5.0.70",
     "graphql": "^16.8.1",
     "hamo": "^1.0.3",
-    "lenis": "2.0.0-dev.5",
+    "lenis": "2.0.0-dev.6",
     "next": "16.4.3",
     "node-pg-migrate": "^9.0.0",
     "payload": "3.92.0",
