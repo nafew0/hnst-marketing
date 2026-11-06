@@ -39,6 +39,10 @@ import {
   stopBoss,
 } from '@/lib/ghl/queue'
 import type { GhlClient } from '@/lib/ghl/types'
+import { WALL_PURGE_QUEUE } from '@/lib/wall/constants'
+import { scheduleWallPurge } from '@/lib/wall/schedule'
+
+import { runWallPurge } from './jobs/wall-purge'
 
 const logger = pino({ level: 'info' })
 
@@ -120,6 +124,7 @@ export async function startWorker(): Promise<void> {
   )
 
   await scheduleEventFlush()
+  await scheduleWallPurge()
 
   await writeHeartbeat(db)
   const timer = setInterval(() => {
@@ -173,6 +178,14 @@ export async function startWorker(): Promise<void> {
   await boss.work(EVENTS_FLUSH_QUEUE, { batchSize: 1 }, async (jobs) => {
     const ran = await flushEventBuffer(db, ghl)
     logger.info({ jobs: jobs.length, ran }, 'event flush')
+  })
+
+  await boss.work(WALL_PURGE_QUEUE, { batchSize: 1 }, async (jobs) => {
+    const result = await runWallPurge()
+    logger.info(
+      { jobs: jobs.length, rejected: result.rejected, orphans: result.orphans },
+      'wall purge'
+    )
   })
 
   logger.info('worker started')
