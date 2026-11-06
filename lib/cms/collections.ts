@@ -17,6 +17,7 @@ import {
 } from '@/lib/cms/access'
 import { blocks } from '@/lib/cms/blocks'
 import { cmsEnvironment } from '@/lib/cms/environment'
+import { phoneSettingsField } from '@/lib/cms/phone-settings'
 import { contentHooks, settingsHooks } from '@/lib/cms/revalidate'
 import { tierSchema } from '@/lib/contracts'
 const slug: Field = {
@@ -231,6 +232,7 @@ export const SiteSettings: GlobalConfig = {
   access: { read: () => true, update: isEditor },
   fields: [
     { name: 'companyLegalName', type: 'text' },
+    phoneSettingsField,
     { name: 'address', type: 'textarea' },
     { name: 'publicEmail', type: 'email' },
     { name: 'publicPhone', type: 'text' },

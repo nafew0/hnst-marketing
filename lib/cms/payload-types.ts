@@ -78,6 +78,8 @@ export interface Config {
     faqs: Faq
     pages: Page
     media: Media
+    wallPhotos: WallPhoto
+    phoneNotes: PhoneNote
     'payload-kv': PayloadKv
     'payload-locked-documents': PayloadLockedDocument
     'payload-preferences': PayloadPreference
@@ -91,6 +93,8 @@ export interface Config {
     faqs: FaqsSelect<false> | FaqsSelect<true>
     pages: PagesSelect<false> | PagesSelect<true>
     media: MediaSelect<false> | MediaSelect<true>
+    wallPhotos: WallPhotosSelect<false> | WallPhotosSelect<true>
+    phoneNotes: PhoneNotesSelect<false> | PhoneNotesSelect<true>
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>
     'payload-locked-documents':
       | PayloadLockedDocumentsSelect<false>
@@ -529,6 +533,74 @@ export interface Media {
   }
 }
 /**
+ * Visitors’ photos, not clients or endorsements. Opens on pending; choose a Status filter to review other photos.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wallPhotos".
+ */
+export interface WallPhoto {
+  id: number
+  publicId: string
+  status: 'pending' | 'approved' | 'rejected' | 'removed'
+  displayName?: string | null
+  consentText: string
+  consentAt: string
+  adult: boolean
+  removeTokenHash: string
+  reports: number
+  statusChangedAt: string
+  updatedAt: string
+  createdAt: string
+  url?: string | null
+  thumbnailURL?: string | null
+  filename?: string | null
+  mimeType?: string | null
+  filesize?: number | null
+  width?: number | null
+  height?: number | null
+  focalX?: number | null
+  focalY?: number | null
+  sizes?: {
+    thumbnail?: {
+      url?: string | null
+      width?: number | null
+      height?: number | null
+      mimeType?: string | null
+      filesize?: number | null
+      filename?: string | null
+    }
+  }
+}
+/**
+ * HONEST editorial notes only. Visitor notes stay in memory and are never saved here.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "phoneNotes".
+ */
+export interface PhoneNote {
+  id: number
+  title: string
+  body: {
+    root: {
+      type: string
+      children: {
+        type: string
+        version: number
+        [k: string]: CmsJson
+      }[]
+      direction: ('ltr' | 'rtl') | null
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
+      indent: number
+      version: number
+    }
+    [k: string]: CmsJson
+  }
+  order: number
+  updatedAt: string
+  createdAt: string
+  _status?: ('draft' | 'published') | null
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -575,6 +647,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media'
         value: number | Media
+      } | null)
+    | ({
+        relationTo: 'wallPhotos'
+        value: number | WallPhoto
+      } | null)
+    | ({
+        relationTo: 'phoneNotes'
+        value: number | PhoneNote
       } | null)
   globalSlug?: string | null
   user: {
@@ -991,6 +1071,58 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wallPhotos_select".
+ */
+export interface WallPhotosSelect<T extends boolean = true> {
+  publicId?: T
+  status?: T
+  displayName?: T
+  consentText?: T
+  consentAt?: T
+  adult?: T
+  removeTokenHash?: T
+  reports?: T
+  statusChangedAt?: T
+  updatedAt?: T
+  createdAt?: T
+  url?: T
+  thumbnailURL?: T
+  filename?: T
+  mimeType?: T
+  filesize?: T
+  width?: T
+  height?: T
+  focalX?: T
+  focalY?: T
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T
+              width?: T
+              height?: T
+              mimeType?: T
+              filesize?: T
+              filename?: T
+            }
+      }
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "phoneNotes_select".
+ */
+export interface PhoneNotesSelect<T extends boolean = true> {
+  title?: T
+  body?: T
+  order?: T
+  updatedAt?: T
+  createdAt?: T
+  _status?: T
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -1036,6 +1168,66 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface SiteSetting {
   id: number
   companyLegalName?: string | null
+  /**
+   * [DRAFT] Phone copy requires Founder approval before launch.
+   */
+  phone: {
+    /**
+     * Enable only after the Founder approves all phone copy. Editors cannot approve it.
+     */
+    approved?: boolean | null
+    lockScreen: boolean
+    notifications?:
+      | {
+          trigger:
+            | 'lock-first-visit'
+            | 'home-idle'
+            | 'left-packages'
+            | 'photo-taken'
+            | 'booking-queued'
+            | 'booking-confirmed'
+            | 'wall-sent'
+            | 'ebook-ready'
+          app:
+            | 'honest'
+            | 'calendar'
+            | 'camera'
+            | 'packages'
+            | 'how-it-works'
+            | 'about'
+            | 'marketer'
+            | 'instagram'
+            | 'x'
+            | 'youtube'
+            | 'tiktok'
+            | 'linkedin'
+            | 'photos'
+            | 'browser'
+            | 'notes'
+            | 'mail'
+          title: string
+          /**
+           * Only booking-confirmed may use {time}. Queued bookings have no confirmed time. Keep ebook-ready disabled until delivery exists.
+           */
+          body: string
+          enabled: boolean
+          id?: string | null
+        }[]
+      | null
+    widgets: {
+      nextCallTitle: string
+      nextCallEmpty: string
+      installTitle: string
+      installBody: string
+    }
+    camera: {
+      frameText: string
+    }
+    wall: {
+      consentText: string
+      rulesHref: string
+    }
+  }
   address?: string | null
   publicEmail?: string | null
   publicPhone?: string | null
@@ -1078,6 +1270,41 @@ export interface SiteSetting {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   companyLegalName?: T
+  phone?:
+    | T
+    | {
+        approved?: T
+        lockScreen?: T
+        notifications?:
+          | T
+          | {
+              trigger?: T
+              app?: T
+              title?: T
+              body?: T
+              enabled?: T
+              id?: T
+            }
+        widgets?:
+          | T
+          | {
+              nextCallTitle?: T
+              nextCallEmpty?: T
+              installTitle?: T
+              installBody?: T
+            }
+        camera?:
+          | T
+          | {
+              frameText?: T
+            }
+        wall?:
+          | T
+          | {
+              consentText?: T
+              rulesHref?: T
+            }
+      }
   address?: T
   publicEmail?: T
   publicPhone?: T
