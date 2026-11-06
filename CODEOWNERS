@@ -28,6 +28,7 @@
 /worker/                            @nafew0
 /db/migrations/                     @nafew0
 /scripts/                           @nafew0
+/lib/wall/                          @nafew0
 /deploy/                            @nafew0
 /Dockerfile.web                     @nafew0
 /Dockerfile.worker                  @nafew0
@@ -46,3 +47,13 @@
 /e2e/                               @nafew0
 /.github/workflows/                 @nafew0
 /docs/qa/                           @nafew0
+
+# --- Phone layout (M phases, docs/phases/M1.md). Claude: components/ui/phone/,
+# components/apps/ except the three below, components/ui/window/ (above).
+# Astra: the Calendar, Mail and Notes apps and the wall removal page.
+# Grok: app/api/v1/wall/ (under app/api/v1/ above) and lib/wall/.
+/components/apps/                   @nafew0
+/components/apps/calendar/          @nafew0
+/components/apps/mail/              @nafew0
+/components/apps/notes/             @nafew0
+/app/(site)/wall/                   @nafew0
