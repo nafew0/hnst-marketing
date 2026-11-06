@@ -16,6 +16,7 @@ import type {
   RemovablePhoto,
   StoredPost,
   WallDb,
+  WallQuery,
   WallStatus,
   WallStore,
 } from './types'
@@ -229,7 +230,7 @@ export function createPayloadWallStore(
 }
 
 async function findReceipt(
-  db: WallDb,
+  db: WallQuery,
   key: string
 ): Promise<StoredPost | null> {
   const result = await db.query(SELECT_RECEIPT, [key])
@@ -245,8 +246,8 @@ async function createPost(
   load: () => Promise<WallCms>,
   photo: NewWallPhoto
 ): Promise<StoredPost> {
-  return withWallLock(db, photo.idempotencyKey, async () => {
-    const existing = await findReceipt(db, photo.idempotencyKey)
+  return withWallLock(db, photo.idempotencyKey, async (locked) => {
+    const existing = await findReceipt(locked, photo.idempotencyKey)
     if (existing) return existing
     const cms = await load()
     const data: WallCreateArgs['data'] = {
@@ -272,7 +273,7 @@ async function createPost(
       data,
     })
     try {
-      await db.query(INSERT_RECEIPT, [
+      await locked.query(INSERT_RECEIPT, [
         photo.idempotencyKey,
         photo.publicId,
         photo.removeToken,
@@ -359,14 +360,15 @@ async function report(
   id: string,
   visitorHash: string
 ): Promise<{ count: number } | null> {
-  return withWallLock(db, `report:${id}`, async () => {
+  return withWallLock(db, `report:${id}`, async (locked) => {
     const row = await findApproved(load, id)
     if (!row) return null
-    const inserted = await db.query(INSERT_REPORT, [id, visitorHash])
+    const inserted = await locked.query(INSERT_REPORT, [id, visitorHash])
     if (inserted.rows.length === 0) return { count: row.reports }
-    const counted = await db.query<{ count: number | string }>(COUNT_REPORTS, [
-      id,
-    ])
+    const counted = await locked.query<{ count: number | string }>(
+      COUNT_REPORTS,
+      [id]
+    )
     const count = readCount(counted.rows[0])
     const cms = await load()
     await cms.update({

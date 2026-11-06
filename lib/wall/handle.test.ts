@@ -524,8 +524,13 @@ function scripted(options: {
   reportCount?: number
 }): WallDb & { queries: { sql: string; params: readonly SqlValue[] }[] } {
   const queries: { sql: string; params: readonly SqlValue[] }[] = []
+  // A pool query while a wall lock is held would wait for a free connection,
+  // and with every connection holding or waiting for a lock the pool freezes.
+  let locked = false
   const query = async <Row>(sql: string, params: readonly SqlValue[] = []) => {
     queries.push({ sql, params })
+    if (sql.includes('pg_advisory_unlock')) locked = false
+    else if (sql.includes('pg_advisory_lock')) locked = true
     if (sql.includes('pg_advisory')) return { rows: [] as Row[] }
     if (sql.includes('SELECT public_id')) {
       return { rows: (options.receipt ? [options.receipt] : []) as Row[] }
@@ -547,7 +552,10 @@ function scripted(options: {
   }
   return {
     queries,
-    query,
+    async query<Row>(sql: string, params: readonly SqlValue[] = []) {
+      if (locked) throw new Error('Pool used while holding the wall lock')
+      return query<Row>(sql, params)
+    },
     async connect() {
       return {
         query,

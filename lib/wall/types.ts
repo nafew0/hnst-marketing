@@ -59,18 +59,17 @@ export interface WallQueryResult<Row> {
   rows: Row[]
 }
 
-export interface WallConnection {
+export interface WallQuery {
   query<Row>(
     sql: string,
     params?: readonly SqlValue[]
   ): Promise<WallQueryResult<Row>>
+}
+
+export interface WallConnection extends WallQuery {
   release(): void
 }
 
-export interface WallDb {
-  query<Row>(
-    sql: string,
-    params?: readonly SqlValue[]
-  ): Promise<WallQueryResult<Row>>
+export interface WallDb extends WallQuery {
   connect(): Promise<WallConnection>
 }
