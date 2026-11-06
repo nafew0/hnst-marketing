@@ -14,9 +14,17 @@ import {
   type Queued,
   type SlotsResponse,
   slotsQuerySchema,
+  WALL_IMAGE_TYPES,
+  WALL_MAX_BYTES,
+  WALL_PAGE_SIZE,
+  type WallPending,
+  wallPostFieldsSchema,
+  wallQuerySchema,
+  wallRemoveInputSchema,
+  wallReportInputSchema,
 } from '@/lib/contracts'
 
-import { sampleOffers } from './fixtures'
+import { sampleOffers, sampleWall } from './fixtures'
 
 /**
  * Mock /api/v1 for front-end work before the real back end exists (P3, P6),
@@ -28,7 +36,14 @@ import { sampleOffers } from './fixtures'
  * - email `…@ghl-down.test`     → POST /bookings 202 queued (GHL unavailable)
  * - email `…@ratelimit.test`    → POST /leads and /bookings 429 rate_limited
  * - altcha payload `fail`       → 400 captcha_failed
+ * - wall displayName `ratelimit` → POST /wall 429 rate_limited
+ * - wall id RATE_LIMITED_WALL_ID → POST /wall/report and /wall/remove 429
+ *
+ * Posted wall photos stay pending, as on the real wall, so GET never lists
+ * them; their removal tokens work until the mock state resets.
  */
+
+export const RATE_LIMITED_WALL_ID = '00000000-0000-4000-8000-000000000429'
 
 /** Realistic round trip in the browser; none under `bun test`. */
 export const MOCK_LATENCY_MS = process.env.NODE_ENV === 'test' ? 0 : 800
@@ -38,14 +53,18 @@ const CALL_MINUTES = 30
 
 interface Replay {
   status: 201 | 202
-  body: Queued | BookingCreated
+  body: Queued | BookingCreated | WallPending
 }
 
 /** Idempotency-Key → first response, so a retried write replays it. */
 const replays = new Map<string, Replay>()
 
+/** Posted wall photos, id → removal token. */
+const pendingWall = new Map<string, string>()
+
 export function resetMockState() {
   replays.clear()
+  pendingWall.clear()
 }
 
 function errorResponse(
@@ -114,6 +133,37 @@ function replay(key: string) {
 
 function queued(): Queued {
   return { status: 'queued', ref: crypto.randomUUID() }
+}
+
+/** 32 random bytes as base64url, like the real removal token. */
+function removalToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32))
+  return btoa(String.fromCodePoint(...bytes))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/=+$/u, '')
+}
+
+const imageFailed = (message: string, status: number) =>
+  errorResponse('validation_failed', message, status, { image: message })
+
+const isWallImageType = (type: string) =>
+  WALL_IMAGE_TYPES.some((allowed) => allowed === type)
+
+/** Pages are `page-<n>` here; the real cursor is opaque. */
+function wallPage(cursor: string | undefined) {
+  const index = cursor === undefined ? 0 : Number(cursor.slice(5))
+  if (
+    cursor !== undefined &&
+    (!cursor.startsWith('page-') || !Number.isInteger(index) || index < 1)
+  )
+    return undefined
+  const start = index * WALL_PAGE_SIZE
+  const end = start + WALL_PAGE_SIZE
+  return {
+    items: sampleWall.slice(start, end),
+    nextCursor: end < sampleWall.length ? `page-${index + 1}` : null,
+  }
 }
 
 function emailDomain(email: string) {
@@ -263,5 +313,93 @@ export const handlers = [
   http.get(apiRoutes.offers, async () => {
     await delay(MOCK_LATENCY_MS / 4)
     return HttpResponse.json(sampleOffers)
+  }),
+
+  http.post(apiRoutes.wall, async ({ request }) => {
+    await delay(MOCK_LATENCY_MS)
+    const check = idempotencyKey(request, apiRoutes.wall)
+    if (!check.ok) return check.response
+    const { key } = check
+    const previous = replay(key)
+    if (previous) return previous
+
+    const form = await request.formData().catch(() => undefined)
+    const image = form?.get('image')
+    if (!form || !(image instanceof Blob) || image.size === 0) {
+      return imageFailed('Add a photo.', 400)
+    }
+    if (image.size > WALL_MAX_BYTES) {
+      return imageFailed('Choose a photo under 8 MB.', 413)
+    }
+    if (!isWallImageType(image.type)) {
+      return imageFailed('Use a JPEG, PNG, WebP or HEIC photo.', 415)
+    }
+    const text = (name: string) => {
+      const value = form.get(name)
+      return value instanceof Blob ? undefined : (value ?? undefined)
+    }
+    const fields = wallPostFieldsSchema.safeParse({
+      consentText: text('consentText'),
+      adult: text('adult'),
+      displayName: text('displayName'),
+      altcha: text('altcha'),
+    })
+    if (!fields.success) return validationFailed(fields.error.issues)
+    if (fields.data.altcha === 'fail') {
+      return errorResponse('captcha_failed', 'Please try again.', 400)
+    }
+    if (fields.data.displayName?.toLowerCase() === 'ratelimit') {
+      return errorResponse('rate_limited', 'Too many requests.', 429)
+    }
+
+    const pending: WallPending = {
+      status: 'pending',
+      id: crypto.randomUUID(),
+      removeToken: removalToken(),
+    }
+    pendingWall.set(pending.id, pending.removeToken)
+    return remember(key, 202, pending)
+  }),
+
+  http.get(apiRoutes.wall, async ({ request }) => {
+    await delay(MOCK_LATENCY_MS / 4)
+    const params = Object.fromEntries(new URL(request.url).searchParams)
+    const parsed = wallQuerySchema.safeParse(params)
+    const page = parsed.success ? wallPage(parsed.data.cursor) : undefined
+    if (!page) {
+      return errorResponse('validation_failed', 'Unknown cursor.', 400, {
+        cursor: 'Use a nextCursor from an earlier page',
+      })
+    }
+    return HttpResponse.json(page)
+  }),
+
+  http.post(apiRoutes.wallReport, async ({ request }) => {
+    await delay(MOCK_LATENCY_MS / 4)
+    const parsed = await parseBody(request, wallReportInputSchema)
+    if (!parsed.success) return validationFailed(parsed.error.issues)
+    const { id } = parsed.data
+    if (id === RATE_LIMITED_WALL_ID) {
+      return errorResponse('rate_limited', 'Too many requests.', 429)
+    }
+    if (!sampleWall.some((photo) => photo.id === id)) {
+      return errorResponse('not_found', 'No such photo.', 404)
+    }
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.post(apiRoutes.wallRemove, async ({ request }) => {
+    await delay(MOCK_LATENCY_MS / 4)
+    const parsed = await parseBody(request, wallRemoveInputSchema)
+    if (!parsed.success) return validationFailed(parsed.error.issues)
+    const { id, token } = parsed.data
+    if (id === RATE_LIMITED_WALL_ID) {
+      return errorResponse('rate_limited', 'Too many requests.', 429)
+    }
+    if (pendingWall.get(id) !== token) {
+      return errorResponse('not_found', 'No such photo.', 404)
+    }
+    pendingWall.delete(id)
+    return new HttpResponse(null, { status: 204 })
   }),
 ]

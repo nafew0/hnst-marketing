@@ -1,0 +1,159 @@
+/*
+ * The phone home screen. iOS in layout (icon grid, glass dock, wallpaper),
+ * the brand's in colour and type. Sits under any open window (100+).
+ */
+@layer components {
+  .home {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    padding: calc(env(safe-area-inset-top) + 64px) 18px
+      calc(env(safe-area-inset-bottom) + 12px);
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background: var(--color-void-deep);
+    color: var(--color-starlight);
+
+    @media (--motion-ok) {
+      transition:
+        opacity var(--duration-fast) var(--ease-out-expo),
+        transform var(--duration-fast) var(--ease-out-expo),
+        visibility 0s linear;
+    }
+
+    /* The HONEST app is open: the home screen steps back behind it. */
+    &[data-hidden] {
+      visibility: hidden;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(1.08);
+
+      @media (--motion-ok) {
+        transition:
+          opacity var(--duration-fast) var(--ease-out-expo),
+          transform var(--duration-fast) var(--ease-out-expo),
+          visibility 0s linear var(--duration-fast);
+      }
+    }
+  }
+
+  .wallpaper {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    /* Keeps the labels legible over any frame of the wallpaper. */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        in oklab 180deg,
+        color-mix(in oklab, var(--color-void-deep) 30%, transparent),
+        color-mix(in oklab, var(--color-void-deep) 10%, transparent) 40%,
+        color-mix(in oklab, var(--color-void-deep) 55%, transparent)
+      );
+    }
+  }
+
+  .wallpaperImage {
+    object-position: 42% 50%;
+  }
+
+  .screen {
+    flex: 1;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 22px;
+    column-gap: 8px;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    border-radius: 16px;
+    color: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 4px;
+    }
+
+    @media (--motion-ok) {
+      &:active .icon {
+        transform: scale(0.92);
+      }
+    }
+  }
+
+  .icon {
+    display: block;
+    width: min(62px, 16vw);
+    aspect-ratio: 1;
+    filter: drop-shadow(
+      0 6px 14px color-mix(in oklab, var(--color-void-deep) 45%, transparent)
+    );
+
+    @media (--motion-ok) {
+      transition: transform 120ms var(--ease-out-expo);
+    }
+
+    & > svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .label {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px
+      color-mix(in oklab, var(--color-void-deep) 80%, transparent);
+  }
+
+  /* The dock: four icons on glass, no labels, as on iOS. */
+  .dockArea {
+    flex: none;
+  }
+
+  .dock {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 14px 10px;
+    border: 1px solid
+      color-mix(in oklab, var(--color-starlight) 18%, transparent);
+    border-radius: 32px;
+    background: color-mix(in oklab, var(--color-starlight) 12%, transparent);
+    box-shadow: inset 0 1px 0
+      color-mix(in oklab, var(--color-starlight) 22%, transparent);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8);
+    backdrop-filter: blur(28px) saturate(1.8);
+  }
+
+  /* The way back from the story to the home screen. */
+  .storyHome {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 80;
+    background: transparent;
+  }
+}

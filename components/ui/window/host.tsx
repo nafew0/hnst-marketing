@@ -4,6 +4,8 @@ import { useLenis } from 'lenis/react'
 import dynamic from 'next/dynamic'
 import { useEffect } from 'react'
 
+import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
+import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { pauseDrawing } from '@/webgl/utils/awake'
 
 import { resetDepth } from './history'
@@ -18,6 +20,12 @@ const WindowDock = dynamic(
   () => import('./dock').then((mod) => mod.WindowDock),
   { ssr: false }
 )
+// The icons' gradients, once, for the dock and the phone home screen alike.
+// Client-only: the calendar icon shows the visitor's own date.
+const DockIconDefs = dynamic(
+  () => import('./dock-icons').then((mod) => mod.DockIconDefs),
+  { ssr: false }
+)
 
 /** The window layer, in the site layout. */
 export function WindowHost() {
@@ -27,6 +35,9 @@ export function WindowHost() {
     state.entries.some((entry) => entry.content !== null || !entry.minimised)
   )
   const lenis = useLenis()
+  const { isMobile } = useDeviceDetection()
+  // The phone layout's home screen has its own dock (docs/phases/M1.md).
+  const dock = !PHONE_LAYOUT || isMobile === false
 
   useEffect(() => {
     if (routeHref !== null) return
@@ -50,8 +61,9 @@ export function WindowHost() {
 
   return (
     <>
+      <DockIconDefs />
       {(open || hasContent) && <WindowDialog />}
-      <WindowDock />
+      {dock && <WindowDock />}
     </>
   )
 }

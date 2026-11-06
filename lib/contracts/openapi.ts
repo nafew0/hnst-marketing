@@ -20,6 +20,15 @@ import { eventsInputSchema } from './events'
 import { leadInputSchema } from './leads'
 import { offersResponseSchema } from './offers'
 import { apiRoutes } from './routes'
+import {
+  WALL_MAX_BYTES,
+  wallPageSchema,
+  wallPendingSchema,
+  wallPostFieldsSchema,
+  wallQuerySchema,
+  wallRemoveInputSchema,
+  wallReportInputSchema,
+} from './wall'
 import { ghlWorkflowEventSchema, webhookAckSchema } from './webhooks'
 
 const json = <T extends z.ZodType>(schema: T, description: string) => ({
@@ -46,6 +55,17 @@ export function buildOpenApiDocument() {
   const GhlWorkflowEvent = ghlWorkflowEventSchema.meta({
     id: 'GhlWorkflowEvent',
   })
+  // zod-to-openapi can't describe z.file(): the multipart file is a binary string.
+  const WallPost = wallPostFieldsSchema
+    .extend({
+      image: z.string().meta({
+        format: 'binary',
+        description: `The photo: JPEG, PNG, WebP or HEIC, at most ${WALL_MAX_BYTES / 1024 / 1024} MB`,
+      }),
+    })
+    .meta({ id: 'WallPost' })
+  const WallPending = wallPendingSchema.meta({ id: 'WallPending' })
+  const WallPage = wallPageSchema.meta({ id: 'WallPage' })
 
   const idempotencyHeaders = z.object({
     [IDEMPOTENCY_HEADER]: idempotencyKeySchema,
@@ -121,6 +141,65 @@ export function buildOpenApiDocument() {
     responses: {
       200: json(OffersResponse, 'Current offers'),
       503: error('upstream_unavailable'),
+    },
+  })
+
+  registry.registerPath({
+    method: 'post',
+    path: apiRoutes.wall,
+    summary: 'Post a photo to the wall (hidden until an editor approves it)',
+    request: {
+      headers: idempotencyHeaders,
+      body: {
+        description: 'The photo and the visitor’s consent',
+        content: { 'multipart/form-data': { schema: WallPost } },
+      },
+    },
+    responses: {
+      202: json(WallPending, 'Stored as pending; a repeated key replays this'),
+      400: error(
+        'validation_failed, captcha_failed or idempotency_key_missing'
+      ),
+      413: error('validation_failed: the photo is too large'),
+      415: error('validation_failed: not a JPEG, PNG, WebP or HEIC photo'),
+      429: error('rate_limited'),
+    },
+  })
+
+  registry.registerPath({
+    method: 'get',
+    path: apiRoutes.wall,
+    summary: 'Approved wall photos, newest first',
+    request: { query: wallQuerySchema },
+    responses: {
+      200: json(WallPage, 'One page of approved photos'),
+      400: error('validation_failed: unknown cursor'),
+    },
+  })
+
+  registry.registerPath({
+    method: 'post',
+    path: apiRoutes.wallReport,
+    summary: 'Report a wall photo',
+    request: { body: json(wallReportInputSchema, 'The photo reported') },
+    responses: {
+      204: { description: 'Counted' },
+      400: error('validation_failed'),
+      404: error('not_found'),
+      429: error('rate_limited'),
+    },
+  })
+
+  registry.registerPath({
+    method: 'post',
+    path: apiRoutes.wallRemove,
+    summary: 'Remove your own wall photo with its removal token',
+    request: { body: json(wallRemoveInputSchema, 'The photo and its token') },
+    responses: {
+      204: { description: 'Removed' },
+      400: error('validation_failed'),
+      404: error('not_found: wrong id or token'),
+      429: error('rate_limited'),
     },
   })
 

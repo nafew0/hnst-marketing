@@ -1,4 +1,9 @@
-import type { BookingInput, LeadInput, OffersResponse } from '@/lib/contracts'
+import type {
+  BookingInput,
+  LeadInput,
+  OffersResponse,
+  WallPhoto,
+} from '@/lib/contracts'
 
 /**
  * Realistic sample data for MSW mocks, tests and component previews. Prices
@@ -63,3 +68,34 @@ export const sampleOffers: OffersResponse = {
     { tier: 'diamond', price: 25000, turnaround: '21–28 days' },
   ],
 }
+
+/**
+ * Mock wall photos: brand posters, not people, each named "Sample", so mock
+ * data can never pass for real visitors. 36 of them, so the album pages.
+ */
+const WALL_SAMPLE_IMAGES = [
+  { src: '/posters/nebula.webp', width: 1600, height: 900 },
+  { src: '/posters/dunes-mobile.webp', width: 780, height: 1647 },
+  { src: '/posters/emblem.webp', width: 1600, height: 900 },
+  { src: '/posters/glint.webp', width: 640, height: 853 },
+  { src: '/posters/hero-mobile.webp', width: 780, height: 1647 },
+  { src: '/posters/film-1-mobile.webp', width: 780, height: 1647 },
+] as const
+
+const WALL_SAMPLE_NEWEST = Date.parse('2026-11-06T12:00:00Z')
+const HOUR_MS = 60 * 60 * 1000
+
+export const sampleWall: WallPhoto[] = Array.from(
+  { length: 36 },
+  (_, index) => {
+    const image =
+      WALL_SAMPLE_IMAGES[index % WALL_SAMPLE_IMAGES.length] ??
+      WALL_SAMPLE_IMAGES[0]
+    return {
+      id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      ...image,
+      displayName: index % 3 === 2 ? null : `Sample ${index + 1}`,
+      createdAt: new Date(WALL_SAMPLE_NEWEST - index * HOUR_MS).toISOString(),
+    }
+  }
+)

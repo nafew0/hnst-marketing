@@ -208,7 +208,9 @@ const nextConfig: NextConfig = {
         },
         {
           key: 'Permissions-Policy',
-          value: 'camera=(), microphone=(), geolocation=()',
+          // Camera: the phone layout's Camera app (docs/phases/M7.md), this
+          // origin only. Microphone and location stay off.
+          value: 'camera=(self), microphone=(), geolocation=()',
         },
         {
           key: 'Referrer-Policy',

@@ -46,6 +46,13 @@ const envSchema = z.object({
   GHL_WORKFLOW_SECRET: z.string().min(24).optional(),
   // ALTCHA proof-of-work signing key (self-hosted captcha).
   ALTCHA_HMAC_KEY: z.string().min(32).optional(),
+  // Phone layout (docs/phases/M1.md–M9.md): the iPhone-style home screen and
+  // apps under the dt: breakpoint. '1' = on. Inlined at build time; stays off
+  // in production until M9, so main is releasable while it is being built.
+  NEXT_PUBLIC_PHONE_LAYOUT: z.enum(['0', '1']).optional(),
+  // Where the photo wall keeps its files (M3/M4), server only. Outside
+  // public/ and the release folder; defaults to ./.data/wall (git-ignored).
+  WALL_MEDIA_DIR: z.string().min(1).optional(),
 
   // Sanity (supports both Satus and Vercel Marketplace conventions)
   NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),

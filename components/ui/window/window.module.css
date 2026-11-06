@@ -277,3 +277,35 @@
     }
   }
 }
+
+/* Phone layout (docs/phases/M1.md): an app fills the screen with an iOS-style
+   bar and home indicator, opens out of its icon (zoom.ts) instead of rising,
+   and has no macOS dock to keep clear. */
+@media (--mobile) {
+  .window[data-phone] {
+    transition: none;
+  }
+
+  /* A size container, so the world's sky can match the pane (world.module.css). */
+  .window[data-phone] .scroller {
+    padding-bottom: 0;
+    container-type: size;
+  }
+
+  :global(body):has(.window[data-phone]:not([hidden])) .backdrop {
+    display: none;
+  }
+}
+
+.directPhoneBar {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 10;
+}
+
+.directHome {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 30;
+  background: transparent;
+}

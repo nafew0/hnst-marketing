@@ -1,0 +1,100 @@
+/* An app's top bar on the phone. iOS-like in layout, the brand's in colour. */
+@layer components {
+  .bar {
+    position: relative;
+    display: flex;
+    flex: none;
+    align-items: center;
+    min-height: 48px;
+    padding: env(safe-area-inset-top) 4px 0;
+    border-bottom: 1px solid
+      color-mix(in oklab, var(--color-gold) 14%, transparent);
+    background: color-mix(in oklab, var(--color-void-2) 88%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+  }
+
+  .back {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 12px;
+    color: var(--color-gold);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: -2px;
+    }
+  }
+
+  .chevron {
+    width: 12px;
+    height: 20px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.6;
+  }
+
+  .title {
+    position: absolute;
+    inset: env(safe-area-inset-top) 56px 0;
+    overflow: hidden;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 48px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-starlight);
+  }
+
+  .privacy {
+    position: relative;
+    z-index: 1;
+    min-height: 44px;
+    margin-left: auto;
+    padding-inline: 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--color-silver);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: -2px;
+    }
+  }
+
+  /* The home indicator: a pill at the bottom edge, with a 44 px target. */
+  .home {
+    display: flex;
+    flex: none;
+    justify-content: center;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--color-void);
+  }
+
+  .indicator {
+    display: grid;
+    width: 160px;
+    height: 44px;
+    place-items: center;
+    border-radius: 22px;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: -4px;
+    }
+  }
+
+  .pill {
+    width: 134px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--color-starlight);
+  }
+}

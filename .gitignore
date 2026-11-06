@@ -93,6 +93,9 @@ README.original.md
 # setup-project test scratch folders
 .satus-*/
 
+# Photo wall files in local development (WALL_MEDIA_DIR's default, M3/M4).
+/.data/
+
 # Processed media published locally by scripts/media (P5); on the VM it lives in /srv/media.
 /public/media/
 # Frame and loop intermediates. publish copies the hashed set into public/media.

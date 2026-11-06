@@ -12,6 +12,8 @@ import {
 } from 'react'
 
 import { useDeviceTier } from '@/components/motion/device-tier'
+import { HomeBar, PhoneAppBar } from '@/components/ui/phone/bars'
+import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
 import { worldHost, WorldSky } from '@/components/world'
 
 import { TitleBar } from './controls'
@@ -55,6 +57,16 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
     }
   }, [fullscreen])
 
+  // Phone layout: back and home both go to the home screen with this page kept
+  // in memory, as yellow does. Without JavaScript they are links to `/`.
+  const homeKeepingPage = (event: MouseEvent) => {
+    const element = frameRef.current
+    if (!element) return
+    event.preventDefault()
+    setMinimised({ href, title, draft: captureDraft(element) })
+    router.push('/' satisfies Route)
+  }
+
   return (
     <div
       ref={frameRef}
@@ -63,28 +75,46 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
       data-window-direct
       data-fullscreen={fullscreen || undefined}
     >
-      <TitleBar
-        home
-        title={title}
-        fullscreen={fullscreen}
-        onToggleFullscreen={() => setFullscreen((value) => !value)}
-        onMinimise={(event: MouseEvent) => {
-          const element = frameRef.current
-          if (!element) return
-          // The link's own navigation would cut the genie short.
-          if (device?.motionMedia) event.preventDefault()
-          const draft = captureDraft(element)
-          const settleHome = () => {
-            setMinimised({ href, title, draft })
-            router.push('/' satisfies Route)
-          }
-          if (device?.motionMedia)
-            void genieOut({ element, measure }, href, settleHome)
-          else setMinimised({ href, title, draft })
-        }}
-      />
+      {PHONE_LAYOUT && (
+        <PhoneAppBar
+          className={cn('mobile-only', s.directPhoneBar)}
+          title={title}
+          href="/"
+          onAction={homeKeepingPage}
+        />
+      )}
+      {/* Hidden on phones in the phone layout; `contents` keeps it sticky. */}
+      <div className={PHONE_LAYOUT ? 'contents desktop-only' : 'contents'}>
+        <TitleBar
+          home
+          title={title}
+          fullscreen={fullscreen}
+          onToggleFullscreen={() => setFullscreen((value) => !value)}
+          onMinimise={(event: MouseEvent) => {
+            const element = frameRef.current
+            if (!element) return
+            // The link's own navigation would cut the genie short.
+            if (device?.motionMedia) event.preventDefault()
+            const draft = captureDraft(element)
+            const settleHome = () => {
+              setMinimised({ href, title, draft })
+              router.push('/' satisfies Route)
+            }
+            if (device?.motionMedia)
+              void genieOut({ element, measure }, href, settleHome)
+            else setMinimised({ href, title, draft })
+          }}
+        />
+      </div>
       <WorldSky />
       {children}
+      {PHONE_LAYOUT && (
+        <HomeBar
+          className={cn('mobile-only', s.directHome)}
+          href="/"
+          onAction={homeKeepingPage}
+        />
+      )}
     </div>
   )
 }

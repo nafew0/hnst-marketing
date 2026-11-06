@@ -10,7 +10,7 @@ import { Link } from '@/components/ui/link'
 import { bookCall, footerNav } from '@/lib/navigation'
 
 import { focusWindow } from './actions'
-import { DockIcon, DockIconDefs } from './dock-icons'
+import { DockIcon } from './dock-icons'
 import { genieIn, registerTile, registerViewport, useMeasure } from './genie'
 import {
   dismissMinimised,
@@ -130,7 +130,6 @@ export function WindowDock() {
   return createPortal(
     <>
       <div ref={setViewportRef} aria-hidden="true" className={s.viewport} />
-      <DockIconDefs />
       <nav
         aria-label="Dock"
         className={s.dock}
