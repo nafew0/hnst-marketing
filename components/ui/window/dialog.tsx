@@ -8,7 +8,8 @@ import { openPrivacyPreferences } from '@/components/forms/privacy'
 import { useDeviceTier } from '@/components/motion/device-tier'
 import { HomeBar, PhoneAppBar } from '@/components/ui/phone/bars'
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
-import { iconOf, takeLaunch } from '@/components/ui/phone/store'
+import { phoneTitle } from '@/components/ui/phone/registry'
+import { iconOf, takeLaunch, usePhone } from '@/components/ui/phone/store'
 import { clearZoom, zoomHome, zoomOpen } from '@/components/ui/phone/zoom'
 import { worldHost, WorldSky } from '@/components/world'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
@@ -80,7 +81,8 @@ export function WindowDialog() {
   const [setMeasureRef, measure] = useMeasure()
   const open = active !== undefined
   const { isMobile } = useDeviceDetection()
-  const phone = PHONE_LAYOUT && isMobile === true
+  const classic = usePhone((state) => state.classic)
+  const phone = PHONE_LAYOUT && isMobile === true && !classic
 
   // Phone layout: an app tapped on the home screen grows out of its icon.
   // Before paint, so it never shows at full size first.
@@ -166,7 +168,7 @@ export function WindowDialog() {
           {PHONE_LAYOUT && (
             <PhoneAppBar
               className="mobile-only"
-              title={active?.title ?? ''}
+              title={active ? phoneTitle(active.href, active.title) : ''}
               onAction={() => {
                 if (windowDepth() > 1) history.back()
                 else goHome()
@@ -175,7 +177,13 @@ export function WindowDialog() {
             />
           )}
           {/* Hidden on phones in the phone layout; `contents` keeps it sticky. */}
-          <div className={PHONE_LAYOUT ? 'contents desktop-only' : 'contents'}>
+          <div
+            className={
+              PHONE_LAYOUT
+                ? cn('contents desktop-only', s.classicShow)
+                : 'contents'
+            }
+          >
             <TitleBar
               title={active?.title ?? ''}
               titleId={titleId}

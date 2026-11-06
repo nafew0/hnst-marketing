@@ -254,7 +254,7 @@
 
   .bar {
     position: sticky;
-    top: var(--header-height);
+    top: calc(var(--header-height) + var(--classic-bar, 0px));
     z-index: 10;
   }
 
@@ -287,19 +287,33 @@
    bar and home indicator, opens out of its icon (zoom.ts) instead of rising,
    and has no macOS dock to keep clear. */
 @media (--mobile) {
-  .window[data-phone] {
+  :global(html:not([data-phone-classic])) .window[data-phone] {
     transition: none;
   }
 
   /* A size container, so the world's sky can match the pane (world.module.css). */
-  .window[data-phone] .scroller {
+  :global(html:not([data-phone-classic])) .window[data-phone] .scroller {
     padding-bottom: 0;
     container-type: size;
   }
 
-  :global(body):has(.window[data-phone]:not([hidden])) .backdrop {
+  :global(html:not([data-phone-classic]) body):has(
+      .window[data-phone]:not([hidden])
+    )
+    .backdrop {
     display: none;
   }
+
+  /* The classic website's address bar sits above everything (M5). */
+  :global(html[data-phone-classic]) .window {
+    top: var(--classic-bar, 0px);
+  }
+}
+
+/* The classic website shows the macOS-style title bar on phones too (M5),
+   over \`desktop-only\` by specificity. */
+:global(html[data-phone-classic]) .classicShow {
+  display: contents !important;
 }
 
 /* A direct visit's body: no box of its own, except as a phone app's scroller. */
@@ -311,11 +325,11 @@
    The page scrolls inside it, between the bar and the home indicator, over the
    header, footer and corner Privacy pill (the bar has its own Privacy). */
 @media (--mobile) {
-  :global(html):has(.direct[data-phone]) {
+  :global(html:not([data-phone-classic])):has(.direct[data-phone]) {
     overflow: hidden;
   }
 
-  .direct[data-phone] {
+  :global(html:not([data-phone-classic])) .direct[data-phone] {
     position: fixed;
     inset: 0;
     z-index: 60;
@@ -324,7 +338,7 @@
     height: 100dvh;
   }
 
-  .direct[data-phone] > .directBody {
+  :global(html:not([data-phone-classic])) .direct[data-phone] > .directBody {
     position: relative;
     display: block;
     flex: 1;

@@ -1,0 +1,303 @@
+/* Packages on the phone: an App Store-style store, in the brand's gold. */
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 200px;
+  padding: 20px;
+  border: 1px solid color-mix(in oklab, var(--color-gold) 40%, transparent);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      in oklab 120% 90% at 85% 0%,
+      color-mix(in oklab, var(--color-gold) 38%, transparent),
+      transparent
+    ),
+    linear-gradient(
+      in oklab 160deg,
+      var(--color-nebula-deep),
+      var(--color-void-deep)
+    );
+  color: var(--color-starlight);
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-starlight);
+    outline-offset: 3px;
+  }
+}
+
+.featureEyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+.featureName {
+  font-family: var(--next-font-display);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.featureSummary {
+  font-size: 15px;
+  color: var(--color-silver);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 10px;
+
+  & + & {
+    border-top: 1px solid
+      color-mix(in oklab, var(--color-starlight) 10%, transparent);
+  }
+}
+
+.rowLink {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 56px;
+  border-radius: 14px;
+  color: inherit;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-starlight);
+    outline-offset: 2px;
+  }
+}
+
+.tierIcon,
+.tierIconPage {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--color-gold) 30%, transparent);
+  background: linear-gradient(
+    in oklab 160deg,
+    var(--color-nebula-deep),
+    var(--color-void-deep)
+  );
+  font-family: var(--next-font-display);
+  font-weight: 600;
+  color: var(--color-gold);
+
+  &[data-highlight] {
+    background: linear-gradient(
+      in oklab 160deg,
+      var(--color-gold-metal-3),
+      var(--color-gold-metal-1)
+    );
+    color: var(--color-void-deep);
+  }
+}
+
+.tierIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  font-size: 28px;
+}
+
+.tierIconPage {
+  width: 104px;
+  height: 104px;
+  border-radius: 24px;
+  font-size: 52px;
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowName {
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowSummary {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-silver);
+}
+
+/* Where the App Store has "Get": the price, as a gold pill. */
+.priceButton {
+  flex: none;
+  min-width: 72px;
+  min-height: 36px;
+  padding-inline: 14px;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--color-gold) 18%, transparent);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-gold);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-starlight);
+    outline-offset: 2px;
+  }
+
+  @media (--motion-ok) {
+    transition: transform 120ms var(--ease-out-expo);
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+.note {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-silver);
+  text-wrap: pretty;
+}
+
+.interest {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid
+    color-mix(in oklab, var(--color-starlight) 12%, transparent);
+}
+
+.interestTitle {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* A package's page. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px 16px 32px;
+  color: var(--color-starlight);
+}
+
+.pageHead {
+  display: flex;
+  gap: 16px;
+}
+
+.pageTitle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pageName {
+  font-family: var(--next-font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.pageTurnaround {
+  font-size: 14px;
+  color: var(--color-silver);
+}
+
+.sectionTitle {
+  margin-bottom: 10px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* "Screenshots": the deliverables, drawn as tall cards that scroll sideways. */
+.shots {
+  display: flex;
+  gap: 12px;
+  margin-inline: -16px;
+  padding-inline: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.shot {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 168px;
+  height: 260px;
+  padding: 16px;
+  border: 1px solid color-mix(in oklab, var(--color-gold) 26%, transparent);
+  border-radius: 20px;
+  scroll-snap-align: start;
+  background: linear-gradient(
+    in oklab 170deg,
+    var(--color-nebula-deep),
+    var(--color-void-deep)
+  );
+
+  &[data-tone='1'] {
+    background: linear-gradient(
+      in oklab 170deg,
+      color-mix(in oklab, var(--color-gold) 30%, var(--color-void-deep)),
+      var(--color-void-deep)
+    );
+  }
+
+  &[data-tone='2'] {
+    background: linear-gradient(
+      in oklab 170deg,
+      var(--color-void-2),
+      var(--color-nebula-deep)
+    );
+  }
+
+  &[data-tone='3'] {
+    background: linear-gradient(
+      in oklab 170deg,
+      color-mix(in oklab, var(--color-nebula-glow) 40%, var(--color-void-deep)),
+      var(--color-void-deep)
+    );
+  }
+}
+
+.shotNumber {
+  font-family: var(--next-font-display);
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
+.shotTitle {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-wrap: balance;
+}

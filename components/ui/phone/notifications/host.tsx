@@ -5,7 +5,9 @@ import { useEffect, useRef } from 'react'
 import { useWindows } from '@/components/ui/window/store'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 
+import { ClassicBar } from '../classic'
 import type { PhoneSettings } from '../settings'
+import { syncClassic, usePhone } from '../store'
 import { NotificationBanner } from './banner'
 import { NotificationCentre } from './centre'
 import { notify, setPhoneSettings, useNotifications } from './store'
@@ -25,8 +27,10 @@ export function PhoneHost({ settings }: { settings: PhoneSettings }) {
   const banner = useNotifications((state) => state.banner)
   const activeHref = useWindows((state) => state.activeHref)
   const previous = useRef<string | null>(null)
+  const classic = usePhone((state) => state.classic)
 
   useEffect(() => setPhoneSettings(settings), [settings])
+  useEffect(() => syncClassic(), [])
 
   // Left Packages for anything but booking: offer a call about it.
   useEffect(() => {
@@ -36,6 +40,8 @@ export function PhoneHost({ settings }: { settings: PhoneSettings }) {
   }, [activeHref, isMobile])
 
   if (!isMobile) return null
+  // The classic website is today's mobile site: no phone notifications.
+  if (classic) return <ClassicBar />
   return (
     <>
       <NotificationBanner />

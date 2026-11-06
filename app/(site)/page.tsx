@@ -4,7 +4,7 @@ import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
 import { PhoneHome } from '@/components/ui/phone/home'
 import { loadPhoneContent } from '@/components/ui/phone/load'
 
-export default function Home() {
+export default async function Home() {
   return (
     <Wrapper theme="dark" lenis={{}} safariEdges>
       {PHONE_LAYOUT && (
@@ -13,7 +13,7 @@ export default function Home() {
           <noscript>
             <style>{'[data-phone-home]{display:none!important}'}</style>
           </noscript>
-          <PhoneHome content={loadPhoneContent()} />
+          <PhoneHome content={await loadPhoneContent()} />
         </>
       )}
       <HomeSections />

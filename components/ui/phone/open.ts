@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/window/store'
 
 import { type PhoneApp, phoneOnlyHref } from './registry'
-import { launchFrom, openStory } from './store'
+import { enterClassic, launchFrom, openStory } from './store'
 
 /** Where an app's window lives, or null for apps that open no window. */
 export function appHref(app: PhoneApp) {
@@ -28,8 +28,12 @@ export function appHref(app: PhoneApp) {
 export function useOpenApp() {
   const router = useRouter()
   return (app: PhoneApp, icon: Box | null = null) => {
-    if (app.opens.kind === 'story' || app.opens.kind === 'classic') {
+    if (app.opens.kind === 'story') {
       openStory()
+      return
+    }
+    if (app.opens.kind === 'classic') {
+      enterClassic()
       return
     }
     const href = appHref(app)

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 
+import { PackageDetailApp } from '@/components/apps/packages'
 import { PackageDetailContent } from '@/components/sections/standard/pages/package-detail'
+import { PhoneView } from '@/components/ui/phone/view'
 import { WindowPage } from '@/components/ui/window'
 import { getPackages, readContext } from '@/lib/cms/data'
 import { routeAlternates } from '@/lib/seo/alternates'
@@ -29,7 +31,9 @@ export default async function PackagePage({ params }: Props) {
   const item = (await getPackages()).find((p) => p.tier === tier)
   return (
     <WindowPage href={`/packages/${tier}`} title={item?.name ?? 'Package'}>
-      <PackageDetailContent tier={tier} />
+      <PhoneView phone={<PackageDetailApp tier={tier} />}>
+        <PackageDetailContent tier={tier} />
+      </PhoneView>
     </WindowPage>
   )
 }

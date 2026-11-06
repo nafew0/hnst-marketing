@@ -213,3 +213,15 @@ export function socialNetworkOf(url: string): SocialNetwork | undefined {
     )
   )
 }
+
+/**
+ * The phone's name for a page: its app's label ("Photos" for `/proof`), or
+ * the page's own title when no app owns it. Tier pages keep their own name.
+ */
+export function phoneTitle(href: string, pageTitle: string) {
+  const app = PHONE_APPS.find(
+    (candidate) =>
+      candidate.opens.kind === 'route' && candidate.opens.href === href
+  )
+  return app?.label ?? pageTitle
+}

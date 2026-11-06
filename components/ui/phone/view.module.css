@@ -1,0 +1,24 @@
+/*
+ * PhoneView's two halves: the page for computers and the classic website,
+ * the app for phones. `display: contents` so neither adds a box.
+ */
+.page,
+.app {
+  display: contents;
+}
+
+@media (--mobile) {
+  :global(html:not([data-phone-classic])) .page {
+    display: none;
+  }
+}
+
+@media (--desktop) {
+  .app {
+    display: none;
+  }
+}
+
+:global(html[data-phone-classic]) .app {
+  display: none;
+}

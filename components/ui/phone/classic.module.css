@@ -1,0 +1,71 @@
+/*
+ * The classic website (docs/phases/M5.md): with `data-phone-classic` on
+ * <html>, a phone gets today's mobile pages under a slim address bar. The
+ * phone surfaces step aside in their own modules; this moves the page down.
+ */
+@media (--mobile) {
+  :global(html[data-phone-classic]) {
+    --classic-bar: 40px;
+  }
+
+  :global(html[data-phone-classic] body) {
+    padding-top: var(--classic-bar);
+  }
+}
+
+@layer components {
+  .bar {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: var(--classic-bar, 40px);
+    padding-inline: 8px 4px;
+    border-bottom: 1px solid
+      color-mix(in oklab, var(--color-starlight) 12%, transparent);
+    background: color-mix(in oklab, var(--color-void-2) 92%, transparent);
+    color: var(--color-starlight);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+  }
+
+  .address {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    & > svg {
+      flex: none;
+      width: 10px;
+      height: 12px;
+      fill: none;
+      stroke: var(--color-silver);
+      stroke-width: 1.2;
+    }
+  }
+
+  .pill {
+    flex: none;
+    min-height: 32px;
+    padding-inline: 12px;
+    border-radius: 16px;
+    background: color-mix(in oklab, var(--color-gold) 18%, transparent);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-gold);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 2px;
+    }
+  }
+}

@@ -15,6 +15,7 @@ import { openPrivacyPreferences } from '@/components/forms/privacy'
 import { useDeviceTier } from '@/components/motion/device-tier'
 import { HomeBar, PhoneAppBar } from '@/components/ui/phone/bars'
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
+import { phoneTitle } from '@/components/ui/phone/registry'
 import { worldHost, WorldSky } from '@/components/world'
 
 import { TitleBar } from './controls'
@@ -80,14 +81,18 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
       {PHONE_LAYOUT && (
         <PhoneAppBar
           className="mobile-only"
-          title={title}
+          title={phoneTitle(href, title)}
           href="/"
           onAction={homeKeepingPage}
           onPrivacy={openPrivacyPreferences}
         />
       )}
       {/* Hidden on phones in the phone layout; `contents` keeps it sticky. */}
-      <div className={PHONE_LAYOUT ? 'contents desktop-only' : 'contents'}>
+      <div
+        className={
+          PHONE_LAYOUT ? cn('contents desktop-only', s.classicShow) : 'contents'
+        }
+      >
         <TitleBar
           home
           title={title}

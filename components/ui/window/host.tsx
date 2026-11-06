@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { useEffect } from 'react'
 
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
+import { usePhone } from '@/components/ui/phone/store'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { pauseDrawing } from '@/webgl/utils/awake'
 
@@ -32,7 +33,8 @@ export function WindowHost() {
   const lenis = useLenis()
   const { isMobile } = useDeviceDetection()
   // The phone layout's home screen has its own dock (docs/phases/M1.md).
-  const dock = !PHONE_LAYOUT || isMobile === false
+  const classic = usePhone((state) => state.classic)
+  const dock = !PHONE_LAYOUT || isMobile === false || classic
 
   useEffect(() => {
     if (routeHref !== null) return

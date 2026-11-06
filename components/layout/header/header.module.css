@@ -1,6 +1,7 @@
 .header {
   position: fixed;
-  inset: 0 0 auto;
+  /* Under the phone layout's classic-website bar when it shows (M5). */
+  inset: var(--classic-bar, 0px) 0 auto;
   z-index: 20;
   height: var(--header-height);
   /* Legible over any hero without a solid bar. */
