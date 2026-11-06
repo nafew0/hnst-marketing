@@ -1,6 +1,7 @@
 import { getPayload } from 'payload'
 
 import { legalSlugs, packageSeeds, richText } from '@/lib/cms/seed-data'
+import { seedPhone } from '@/lib/cms/seed-phone'
 import config from '@/payload.config'
 /** Idempotent and additive: never replace an editor's existing content. */
 export async function seed() {
@@ -159,6 +160,7 @@ export async function seed() {
           'Third-party tools and subscriptions are paid separately. Confirm your package’s current tool requirements and costs before purchase.',
       },
     })
+  await seedPhone(cms)
   await cms.destroy()
   console.log(
     'CMS seed completed. Existing records were preserved; legal and FAQ content remains draft.'
