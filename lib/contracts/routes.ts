@@ -5,6 +5,9 @@ export const apiRoutes = {
   bookings: '/api/v1/bookings',
   events: '/api/v1/events',
   offers: '/api/v1/offers',
+  wall: '/api/v1/wall',
+  wallReport: '/api/v1/wall/report',
+  wallRemove: '/api/v1/wall/remove',
 } as const
 
 /** GHL workflow Custom Webhook target; `:key` is GHL_WORKFLOW_SECRET. */

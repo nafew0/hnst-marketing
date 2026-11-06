@@ -430,6 +430,108 @@
         },
         "required": ["packages"]
       },
+      "WallPending": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["pending"]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "removeToken": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 128,
+            "pattern": "^[\\w-]+$/u"
+          }
+        },
+        "required": ["status", "id", "removeToken"]
+      },
+      "WallPost": {
+        "type": "object",
+        "properties": {
+          "consentText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "adult": {
+            "type": "string",
+            "enum": ["true"]
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "altcha": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "The photo: JPEG, PNG, WebP or HEIC, at most 8 MB"
+          }
+        },
+        "required": ["consentText", "adult", "altcha", "image"]
+      },
+      "WallPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "src": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "width": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0
+                },
+                "height": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0
+                },
+                "displayName": {
+                  "type": ["string", "null"],
+                  "maxLength": 40
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "src",
+                "width",
+                "height",
+                "displayName",
+                "createdAt"
+              ]
+            },
+            "maxItems": 30
+          },
+          "nextCursor": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": ["items", "nextCursor"]
+      },
       "GhlWorkflowEvent": {
         "type": "object",
         "properties": {
@@ -699,6 +801,241 @@
           },
           "503": {
             "description": "upstream_unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wall": {
+      "post": {
+        "summary": "Post a photo to the wall (hidden until an editor approves it)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "Idempotency-Key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "description": "The photo and the visitor’s consent",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/WallPost"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Stored as pending; a repeated key replays this",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WallPending"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_failed, captcha_failed or idempotency_key_missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "validation_failed: the photo is too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "validation_failed: not a JPEG, PNG, WebP or HEIC photo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Approved wall photos, newest first",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of approved photos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WallPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_failed: unknown cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wall/report": {
+      "post": {
+        "summary": "Report a wall photo",
+        "requestBody": {
+          "description": "The photo reported",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": ["id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Counted"
+          },
+          "400": {
+            "description": "validation_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wall/remove": {
+      "post": {
+        "summary": "Remove your own wall photo with its removal token",
+        "requestBody": {
+          "description": "The photo and its token",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "token": {
+                    "type": "string",
+                    "minLength": 32,
+                    "maxLength": 128,
+                    "pattern": "^[\\w-]+$/u"
+                  }
+                },
+                "required": ["id", "token"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Removed"
+          },
+          "400": {
+            "description": "validation_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found: wrong id or token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
             "content": {
               "application/json": {
                 "schema": {

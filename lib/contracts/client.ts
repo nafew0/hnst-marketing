@@ -15,6 +15,13 @@ import {
   queuedSchema,
   type SlotsQuery,
   slotsResponseSchema,
+  wallFormData,
+  wallPageSchema,
+  wallPendingSchema,
+  type WallPostInput,
+  type WallQuery,
+  type WallRemoveInput,
+  type WallReportInput,
 } from '.'
 import { mocksReady } from './mocks/ready'
 
@@ -50,12 +57,13 @@ async function request<S extends z.ZodType>(
   init: RequestInit = {}
 ): Promise<ApiResult<z.output<S>>> {
   await mocksReady()
+  const headers = new Headers(init.headers)
+  // A multipart body sets its own Content-Type, with the boundary.
+  if (!(init.body instanceof FormData) && !headers.has('Content-Type'))
+    headers.set('Content-Type', 'application/json')
   let response: Response
   try {
-    response = await fetch(path, {
-      ...init,
-      headers: { 'Content-Type': 'application/json', ...init.headers },
-    })
+    response = await fetch(path, { ...init, headers })
   } catch {
     return { ok: false, status: 0, error: NETWORK_ERROR }
   }
@@ -121,6 +129,34 @@ export const api = {
     }),
 
   getOffers: () => request(apiRoutes.offers, offersResponseSchema),
+
+  /** 202 → pending until an editor approves it. Keep `removeToken` for the visitor. */
+  postWallPhoto: (input: WallPostInput, idempotencyKey: string) =>
+    request(apiRoutes.wall, wallPendingSchema, {
+      method: 'POST',
+      body: wallFormData(input),
+      headers: { [IDEMPOTENCY_HEADER]: idempotencyKey },
+    }),
+
+  getWall: ({ cursor }: WallQuery = {}) =>
+    request(
+      cursor
+        ? `${apiRoutes.wall}?${new URLSearchParams({ cursor })}`
+        : apiRoutes.wall,
+      wallPageSchema
+    ),
+
+  reportWallPhoto: (input: WallReportInput) =>
+    request(apiRoutes.wallReport, z.undefined(), {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  removeWallPhoto: (input: WallRemoveInput) =>
+    request(apiRoutes.wallRemove, z.undefined(), {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 }
 
 export function newIdempotencyKey() {
