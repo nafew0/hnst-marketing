@@ -52,7 +52,12 @@ interface Viewable {
   image?: PhoneImage
   /** A world's loop: its poster is `image`. */
   loop?: { src: string; focus: string }
-  /** Set for wall photos, which can be reported. */
+  /**
+   * Set for wall photos, which can be reported. They skip the image
+   * optimizer, which would cache a copy for 30 days (`minimumCacheTTL`) and
+   * keep serving it after moderation hides or removes the photo. The file is
+   * already a WebP of at most 1600 px, served `no-store`.
+   */
   wallId?: string
 }
 
@@ -114,6 +119,7 @@ function ViewerMedia({ item, motion }: { item: Viewable; motion: boolean }) {
         height={item.image.height}
         mobileSize="100vw"
         desktopSize="60vw"
+        unoptimized={item.wallId !== undefined}
         className={s.viewerImage}
       />
     )
@@ -277,6 +283,7 @@ function Grid({
                 mobileSize="34vw"
                 desktopSize="10vw"
                 objectFit="cover"
+                unoptimized={item.wallId !== undefined}
               />
             ) : (
               <span className={s.thumbPlaceholder}>{item.title}</span>

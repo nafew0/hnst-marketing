@@ -145,7 +145,7 @@ export default async function AppLayout({
                 {windowSlot}
                 <WindowHost />
                 {PHONE_LAYOUT && (
-                  <PhoneHost settings={loadPhoneContent().settings} />
+                  <PhoneHost settings={(await loadPhoneContent()).settings} />
                 )}
               </DeviceTierProvider>
             </TransformProvider>
