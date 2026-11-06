@@ -1,0 +1,44 @@
+.lab {
+  max-width: 640px;
+  margin-inline: auto;
+  padding-top: calc(var(--header-height) + 24px);
+}
+
+.note {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--color-silver);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.triggerRow {
+  padding: 4px 16px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 15px;
+  color: var(--color-silver);
+}
+
+.input {
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 1px solid color-mix(in oklab, var(--color-starlight) 24%, transparent);
+  border-radius: 10px;
+  background: var(--color-void-2);
+  color: var(--color-starlight);
+}
