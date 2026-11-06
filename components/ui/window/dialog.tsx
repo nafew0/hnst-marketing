@@ -43,6 +43,9 @@ function Pane({ entry, active }: { entry: WindowEntry; active: boolean }) {
 
   return (
     // Takes focus when a page opens, so the arrow keys scroll it straight away.
+    // Not a Tab stop: jsx-a11y forbids tabIndex 0 on a non-interactive element,
+    // and every real page has links in it. A page with nothing focusable (the
+    // CMS's empty fallback) fails axe's scrollable-region-focusable (M2 report).
     <div
       ref={ref}
       className={cn(s.scroller, worldHost)}
