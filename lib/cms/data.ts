@@ -3,6 +3,10 @@ import { draftMode, headers } from 'next/headers'
 import { getPayload } from 'payload'
 import { cache } from 'react'
 
+import {
+  PHONE_SETTINGS_DRAFT,
+  phoneSettingsSchema,
+} from '@/components/ui/phone/settings'
 import { env } from '@/lib/env'
 export const getCms = cache(async () => {
   if (!env.DATABASE_URL || !env.PAYLOAD_SECRET) return null
@@ -113,4 +117,37 @@ export const getSettings = cache(async () => {
       overrideAccess: false,
     })
   return getPublishedSettings()
+})
+
+/** M2 consumes this boundary; missing/old CMS data remains explicitly unapproved. */
+export const getPhoneSettings = cache(async () => {
+  const settings = await getSettings()
+  const parsed = phoneSettingsSchema.safeParse(settings?.phone)
+  return parsed.success ? parsed.data : PHONE_SETTINGS_DRAFT
+})
+
+/** Published-only boundary for M2's static home and shell; never reads draftMode. */
+export const getPublishedPhoneContent = cache(async () => {
+  const settings = await getPublishedSettings()
+  const parsed = phoneSettingsSchema.safeParse(settings?.phone)
+  return {
+    settings: parsed.success ? parsed.data : PHONE_SETTINGS_DRAFT,
+    socialLinks: settings?.socialLinks ?? [],
+  }
+})
+
+export const getPhoneNotes = cache(async () => {
+  const ctx = await readContext()
+  if (!ctx) return []
+  return (
+    await ctx.cms.find({
+      collection: 'phoneNotes',
+      overrideAccess: false,
+      user: ctx.user,
+      draft: ctx.preview,
+      where: ctx.preview ? {} : { _status: { equals: 'published' } },
+      sort: 'order',
+      limit: 100,
+    })
+  ).docs
 })

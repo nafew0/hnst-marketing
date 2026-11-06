@@ -15,6 +15,8 @@ import {
   SiteSettings,
   Users,
 } from '@/lib/cms/collections'
+import { PhoneNotes } from '@/lib/cms/phone-notes'
+import { WallPhotos } from '@/lib/cms/wall-photos'
 import { APP_BASE_URL, env } from '@/lib/env'
 export default buildConfig({
   // Importable during unconfigured builds; requests are guarded separately.
@@ -25,7 +27,16 @@ export default buildConfig({
     user: 'users',
     importMap: { baseDir: path.resolve('.'), autoGenerate: false },
   },
-  collections: [Users, Packages, LegalDocs, FAQs, Pages, Media],
+  collections: [
+    Users,
+    Packages,
+    LegalDocs,
+    FAQs,
+    Pages,
+    Media,
+    WallPhotos,
+    PhoneNotes,
+  ],
   globals: [SiteSettings],
   editor: lexicalEditor(),
   sharp,
