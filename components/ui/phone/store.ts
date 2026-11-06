@@ -10,15 +10,42 @@ interface PhoneState {
   launch: string | null
   /** Where each tapped icon sat, so going home can zoom back into it. */
   icons: Record<string, Box>
+  /**
+   * The lock screen is up. Null until the home screen checks on mount, so the
+   * server's HTML (lock shown, or hidden by the layout's script) hydrates as is.
+   */
+  locked: boolean | null
 }
 
 export const usePhone = create<PhoneState>(() => ({
   story: false,
   launch: null,
   icons: {},
+  locked: null,
 }))
 
 const { getState, setState } = usePhone
+
+/** The flag the layout's script reads before paint; it holds no visitor input. */
+export const UNLOCKED_KEY = 'hnst-phone-unlocked'
+const UNLOCKED_ATTRIBUTE = 'data-phone-unlocked'
+
+/** Whether the lock screen should be up now, once the page is in the browser. */
+export function syncLocked(lockScreen: boolean) {
+  const unlocked =
+    !lockScreen || document.documentElement.hasAttribute(UNLOCKED_ATTRIBUTE)
+  setState({ locked: !unlocked })
+}
+
+export function unlock() {
+  try {
+    sessionStorage.setItem(UNLOCKED_KEY, '1')
+  } catch {
+    // Storage blocked: it unlocks for this page view only.
+  }
+  document.documentElement.setAttribute(UNLOCKED_ATTRIBUTE, '')
+  setState({ locked: false })
+}
 
 export function openStory() {
   setState({ story: true })

@@ -5,12 +5,16 @@ import '@/lib/styles/css/index.css'
 import { TransformProvider } from 'hamo'
 import type { Metadata, Viewport } from 'next'
 import { draftMode } from 'next/headers'
+import Script from 'next/script'
 import { type PropsWithChildren, type ReactNode, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
 import { PrivacyControls } from '@/components/forms/privacy'
 import { DeviceTierProvider } from '@/components/motion/device-tier'
 import { Link } from '@/components/ui/link'
+import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
+import { loadPhoneContent } from '@/components/ui/phone/load'
+import { PhoneHost } from '@/components/ui/phone/notifications/host'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
 import { WindowHost } from '@/components/ui/window/host'
@@ -108,6 +112,14 @@ export default async function AppLayout({
       suppressHydrationWarning
     >
       <body>
+        {PHONE_LAYOUT && (
+          // Before paint: the lock screen shows once a session, and never when
+          // the visit starts anywhere but `/` (docs/phases/M2.md). The flag
+          // holds no visitor input.
+          <Script id="phone-lock" strategy="beforeInteractive">
+            {`try{var k='hnst-phone-unlocked';if(location.pathname!=='/'||/[?&]app=/.test(location.search))sessionStorage.setItem(k,'1');if(sessionStorage.getItem(k)==='1')document.documentElement.setAttribute('data-phone-unlocked','')}catch(e){}`}
+          </Script>
+        )}
         {/* On every page, not just home: deep pages are landed on directly far more often. */}
         <JsonLd data={organizationSchema()} />
         <JsonLd data={websiteSchema()} />
@@ -131,6 +143,9 @@ export default async function AppLayout({
                 {children}
                 {windowSlot}
                 <WindowHost />
+                {PHONE_LAYOUT && (
+                  <PhoneHost settings={loadPhoneContent().settings} />
+                )}
               </DeviceTierProvider>
             </TransformProvider>
             <ToastViewport />
