@@ -1,17 +1,14 @@
 /*
- * The phone home screen. iOS in layout (icon grid, glass dock, wallpaper),
- * the brand's in colour and type. Sits under any open window (100+).
+ * The phone home screen and lock screen. iOS in layout (icon grid, widgets,
+ * glass dock, wallpaper), the brand's in colour and type. Under any open
+ * window (100+), over the homepage story.
  */
 @layer components {
   .home {
     position: fixed;
     inset: 0;
     z-index: 90;
-    display: flex;
-    flex-direction: column;
     height: 100dvh;
-    padding: calc(env(safe-area-inset-top) + 64px) 18px
-      calc(env(safe-area-inset-bottom) + 12px);
     overflow: hidden;
     overscroll-behavior: contain;
     background: var(--color-void-deep);
@@ -40,6 +37,15 @@
     }
   }
 
+  .screenArea {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+    padding: calc(env(safe-area-inset-top) + 8px) 16px
+      calc(env(safe-area-inset-bottom) + 12px);
+  }
+
   .wallpaper {
     position: absolute;
     inset: 0;
@@ -52,26 +58,74 @@
       inset: 0;
       background: linear-gradient(
         in oklab 180deg,
-        color-mix(in oklab, var(--color-void-deep) 30%, transparent),
+        color-mix(in oklab, var(--color-void-deep) 40%, transparent),
         color-mix(in oklab, var(--color-void-deep) 10%, transparent) 40%,
         color-mix(in oklab, var(--color-void-deep) 55%, transparent)
       );
     }
   }
 
-  .wallpaperImage {
-    object-position: 42% 50%;
+  .wallpaperVideo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 600ms var(--ease-out-expo);
+  }
+
+  .isPlaying {
+    opacity: 1;
+  }
+
+  /* Today's date (the Notification Centre) and Privacy. */
+  .topRow {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topButton {
+    min-width: 44px;
+    min-height: 44px;
+    padding-inline: 10px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-starlight);
+    text-shadow: 0 1px 3px
+      color-mix(in oklab, var(--color-void-deep) 80%, transparent);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: -2px;
+    }
   }
 
   .screen {
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    row-gap: 22px;
+    row-gap: 20px;
     column-gap: 8px;
+  }
+
+  /* A widget is two columns wide and two icon rows tall. */
+  .widgetCell {
+    grid-row: span 2;
+    grid-column: span 2;
+
+    &:empty {
+      display: none;
+    }
   }
 
   .app {
@@ -154,6 +208,123 @@
     position: fixed;
     inset: auto 0 0;
     z-index: 80;
-    background: transparent;
+    background: linear-gradient(
+      in oklab 0deg,
+      color-mix(in oklab, var(--color-void-deep) 70%, transparent),
+      transparent
+    );
+  }
+
+  /* The lock screen, over the home screen once a session. */
+  .lock {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: calc(env(safe-area-inset-top) + 56px) 12px
+      calc(env(safe-area-inset-bottom) + 12px);
+    background: var(--color-void-deep);
+    touch-action: none;
+  }
+
+  /* Unlocked earlier this session, or the visit began elsewhere: before paint. */
+  :global(html[data-phone-unlocked]) .lock {
+    display: none;
+  }
+
+  .lockClock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-shadow: 0 2px 12px
+      color-mix(in oklab, var(--color-void-deep) 60%, transparent);
+  }
+
+  .lockDate {
+    min-height: 1.3em;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .lockTime {
+    min-height: 1em;
+    font-family: var(--next-font-display);
+    font-size: 84px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .lockCards {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 8px;
+    width: min(100%, 420px);
+  }
+
+  .lockCard {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid
+      color-mix(in oklab, var(--color-starlight) 14%, transparent);
+    border-radius: 20px;
+    background: color-mix(in oklab, var(--color-void-2) 66%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    backdrop-filter: blur(24px) saturate(1.6);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 2px;
+    }
+  }
+
+  .unlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-height: 56px;
+    padding: 8px 24px;
+    border-radius: 16px;
+    font-size: 14px;
+    color: var(--color-starlight);
+
+    & > svg {
+      width: 20px;
+      height: 12px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: -2px;
+    }
+
+    @media (--motion-ok) {
+      & > svg {
+        animation: nudge 1.8s var(--ease-out-expo) infinite;
+      }
+    }
+  }
+}
+
+@keyframes nudge {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(-4px);
   }
 }

@@ -14,6 +14,13 @@ declare global {
   }
 }
 
+// With the phone layout on, phones get the home screen and app frame instead
+// of these windows' phone form: e2e/phone-shell.e2e.ts covers them there.
+test.skip(
+  ({ isMobile }) => isMobile && process.env.NEXT_PUBLIC_PHONE_LAYOUT === '1',
+  'The phone layout replaces the windows on phones'
+)
+
 const MAIN_PAGES = [
   '/packages',
   '/how-it-works',

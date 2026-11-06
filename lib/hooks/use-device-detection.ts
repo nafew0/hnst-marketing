@@ -31,6 +31,19 @@ interface DeviceDetectionCache {
 
 const cache: DeviceDetectionCache = {}
 
+/** iPhone, iPod, or an iPad, which reports itself as a Mac with touch. */
+function detectIsIOS() {
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  )
+}
+
+/** iOS's own flag for a site opened from the home screen. */
+function detectIsIOSStandalone() {
+  return 'standalone' in navigator && navigator.standalone === true
+}
+
 function detectIsSafari() {
   cache.isSafari ??= /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
   return cache.isSafari
@@ -109,6 +122,8 @@ export function useDeviceDetection() {
   const isDesktop = useMediaQuery(`(min-width: ${breakpoint}px)`)
   const isReducedMotion = usePreferredReducedMotion()
   const isTouchOnly = useMediaQuery('(any-pointer: coarse) and (hover: none)')
+  // Opened from the home screen as an app (the manifest's `standalone`).
+  const isDisplayStandalone = useMediaQuery('(display-mode: standalone)')
   const { dpr } = useWindowSize()
 
   // Undefined on the server so SSR stays consistent; the real value on the
@@ -116,6 +131,16 @@ export function useDeviceDetection() {
   const isSafari = useSyncExternalStore(
     subscribeToStaticDetection,
     detectIsSafari,
+    getStaticDetectionServerSnapshot
+  )
+  const isIOS = useSyncExternalStore(
+    subscribeToStaticDetection,
+    detectIsIOS,
+    getStaticDetectionServerSnapshot
+  )
+  const isIOSStandalone = useSyncExternalStore(
+    subscribeToStaticDetection,
+    detectIsIOSStandalone,
     getStaticDetectionServerSnapshot
   )
   const supportsWebGL = useSyncExternalStore(
@@ -143,6 +168,12 @@ export function useDeviceDetection() {
     dpr,
     isWebGL,
     isSafari,
+    isIOS,
+    /** Running as an installed app, from the home screen. */
+    isStandalone:
+      isDisplayStandalone === undefined && isIOSStandalone === undefined
+        ? undefined
+        : isDisplayStandalone === true || isIOSStandalone === true,
     isAutoplaySupported,
   }
 }

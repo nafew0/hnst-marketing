@@ -1,6 +1,8 @@
 'use client'
 
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useId, useSyncExternalStore } from 'react'
+
+import type { PhoneAppId } from '@/components/ui/phone/registry'
 
 import s from './dock.module.css'
 
@@ -61,14 +63,6 @@ const SEAL = outline(
   })
 )
 
-/** Compass marks every 15°, longer on the 45s. */
-const TICKS = Array.from({ length: 24 }, (_, index) => {
-  const degrees = index * 15
-  const [x1, y1] = polar(index % 3 === 0 ? 29 : 31.5, degrees)
-  const [x2, y2] = polar(34.5, degrees)
-  return `M${x1.toFixed(2)} ${y1.toFixed(2)}L${x2.toFixed(2)} ${y2.toFixed(2)}`
-}).join('')
-
 /** A ray star of alternating long and short points. */
 const STAR = outline(
   Array.from({ length: 24 }, (_, index) => {
@@ -88,9 +82,12 @@ function Gradient({ id, from, to }: { id: string; from: string; to: string }) {
   )
 }
 
-/** One set of gradients for every icon. Zero-sized, not hidden: hiding breaks `url()`. */
+/**
+ * One set of gradients for every icon, for the dock and the phone home screen
+ * alike. Zero-sized, not hidden: hiding breaks `url()`. Server-safe, so icons
+ * have their colours on first paint; the calendar's date is the icon's own.
+ */
 export function DockIconDefs() {
-  const [today] = useState(() => new Date())
   return (
     <svg aria-hidden="true" focusable="false" className={s.defs}>
       <defs>
@@ -147,29 +144,6 @@ export function DockIconDefs() {
             stopOpacity="0"
           />
         </linearGradient>
-        {/* Here, not in the link: the date isn't part of the icon's name, "Book a call". */}
-        <text
-          id="dock-weekday"
-          x={CENTRE}
-          y="31"
-          textAnchor="middle"
-          fontSize="20"
-          fontWeight="600"
-          fill="var(--color-dock-red)"
-        >
-          {today.toLocaleDateString('en-US', { weekday: 'short' })}
-        </text>
-        <text
-          id="dock-day"
-          x={CENTRE}
-          y="77"
-          textAnchor="middle"
-          fontSize="50"
-          fontWeight="400"
-          fill="var(--color-dock-ink)"
-        >
-          {today.getDate()}
-        </text>
       </defs>
     </svg>
   )
@@ -276,21 +250,15 @@ function ProofIcon() {
   )
 }
 
+/** Who's behind HONEST: a profile in the brand's gold, not a compass. */
 function AboutIcon() {
   return (
-    <AppIcon tile="paper">
-      <circle cx={CENTRE} cy={CENTRE} r="37" fill="url(#dock-sky)" />
+    <AppIcon tile="indigo">
+      <circle cx={CENTRE} cy="38" r="13" fill="url(#dock-metal)" />
       <path
-        d={TICKS}
-        fill="none"
-        stroke="var(--color-dock-paper-1)"
-        strokeLinecap="round"
-        strokeWidth="1.4"
+        d="M24 77Q24 56 50 56T76 77Q76 80 73 80H27Q24 80 24 77Z"
+        fill="url(#dock-metal)"
       />
-      <g transform="rotate(42 50 50)">
-        <path d="M50 20 56 50H44Z" fill="var(--color-dock-red)" />
-        <path d="M50 80 56 50H44Z" fill="var(--color-dock-paper-1)" />
-      </g>
     </AppIcon>
   )
 }
@@ -347,12 +315,51 @@ function ContactIcon() {
   )
 }
 
-/** Today's date, as the macOS Calendar icon shows it. */
+const noChange = () => () => undefined
+const todayOnServer = () => null
+const todayHere = () => {
+  const today = new Date()
+  return `${today.toLocaleDateString('en-US', { weekday: 'short' })} ${today.getDate()}`
+}
+
+/**
+ * Today's date, as a calendar icon shows it. The visitor's own: blank in the
+ * server's HTML (its date and time zone may differ), filled in on hydration.
+ * Drawn through `<use>` from the icon's own defs, so the date isn't part of
+ * the app's accessible name (axe: label-content-name-mismatch).
+ */
 function BookIcon() {
+  const today = useSyncExternalStore(noChange, todayHere, todayOnServer)
+  const [weekday, day] = today?.split(' ') ?? []
+  const id = useId().replaceAll(/[^\w-]/gu, '')
   return (
     <AppIcon tile="paper">
-      <use href="#dock-weekday" />
-      <use href="#dock-day" />
+      <defs>
+        <text
+          id={`${id}-weekday`}
+          x={CENTRE}
+          y="31"
+          textAnchor="middle"
+          fontSize="20"
+          fontWeight="600"
+          fill="var(--color-dock-red)"
+        >
+          {weekday}
+        </text>
+        <text
+          id={`${id}-day`}
+          x={CENTRE}
+          y="77"
+          textAnchor="middle"
+          fontSize="50"
+          fontWeight="400"
+          fill="var(--color-dock-ink)"
+        >
+          {day}
+        </text>
+      </defs>
+      <use href={`#${id}-weekday`} />
+      <use href={`#${id}-day`} />
     </AppIcon>
   )
 }
@@ -378,6 +385,221 @@ function WindowIcon() {
       <circle cx="43" cy="31" r="2.6" fill="var(--color-window-zoom)" />
     </AppIcon>
   )
+}
+
+/** The phone's Camera: our own body and a gold lens. */
+function CameraIcon() {
+  return (
+    <AppIcon tile="graphite">
+      <rect
+        x="38"
+        y="25"
+        width="24"
+        height="12"
+        rx="4"
+        fill="url(#dock-paper)"
+      />
+      <rect
+        x="18"
+        y="32"
+        width="64"
+        height="44"
+        rx="9"
+        fill="url(#dock-paper)"
+      />
+      <circle cx={CENTRE} cy="54" r="15" fill="var(--color-dock-graphite-2)" />
+      <circle cx={CENTRE} cy="54" r="10" fill="url(#dock-metal)" />
+      <circle
+        cx="46"
+        cy="50"
+        r="3"
+        fill="var(--color-dock-paper-1)"
+        fillOpacity="0.7"
+      />
+      <circle cx="72" cy="41" r="3" fill="url(#dock-metal)" />
+    </AppIcon>
+  )
+}
+
+/** A ruled sheet with a gold pen. */
+function NotesIcon() {
+  return (
+    <AppIcon tile="rose">
+      <rect
+        x="24"
+        y="20"
+        width="46"
+        height="60"
+        rx="6"
+        fill="url(#dock-paper)"
+      />
+      <path
+        d="M32 36H62M32 47H62M32 58H52"
+        fill="none"
+        stroke="var(--color-dock-graphite-1)"
+        strokeLinecap="round"
+        strokeWidth="3"
+      />
+      <path
+        d="M58 74 78 44Q80 41 83 43T84 49L64 79 56 82Z"
+        fill="url(#dock-metal)"
+      />
+    </AppIcon>
+  )
+}
+
+/** The classic website: a globe, not a compass. */
+function WebsiteIcon() {
+  return (
+    <AppIcon tile="sky">
+      <g
+        fill="none"
+        stroke="var(--color-dock-paper-1)"
+        strokeLinecap="round"
+        strokeWidth="3.4"
+      >
+        <circle cx={CENTRE} cy={CENTRE} r="27" />
+        <ellipse cx={CENTRE} cy={CENTRE} rx="12" ry="27" />
+        <path d="M23 50H77M27 37H73M27 63H73" />
+      </g>
+    </AppIcon>
+  )
+}
+
+/** A photo of the brand's own world: night sky, gold sun, a dune. */
+function PhotosIcon() {
+  return (
+    <AppIcon tile="amber">
+      <rect
+        x="18"
+        y="24"
+        width="64"
+        height="52"
+        rx="7"
+        fill="url(#dock-paper)"
+      />
+      <rect
+        x="23"
+        y="29"
+        width="54"
+        height="42"
+        rx="4"
+        fill="url(#dock-indigo)"
+      />
+      <circle cx="62" cy="42" r="7" fill="url(#dock-metal)" />
+      <path d="M23 71V62Q38 50 52 60T77 58V71Z" fill="url(#dock-metal)" />
+    </AppIcon>
+  )
+}
+
+function InstagramIcon() {
+  return (
+    <AppIcon tile="rose">
+      <g fill="none" stroke="var(--color-dock-paper-1)" strokeWidth="5">
+        <rect x="27" y="27" width="46" height="46" rx="13" />
+        <circle cx={CENTRE} cy={CENTRE} r="11" />
+      </g>
+      <circle cx="62.5" cy="37.5" r="3.2" fill="var(--color-dock-paper-1)" />
+    </AppIcon>
+  )
+}
+
+function XIcon() {
+  return (
+    <AppIcon tile="graphite">
+      <path d="M28 26H40L72 74H60Z" fill="var(--color-dock-paper-1)" />
+      <path
+        d="M69 27 54 44M46 56 31 73"
+        fill="none"
+        stroke="var(--color-dock-paper-1)"
+        strokeLinecap="round"
+        strokeWidth="4"
+      />
+    </AppIcon>
+  )
+}
+
+function YouTubeIcon() {
+  return (
+    <AppIcon tile="paper">
+      <rect
+        x="20"
+        y="31"
+        width="60"
+        height="38"
+        rx="12"
+        fill="var(--color-dock-red)"
+      />
+      <path d="M44 40 61 50 44 60Z" fill="var(--color-dock-paper-1)" />
+    </AppIcon>
+  )
+}
+
+function TikTokIcon() {
+  return (
+    <AppIcon tile="graphite">
+      <g
+        fill="none"
+        stroke="var(--color-dock-paper-1)"
+        strokeLinecap="round"
+        strokeWidth="8"
+      >
+        <path d="M54 24V63" />
+        <circle cx="43" cy="64" r="11" />
+        <path d="M54 25Q57 37 70 39" />
+      </g>
+    </AppIcon>
+  )
+}
+
+function LinkedInIcon() {
+  return (
+    <AppIcon tile="sky">
+      <g fill="var(--color-dock-paper-1)">
+        <circle cx="33" cy="31" r="6" />
+        <rect x="28" y="42" width="10" height="32" rx="2" />
+        <path d="M46 42H56V47Q60 41 67 41Q76 41 76 53V74H66V56Q66 50 61 50Q56 50 56 57V74H46Z" />
+      </g>
+    </AppIcon>
+  )
+}
+
+/** Every app on the phone home screen, sharing the dock's art where it has one. */
+export function PhoneAppIcon({ id }: { id: PhoneAppId }) {
+  switch (id) {
+    case 'honest':
+      return <HomeIcon />
+    case 'calendar':
+      return <BookIcon />
+    case 'camera':
+      return <CameraIcon />
+    case 'packages':
+      return <PackagesIcon />
+    case 'how-it-works':
+      return <SettingsIcon />
+    case 'about':
+      return <AboutIcon />
+    case 'marketer':
+      return <MarketerIcon />
+    case 'instagram':
+      return <InstagramIcon />
+    case 'x':
+      return <XIcon />
+    case 'youtube':
+      return <YouTubeIcon />
+    case 'tiktok':
+      return <TikTokIcon />
+    case 'linkedin':
+      return <LinkedInIcon />
+    case 'photos':
+      return <PhotosIcon />
+    case 'browser':
+      return <WebsiteIcon />
+    case 'notes':
+      return <NotesIcon />
+    case 'mail':
+      return <ContactIcon />
+  }
 }
 
 /** A package tier shares its parent's box. */

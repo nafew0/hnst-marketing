@@ -11,10 +11,17 @@ let turnstileCalls = 0
 
 // `mock.module` replaces next/headers for every later test file in the same
 // process, so it must export everything the code under test anywhere imports.
-// Shopify cart actions import `cookies`; a missing export fails at import time.
+// Shopify cart actions import `cookies`, and the CMS loader (lib/cms/data,
+// reached lazily from lib/seo/routes) imports `draftMode`; a missing export
+// fails at import time, in whichever test file loads it next.
 void mock.module('next/headers', () => ({
   headers: async () => new Headers({ 'x-forwarded-for': '203.0.113.7' }),
   cookies: async () => new Map<string, { value: string }>(),
+  draftMode: async () => ({
+    isEnabled: false,
+    enable: () => undefined,
+    disable: () => undefined,
+  }),
 }))
 
 void mock.module('@/lib/integrations/turnstile', () => ({

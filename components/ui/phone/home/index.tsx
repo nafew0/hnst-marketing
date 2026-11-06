@@ -2,44 +2,39 @@
 
 import cn from 'clsx'
 import { useLenis } from 'lenis/react'
-import type { Route } from 'next'
-import { useRouter } from 'next/navigation'
-import { useEffect, useRef } from 'react'
+import { type PointerEvent, useEffect, useRef } from 'react'
 
-import { Image } from '@/components/ui/image'
+import { openPrivacyPreferences } from '@/components/forms/privacy'
 import { Link } from '@/components/ui/link'
-import { DockIcon } from '@/components/ui/window/dock-icons'
+import { PhoneAppIcon } from '@/components/ui/window/dock-icons'
 import { useMeasure } from '@/components/ui/window/genie'
-import {
-  parkActive,
-  setRestored,
-  useWindows,
-} from '@/components/ui/window/store'
+import { useWindows } from '@/components/ui/window/store'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 
 import { HomeBar } from '../bars'
-import { PHONE_APPS, type PhoneApp, phoneOnlyHref } from '../registry'
-import { launchFrom, openStory, showHome, usePhone } from '../store'
+import type { PhoneContent } from '../load'
+import { notify, setCentreOpen } from '../notifications/store'
+import { appHref, useOpenApp } from '../open'
+import { PHONE_APPS, type PhoneApp, socialNetworkOf } from '../registry'
+import { showHome, syncLocked, usePhone } from '../store'
+import { InstallWidget } from '../widgets/install'
+import { NextCallWidget } from '../widgets/next-call'
+import { useClock } from './clock'
+import { LockScreen } from './lock'
+import { Wallpaper } from './wallpaper'
 
 import s from './home.module.css'
 
-/** Where an app's window lives, or null for apps that open no window. */
-function hrefOf(app: PhoneApp) {
-  if (app.opens.kind === 'route') return app.opens.href
-  if (app.opens.kind === 'phone' && (app.id === 'camera' || app.id === 'notes'))
-    return phoneOnlyHref(app.id)
-  return null
-}
-
-/** The art for now: the dock's icons where a page has one (M2 draws the rest). */
-function iconKey(app: PhoneApp) {
-  if (app.opens.kind === 'story') return '/'
-  return hrefOf(app) ?? `#${app.id}`
-}
+/** How long the home screen sits idle before `home-idle`. */
+const IDLE_MS = 10_000
+/** A pull that starts this close to the top is the phone's own gesture. */
+const EDGE = 24
+/** How far down a pull must travel to open the Notification Centre, in px. */
+const PULL = 60
 
 function Tile({ app }: { app: PhoneApp }) {
-  const router = useRouter()
-  const href = hrefOf(app)
+  const openApp = useOpenApp()
+  const href = appHref(app)
   const [setMeasureRef, measure] = useMeasure()
   const minimised = useWindows((state) =>
     state.entries.some((entry) => entry.href === href && entry.minimised)
@@ -51,39 +46,19 @@ function Tile({ app }: { app: PhoneApp }) {
   )
   const icon = (
     <span ref={setMeasureRef} className={s.icon}>
-      <DockIcon href={iconKey(app)} />
+      <PhoneAppIcon id={app.id} />
     </span>
   )
 
-  // M5 builds the classic website; until then it opens the story too.
-  if (app.opens.kind === 'story' || app.opens.kind === 'classic')
+  // A button for the story, the classic site (M5) and apps kept in memory;
+  // otherwise a real link, so it works before hydration too.
+  if (!href || minimised)
     return (
       <button
         type="button"
         className={s.app}
         aria-label={app.name}
-        onClick={openStory}
-      >
-        {icon}
-        {label}
-      </button>
-    )
-
-  if (!href) return null
-
-  if (minimised)
-    return (
-      <button
-        type="button"
-        className={s.app}
-        aria-label={app.name}
-        onClick={() => {
-          launchFrom(href, measure())
-          parkActive()
-          setRestored(href)
-          // SAFETY: `href` is a window this layer opened before.
-          router.push(href as Route, { scroll: false })
-        }}
+        onClick={() => openApp(app, measure())}
       >
         {icon}
         {label}
@@ -95,10 +70,9 @@ function Tile({ app }: { app: PhoneApp }) {
       href={href}
       className={s.app}
       aria-label={app.name}
-      scroll={false}
-      onClick={() => {
-        launchFrom(href, measure())
-        parkActive()
+      onClick={(event) => {
+        event.preventDefault()
+        openApp(app, measure())
       }}
     >
       {icon}
@@ -107,22 +81,74 @@ function Tile({ app }: { app: PhoneApp }) {
   )
 }
 
-/** Social apps wait for real handles (M2): none exist yet, so none show. */
-const visible = (app: PhoneApp) => app.opens.kind !== 'social'
+function SocialTile({ app, url }: { app: PhoneApp; url: string }) {
+  return (
+    <Link
+      href={url}
+      className={s.app}
+      aria-label={`${app.name} (opens in a new tab)`}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span className={s.icon}>
+        <PhoneAppIcon id={app.id} />
+      </span>
+      <span className={s.label} aria-hidden="true">
+        {app.label}
+      </span>
+    </Link>
+  )
+}
+
+/** The top row: today's date, which opens the Notification Centre, and Privacy. */
+function TopRow() {
+  const clock = useClock()
+  return (
+    <div className={s.topRow}>
+      {/* Named by what it shows, then what it opens. */}
+      <button
+        type="button"
+        className={s.topButton}
+        onClick={() => setCentreOpen(true)}
+      >
+        {clock?.short ?? ''}
+        <span className="sr-only">
+          {clock ? ', notifications' : 'Notifications'}
+        </span>
+      </button>
+      <button
+        type="button"
+        className={s.topButton}
+        aria-label="Privacy choices"
+        onClick={openPrivacyPreferences}
+      >
+        Privacy
+      </button>
+    </div>
+  )
+}
 
 /**
- * The phone's home screen, over the homepage story on `/` (docs/phases/M1.md,
- * spike). Server-rendered and shown by CSS under the `dt:` breakpoint, so a
- * phone sees it on first paint; without JavaScript it is hidden and the story
- * reads as before.
+ * The phone's home screen, over the homepage story on `/` (docs/phases/M2.md).
+ * Server-rendered and shown by CSS under the `dt:` breakpoint, so a phone sees
+ * it on first paint; without JavaScript it is hidden and the story reads as
+ * before. The lock screen sits on top once a session.
  */
-export function PhoneHome() {
+export function PhoneHome({ content }: { content: PhoneContent }) {
+  const { settings, socialLinks } = content
   const ref = useRef<HTMLDivElement>(null)
   const story = usePhone((state) => state.story)
+  const locked = usePhone((state) => state.locked)
   const windowOpen = useWindows((state) => state.activeHref !== null)
   const { isMobile } = useDeviceDetection()
   const lenis = useLenis()
-  const covering = isMobile === true && !story && !windowOpen
+  const pullFrom = useRef<number | null>(null)
+  const phone = isMobile === true
+  const covering = phone && !story && !windowOpen
+  const homeUp = covering && locked === false
+  const lockUp = settings.lockScreen && locked !== false
+
+  useEffect(() => syncLocked(settings.lockScreen), [settings.lockScreen])
 
   // The story behind stays still and out of reach while the home screen
   // covers it. An open window does the same for itself (WindowHost).
@@ -144,8 +170,32 @@ export function PhoneHome() {
     }
   }, [covering, lenis])
 
-  const grid = PHONE_APPS.filter((app) => app.place === 'grid' && visible(app))
+  useEffect(() => {
+    if (!homeUp) return
+    const timer = setTimeout(() => notify('home-idle'), IDLE_MS)
+    return () => clearTimeout(timer)
+  }, [homeUp])
+
+  const socialUrl = (app: PhoneApp) =>
+    app.opens.kind === 'social'
+      ? socialLinks.find((link) => socialNetworkOf(link.url) === app.id)?.url
+      : undefined
+  const grid = PHONE_APPS.filter(
+    (app) =>
+      app.place === 'grid' && (app.opens.kind !== 'social' || socialUrl(app))
+  )
   const dock = PHONE_APPS.filter((app) => app.place === 'dock')
+
+  // Pull down from the top part of the home screen for the Notification Centre.
+  const onPointerDown = (event: PointerEvent) => {
+    pullFrom.current = event.clientY > EDGE ? event.clientY : null
+  }
+  const onPointerUp = (event: PointerEvent) => {
+    if (pullFrom.current === null) return
+    const travelled = event.clientY - pullFrom.current
+    pullFrom.current = null
+    if (travelled > PULL) setCentreOpen(true)
+  }
 
   return (
     <>
@@ -156,35 +206,57 @@ export function PhoneHome() {
         data-hidden={story || undefined}
         data-theme="dark"
       >
-        <div className={s.wallpaper} aria-hidden="true">
-          <Image
-            src="/worlds/lunar-walk.webp"
-            alt=""
-            fill
-            mobileSize="100vw"
-            desktopSize="1vw"
-            objectFit="cover"
-            className={s.wallpaperImage}
-          />
+        <Wallpaper active={homeUp} />
+        <div
+          className={s.screenArea}
+          inert={lockUp}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => {
+            pullFrom.current = null
+          }}
+        >
+          <TopRow />
+          <nav aria-label="Apps" className={s.screen}>
+            <ul className={s.grid}>
+              <li className={s.widgetCell}>
+                <NextCallWidget copy={settings.widgets} active={homeUp} />
+              </li>
+              <li className={s.widgetCell}>
+                <InstallWidget copy={settings.widgets} />
+              </li>
+              {grid.map((app) => {
+                const url = socialUrl(app)
+                return (
+                  <li key={app.id}>
+                    {url ? (
+                      <SocialTile app={app} url={url} />
+                    ) : (
+                      <Tile app={app} />
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+          <nav aria-label="Dock" className={s.dockArea}>
+            <ul className={s.dock}>
+              {dock.map((app) => (
+                <li key={app.id}>
+                  <Tile app={app} />
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
-        <nav aria-label="Apps" className={s.screen}>
-          <ul className={s.grid}>
-            {grid.map((app) => (
-              <li key={app.id}>
-                <Tile app={app} />
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <nav aria-label="Dock" className={s.dockArea}>
-          <ul className={s.dock}>
-            {dock.map((app) => (
-              <li key={app.id}>
-                <Tile app={app} />
-              </li>
-            ))}
-          </ul>
-        </nav>
+        {lockUp && (
+          <LockScreen
+            cards={settings.notifications.filter(
+              (item) => item.trigger === 'lock-first-visit' && item.enabled
+            )}
+            up={phone && locked === true && !windowOpen}
+          />
+        )}
       </div>
       {story && (
         <HomeBar

@@ -53,7 +53,7 @@
    to scroll to. Sized to the pane instead (window.module.css makes it a size
    container), still sticky. */
 @media (--mobile) {
-  :global([data-window][data-phone]) .sky {
+  :global(:is([data-window], [data-window-direct])[data-phone]) .sky {
     height: 100cqh;
     margin-bottom: -100cqh;
   }

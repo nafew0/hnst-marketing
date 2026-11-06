@@ -2,6 +2,7 @@ import { Wrapper } from '@/components/layout/wrapper'
 import { HomeSections } from '@/components/sections/signature/home-sections'
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
 import { PhoneHome } from '@/components/ui/phone/home'
+import { loadPhoneContent } from '@/components/ui/phone/load'
 
 export default function Home() {
   return (
@@ -12,7 +13,7 @@ export default function Home() {
           <noscript>
             <style>{'[data-phone-home]{display:none!important}'}</style>
           </noscript>
-          <PhoneHome />
+          <PhoneHome content={loadPhoneContent()} />
         </>
       )}
       <HomeSections />

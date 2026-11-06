@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react'
 
+import { openPrivacyPreferences } from '@/components/forms/privacy'
 import { useDeviceTier } from '@/components/motion/device-tier'
 import { HomeBar, PhoneAppBar } from '@/components/ui/phone/bars'
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
@@ -74,13 +75,15 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
       data-theme="dark"
       data-window-direct
       data-fullscreen={fullscreen || undefined}
+      data-phone={PHONE_LAYOUT || undefined}
     >
       {PHONE_LAYOUT && (
         <PhoneAppBar
-          className={cn('mobile-only', s.directPhoneBar)}
+          className="mobile-only"
           title={title}
           href="/"
           onAction={homeKeepingPage}
+          onPrivacy={openPrivacyPreferences}
         />
       )}
       {/* Hidden on phones in the phone layout; `contents` keeps it sticky. */}
@@ -106,14 +109,13 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
           }}
         />
       </div>
-      <WorldSky />
-      {children}
+      {/* On a phone in the phone layout, the frame's scroller; elsewhere, nothing. */}
+      <div className={s.directBody}>
+        <WorldSky />
+        {children}
+      </div>
       {PHONE_LAYOUT && (
-        <HomeBar
-          className={cn('mobile-only', s.directHome)}
-          href="/"
-          onAction={homeKeepingPage}
-        />
+        <HomeBar className="mobile-only" href="/" onAction={homeKeepingPage} />
       )}
     </div>
   )
