@@ -1,0 +1,18 @@
+/* Shared by the M1 placeholder apps until each owner builds the real one. */
+@layer components {
+  .placeholder {
+    display: grid;
+    min-height: 100%;
+    padding: 48px 24px;
+    place-content: center;
+    gap: 12px;
+    text-align: center;
+    color: var(--color-silver);
+  }
+
+  .title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--color-starlight);
+  }
+}

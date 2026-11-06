@@ -31,6 +31,11 @@ export function syncDepth() {
   }
 }
 
+/** How deep the open window is: 1 at the page it opened with. */
+export function windowDepth() {
+  return depth
+}
+
 export function resetDepth() {
   depth = 0
   stampedUrl = null

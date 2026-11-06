@@ -2,16 +2,22 @@
 
 import { Dialog } from '@base-ui/react/dialog'
 import cn from 'clsx'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 
 import { openPrivacyPreferences } from '@/components/forms/privacy'
 import { useDeviceTier } from '@/components/motion/device-tier'
+import { HomeBar, PhoneAppBar } from '@/components/ui/phone/bars'
+import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
+import { iconOf, takeLaunch } from '@/components/ui/phone/store'
+import { clearZoom, zoomHome, zoomOpen } from '@/components/ui/phone/zoom'
 import { worldHost, WorldSky } from '@/components/world'
+import { useDeviceDetection } from '@/hooks/use-device-detection'
 
 import { closeWindow, focusWindow, minimiseWindow } from './actions'
 import { TitleBar } from './controls'
 import { applyDraft } from './drafts'
 import { genieOut, registerSurface, useMeasure } from './genie'
+import { windowDepth } from './history'
 import {
   clearDraft,
   toggleFullscreen,
@@ -70,6 +76,34 @@ export function WindowDialog() {
   const [backdrop, setBackdrop] = useState<HTMLElement | null>(null)
   const [setMeasureRef, measure] = useMeasure()
   const open = active !== undefined
+  const { isMobile } = useDeviceDetection()
+  const phone = PHONE_LAYOUT && isMobile === true
+
+  // Phone layout: an app tapped on the home screen grows out of its icon.
+  // Before paint, so it never shows at full size first.
+  useLayoutEffect(() => {
+    if (!phone || !activeHref || !popup || !takeLaunch(activeHref)) return
+    const frame = measure()
+    const icon = iconOf(activeHref)
+    if (device?.motionMedia && frame && icon) void zoomOpen(popup, frame, icon)
+  }, [phone, activeHref, popup, measure, device?.motionMedia])
+
+  // Phone layout: home keeps the app as it is, like minimising, and shrinks
+  // it back into its icon on the way.
+  const goHome = () => {
+    if (!active) return
+    const frame = measure()
+    const icon = iconOf(active.href)
+    if (!device?.motionMedia || !popup || !frame || !icon) {
+      minimiseWindow(active)
+      return
+    }
+    void zoomHome(popup, frame, icon).then(() => {
+      minimiseWindow(active)
+      // After the dialog has hidden it, so it never flashes back at full size.
+      setTimeout(() => clearZoom(popup), 400)
+    })
+  }
 
   useEffect(() => {
     setMeasureRef(popup)
@@ -118,6 +152,7 @@ export function WindowDialog() {
           data-window
           data-fullscreen={fullscreen || undefined}
           data-static={device?.tier === 0 || undefined}
+          data-phone={PHONE_LAYOUT || undefined}
           aria-labelledby={titleId}
           initialFocus={() =>
             document.querySelector<HTMLElement>(
@@ -125,26 +160,40 @@ export function WindowDialog() {
             )
           }
         >
-          <TitleBar
-            title={active?.title ?? ''}
-            titleId={titleId}
-            fullscreen={fullscreen}
-            onClose={closeWindow}
-            onMinimise={() => {
-              if (!active) return
-              if (!device?.motionMedia || !popup) {
-                minimiseWindow(active)
-                return
-              }
-              void genieOut(
-                { element: popup, backdrop, measure },
-                active.href,
-                () => minimiseWindow(active)
-              )
-            }}
-            onToggleFullscreen={toggleFullscreen}
-            onPrivacy={openPrivacyPreferences}
-          />
+          {PHONE_LAYOUT && (
+            <PhoneAppBar
+              className="mobile-only"
+              title={active?.title ?? ''}
+              onAction={() => {
+                if (windowDepth() > 1) history.back()
+                else goHome()
+              }}
+              onPrivacy={openPrivacyPreferences}
+            />
+          )}
+          {/* Hidden on phones in the phone layout; `contents` keeps it sticky. */}
+          <div className={PHONE_LAYOUT ? 'contents desktop-only' : 'contents'}>
+            <TitleBar
+              title={active?.title ?? ''}
+              titleId={titleId}
+              fullscreen={fullscreen}
+              onClose={closeWindow}
+              onMinimise={() => {
+                if (!active) return
+                if (!device?.motionMedia || !popup) {
+                  minimiseWindow(active)
+                  return
+                }
+                void genieOut(
+                  { element: popup, backdrop, measure },
+                  active.href,
+                  () => minimiseWindow(active)
+                )
+              }}
+              onToggleFullscreen={toggleFullscreen}
+              onPrivacy={openPrivacyPreferences}
+            />
+          </div>
           <div className={s.panes}>
             {entries.map((entry) => (
               <Pane
@@ -154,6 +203,9 @@ export function WindowDialog() {
               />
             ))}
           </div>
+          {PHONE_LAYOUT && (
+            <HomeBar className="mobile-only" onAction={goHome} />
+          )}
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

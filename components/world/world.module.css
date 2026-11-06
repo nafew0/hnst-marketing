@@ -48,6 +48,17 @@
   }
 }
 
+/* Phone layout: a window's pane is shorter than the screen (its bars take
+   room), so a 100svh sky would make every page scroll a little, with nothing
+   to scroll to. Sized to the pane instead (window.module.css makes it a size
+   container), still sticky. */
+@media (--mobile) {
+  :global([data-window][data-phone]) .sky {
+    height: 100cqh;
+    margin-bottom: -100cqh;
+  }
+}
+
 .scene {
   position: absolute;
   inset: 0;
