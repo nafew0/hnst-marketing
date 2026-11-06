@@ -132,6 +132,16 @@ The main pages (`/packages`, `/packages/[tier]`, `/how-it-works`, `/proof`, `/ab
 
 Inner pages take the homepage's cinematic flavour. Each page has a looping brand-library clip behind its headline and another between its sections, over a shared nebula, with content on glass panels. This narrows § E2: the homepage stays code-generated, and inner pages use footage. Clips live in `public/worlds`, each under `check:assets`' 2 MB limit, with poster-only at tier 0. Components: `components/world/**`; the page-to-clip map is `components/world/worlds.ts`.
 
+### E5. Phone layout (Nafew, 6 Nov 2026)
+
+Under the `dt:` breakpoint the site becomes an iPhone-style home screen with apps: a lock screen with notifications, an icon grid, a dock, and each page opening as an app. From 800 px up nothing changes, and the macOS windows and dock stay as § E3 describes. The brief shared by all of it is `docs/phases/PHONE.md`; the phases are `M1.md`–`M9.md`.
+
+- **Behind a flag until M9:** `NEXT_PUBLIC_PHONE_LAYOUT=1` turns it on, so `main` stays releasable while it's built.
+- **One branch per coder** for every M phase: `claude/mobile`, `astra/mobile`, `grok/mobile`. Each opens a PR into `main` at its handoffs.
+- **Contract:** `lib/contracts/wall.ts` adds the public photo wall to v1. Nothing that existed changed.
+- **Camera:** `Permissions-Policy` allows `camera=(self)`.
+- **Testing:** in browsers at phone sizes only; no real phones. Mobile LCP isn't tested in these phases.
+
 ### F. Hosting
 
 - **Build output:** `output: 'standalone'` is set.
