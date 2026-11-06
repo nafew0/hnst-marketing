@@ -1,0 +1,90 @@
+/* Home screen widgets: two icon rows tall, two columns wide, on glass. */
+@layer components {
+  .widget {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    min-height: 140px;
+    padding: 14px;
+    border: 1px solid
+      color-mix(in oklab, var(--color-starlight) 16%, transparent);
+    border-radius: 22px;
+    background: color-mix(in oklab, var(--color-void-2) 62%, transparent);
+    color: var(--color-starlight);
+    text-align: left;
+    box-shadow: 0 10px 30px
+      color-mix(in oklab, var(--color-void-deep) 40%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    backdrop-filter: blur(24px) saturate(1.6);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 3px;
+    }
+
+    @media (--motion-ok) {
+      transition: transform 120ms var(--ease-out-expo);
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+  }
+
+  .widgetTitle {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+  }
+
+  .widgetValue {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .widgetDay {
+    font-size: 15px;
+    color: var(--color-silver);
+  }
+
+  .widgetTime {
+    font-family: var(--next-font-display);
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1.05;
+  }
+
+  .widgetNote {
+    font-size: 14px;
+    line-height: 1.35;
+    color: color-mix(in oklab, var(--color-starlight) 85%, transparent);
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-left: 22px;
+    font-size: 16px;
+    line-height: 1.45;
+    list-style: decimal;
+  }
+
+  .shareGlyph {
+    display: inline-block;
+    width: 14px;
+    height: 18px;
+    margin-inline: 2px;
+    vertical-align: -3px;
+    fill: none;
+    stroke: var(--color-gold);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+  }
+}

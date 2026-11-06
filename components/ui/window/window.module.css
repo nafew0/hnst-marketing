@@ -208,6 +208,11 @@
   overscroll-behavior: contain;
   outline: none;
 
+  &:focus-visible {
+    outline: 2px solid var(--color-starlight);
+    outline-offset: -2px;
+  }
+
   /* Phones have no room around the window, so the dock floats over its end. */
   @media (--mobile) {
     padding-bottom: var(--dock-space);
@@ -297,15 +302,35 @@
   }
 }
 
-.directPhoneBar {
-  position: sticky;
-  top: var(--header-height);
-  z-index: 10;
+/* A direct visit's body: no box of its own, except as a phone app's scroller. */
+.directBody {
+  display: contents;
 }
 
-.directHome {
-  position: fixed;
-  inset: auto 0 0;
-  z-index: 30;
-  background: transparent;
+/* Phone layout: a direct visit is a full-screen app, as an opened window is.
+   The page scrolls inside it, between the bar and the home indicator, over the
+   header, footer and corner Privacy pill (the bar has its own Privacy). */
+@media (--mobile) {
+  :global(html):has(.direct[data-phone]) {
+    overflow: hidden;
+  }
+
+  .direct[data-phone] {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+  }
+
+  .direct[data-phone] > .directBody {
+    position: relative;
+    display: block;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden auto;
+    overscroll-behavior: contain;
+    container-type: size;
+  }
 }

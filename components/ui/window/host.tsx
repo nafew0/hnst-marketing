@@ -8,6 +8,7 @@ import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { pauseDrawing } from '@/webgl/utils/awake'
 
+import { DockIconDefs } from './dock-icons'
 import { resetDepth } from './history'
 import { settle, useWindows } from './store'
 
@@ -18,12 +19,6 @@ const WindowDialog = dynamic(
 )
 const WindowDock = dynamic(
   () => import('./dock').then((mod) => mod.WindowDock),
-  { ssr: false }
-)
-// The icons' gradients, once, for the dock and the phone home screen alike.
-// Client-only: the calendar icon shows the visitor's own date.
-const DockIconDefs = dynamic(
-  () => import('./dock-icons').then((mod) => mod.DockIconDefs),
   { ssr: false }
 )
 
@@ -61,6 +56,7 @@ export function WindowHost() {
 
   return (
     <>
+      {/* The icons' gradients, once, server-rendered, for both layouts. */}
       <DockIconDefs />
       {(open || hasContent) && <WindowDialog />}
       {dock && <WindowDock />}
