@@ -1,19 +1,24 @@
 import { lstat, readdir, unlink } from 'node:fs/promises'
 import path from 'node:path'
 
-import { WALL_ORPHAN_GRACE_MS, WALL_REJECTED_DAYS } from './constants'
+import {
+  WALL_ORPHAN_GRACE_MS,
+  WALL_RECEIPT_HOURS,
+  WALL_REJECTED_DAYS,
+} from './constants'
 import { isEnoent, isSafeWallFilename } from './directory'
 import type { WallStore } from './types'
 
 export interface WallPurgeResult {
   rejected: number
   orphans: number
+  receipts: number
 }
 
 /**
- * Deletes rejected photos older than 30 days, then files in the wall
- * directory that no row still names. Young files are left, in case an upload
- * has not committed its row yet.
+ * Deletes rejected photos older than 30 days, replay receipts older than
+ * 24 hours, then files in the wall directory that no row still names. Young
+ * files are left, in case an upload has not committed its row yet.
  */
 export async function purgeWall(
   store: WallStore,
@@ -23,14 +28,18 @@ export async function purgeWall(
   const cutoff = new Date(
     now.getTime() - WALL_REJECTED_DAYS * 24 * 60 * 60 * 1000
   )
+  const receiptCutoff = new Date(
+    now.getTime() - WALL_RECEIPT_HOURS * 60 * 60 * 1000
+  )
   const rejected = await store.deleteRejectedBefore(cutoff.toISOString())
+  const receipts = await store.deleteReceiptsBefore(receiptCutoff.toISOString())
   const referenced = new Set(await store.listFilenames())
   let names: string[]
   try {
     names = await readdir(directory)
   } catch (error) {
     if (error instanceof Error && isEnoent(error)) {
-      return { rejected, orphans: 0 }
+      return { rejected, orphans: 0, receipts }
     }
     throw error
   }
@@ -45,5 +54,5 @@ export async function purgeWall(
     await unlink(full)
     orphans += 1
   }
-  return { rejected, orphans }
+  return { rejected, orphans, receipts }
 }

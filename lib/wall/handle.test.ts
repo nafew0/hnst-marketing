@@ -106,14 +106,13 @@ async function postPhoto(
 function postJson(
   pathName: string,
   body: { id?: string; token?: string },
-  address = ip
+  address: string | null = ip
 ) {
+  const headers = new Headers({ 'Content-Type': 'application/json' })
+  if (address !== null) headers.set('x-forwarded-for', address)
   return fetchWall(`${ORIGIN}${pathName}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-forwarded-for': address,
-    },
+    headers,
     body: JSON.stringify(body),
   })
 }
@@ -373,6 +372,67 @@ describe('POST /api/v1/wall/remove', () => {
   })
 })
 
+describe('requests with no client IP', () => {
+  it('shares one unknown bucket for posts, reports and removals', async () => {
+    async function postWithoutIp() {
+      return fetchWall(`${ORIGIN}${apiRoutes.wall}`, {
+        method: 'POST',
+        headers: { [IDEMPOTENCY_HEADER]: crypto.randomUUID() },
+        body: wallFormData(sample(await jpeg())),
+      })
+    }
+
+    for (let count = 0; count < 3; count += 1) {
+      expect((await postWithoutIp()).status).toBe(202)
+    }
+    expect((await postWithoutIp()).status).toBe(429)
+    expect(
+      (await postPhoto(sample(await jpeg()), crypto.randomUUID(), '10.5.5.5'))
+        .status
+    ).toBe(202)
+
+    const posted = wallPendingSchema.parse(
+      await (
+        await postPhoto(sample(await jpeg()), crypto.randomUUID(), '10.5.5.6')
+      ).json()
+    )
+    store.approve(posted.id)
+    for (let count = 0; count < 30; count += 1) {
+      expect(
+        (await postJson(apiRoutes.wallReport, { id: posted.id }, null)).status
+      ).toBe(204)
+    }
+    expect(
+      (await postJson(apiRoutes.wallReport, { id: posted.id }, null)).status
+    ).toBe(429)
+    expect(
+      (await postJson(apiRoutes.wallReport, { id: posted.id }, '10.5.5.7'))
+        .status
+    ).toBe(204)
+
+    const token = 'c'.repeat(43)
+    for (let count = 0; count < 10; count += 1) {
+      expect(
+        (await postJson(apiRoutes.wallRemove, { id: posted.id, token }, null))
+          .status
+      ).toBe(404)
+    }
+    expect(
+      (await postJson(apiRoutes.wallRemove, { id: posted.id, token }, null))
+        .status
+    ).toBe(429)
+    expect(
+      (
+        await postJson(
+          apiRoutes.wallRemove,
+          { id: posted.id, token },
+          '10.5.5.8'
+        )
+      ).status
+    ).toBe(404)
+  })
+})
+
 describe('payload wall store', () => {
   it('writes a pending WebP through the Local API and replays the receipt', async () => {
     const key = crypto.randomUUID()
@@ -498,6 +558,22 @@ describe('payload wall store', () => {
     await wall.markRemoved(id)
     expect(cms.updates[0]?.data).toEqual({ status: 'removed' })
     await expect(readFile(path.join(directory, `${id}.webp`))).rejects.toThrow()
+  })
+
+  it('deletes expired receipts through the pool, not the locked connection', async () => {
+    const db = scripted({ receipt: null })
+    const cms = fakeCms()
+    const wall = createPayloadWallStore(db, async () => cms.api, directory)
+    await expect(
+      wall.deleteReceiptsBefore('2026-11-05T12:00:00.000Z')
+    ).resolves.toBe(0)
+    const deleted = db.queries.find((query) =>
+      query.sql.includes('DELETE FROM integration.wall_posts')
+    )
+    expect(deleted?.params).toEqual(['2026-11-05T12:00:00.000Z'])
+    expect(
+      db.queries.some((query) => query.sql.includes('pg_advisory_lock'))
+    ).toBe(false)
   })
 })
 

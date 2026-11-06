@@ -262,8 +262,7 @@ function overLimit(
   ip: string | null,
   kind: 'post' | 'report' | 'remove'
 ): boolean {
-  if (ip === null) return false
-  return !rateLimit(`wall-${kind}:${ip}`, {
+  return !rateLimit(`wall-${kind}:${ip ?? 'unknown'}`, {
     limit: limitFor(kind),
     windowSeconds: WALL_RATE_WINDOW_SECONDS,
   }).success

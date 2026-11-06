@@ -34,6 +34,7 @@ interface MemoryPhoto {
 interface MemoryReceipt {
   publicId: string
   removeToken: string
+  createdAt: string
 }
 
 /**
@@ -54,6 +55,14 @@ export class MemoryWallStore implements WallStore {
 
   receiptCount(): number {
     return this.receipts.size
+  }
+
+  seedReceipt(key: string, createdAt: string): void {
+    this.receipts.set(key, {
+      publicId: crypto.randomUUID(),
+      removeToken: 'a'.repeat(43),
+      createdAt,
+    })
   }
 
   statusOf(id: string): WallStatus | undefined {
@@ -115,6 +124,7 @@ export class MemoryWallStore implements WallStore {
       this.receipts.set(photo.idempotencyKey, {
         publicId: photo.publicId,
         removeToken: photo.removeToken,
+        createdAt: new Date().toISOString(),
       })
       this.photos.set(photo.publicId, {
         publicId: photo.publicId,
@@ -181,6 +191,14 @@ export class MemoryWallStore implements WallStore {
       photo.statusChangedAt = new Date().toISOString()
     }
     return { count: photo.reports }
+  }
+
+  async deleteReceiptsBefore(iso: string): Promise<number> {
+    const stale = [...this.receipts.entries()].filter(
+      ([, receipt]) => receipt.createdAt < iso
+    )
+    for (const [key] of stale) this.receipts.delete(key)
+    return stale.length
   }
 
   async deleteRejectedBefore(iso: string): Promise<number> {

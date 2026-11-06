@@ -50,6 +50,8 @@ export interface WallStore {
   /** Null when no approved photo has that id. A repeat visitor does not add another report. */
   report(id: string, visitorHash: string): Promise<{ count: number } | null>
   deleteRejectedBefore(iso: string): Promise<number>
+  /** Drops replay rows, and the raw removal token, once the retry window has passed. */
+  deleteReceiptsBefore(iso: string): Promise<number>
   listFilenames(): Promise<string[]>
 }
 

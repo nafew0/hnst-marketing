@@ -62,6 +62,7 @@ function openStore(): WallStore {
     markRemoved: created.markRemoved,
     report: created.report,
     deleteRejectedBefore: created.deleteRejectedBefore,
+    deleteReceiptsBefore: created.deleteReceiptsBefore,
     listFilenames: created.listFilenames,
   }
   return shared
@@ -79,9 +80,9 @@ async function loadCms(): Promise<WallCms> {
   const { getPayload } = await import('payload')
   const { default: config } = await import('@/payload.config')
   const payload = await getPayload({ config })
-  // SAFETY: M3 registers wallPhotos on this Payload instance. The generated
-  // Config slug union does not include that collection until it is merged, so
-  // the Local API is called through WallCms and its field names.
+  // SAFETY: wallPhotos is in the generated Config. Payload's `create` options
+  // are a union that also requires `{ draft: true }`, so the method is not
+  // assignable to WallCms, which always stores a published pending photo.
   return payload as WallCms
 }
 

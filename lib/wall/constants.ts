@@ -24,6 +24,13 @@ export const WALL_CACHE_SECONDS = 30
 export const WALL_REJECTED_DAYS = 30
 
 /**
+ * How long a repeated Idempotency-Key can still return the removal token.
+ * After this, the daily purge deletes the receipt. A later retry stores a
+ * new pending photo.
+ */
+export const WALL_RECEIPT_HOURS = 24
+
+/**
  * An upload can land in the directory before its row commits. The daily job
  * leaves files younger than this alone.
  */
