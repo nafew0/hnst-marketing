@@ -14,6 +14,7 @@ import {
   phoneOnlyHref,
   type PhoneOnlyAppId,
 } from './registry'
+import { usePhone } from './store'
 
 // Each app loads only when opened. Their owners replace these modules.
 const VIEWS = {
@@ -40,7 +41,9 @@ const SITE_TITLE = 'HONEST Marketing'
  */
 export function PhoneOnlyRoute() {
   const id = useSearchParams().get(APP_PARAM)
-  const { isMobile } = useDeviceDetection()
+  const { isMobile: mobile } = useDeviceDetection()
+  const classic = usePhone((state) => state.classic)
+  const isMobile = mobile === true && !classic
   const app = isPhoneOnlyApp(id) ? phoneApp(id) : null
 
   // A visit that starts inside an app has no home screen under it in the

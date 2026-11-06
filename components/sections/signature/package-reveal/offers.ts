@@ -1,6 +1,18 @@
 import type { PackageFacts } from '@/components/sections/signature/copy'
 import type { OfferPackage, OffersResponse } from '@/lib/contracts'
 
+const dollars = new Intl.NumberFormat('en-US')
+
+/** "25,000": an amount in whole dollars, without the sign. */
+export function formatDollars(amount: number) {
+  return dollars.format(amount)
+}
+
+/** "$5,000", or "from $25,000": the cards and the phone's store say it alike. */
+export function formatPrice(price: number, from: boolean | undefined) {
+  return `${from ? 'from ' : ''}$${dollars.format(price)}`
+}
+
 /**
  * Applies live offers over the facts passed in. A tier the API doesn't list
  * keeps its own price, and no response at all (503, the contract's "fall back

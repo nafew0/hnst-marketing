@@ -97,4 +97,9 @@
     border-radius: 3px;
     background: var(--color-starlight);
   }
+
+  /* The classic website has no phone bars (M5). */
+  :global(html[data-phone-classic]) :is(.bar, .home) {
+    display: none !important;
+  }
 }

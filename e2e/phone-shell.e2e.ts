@@ -365,12 +365,21 @@ for (const width of [375, 390, 430]) {
     test.skip(({ isMobile }) => !isMobile, 'Phones only')
     test.use({ viewport: { width, height: 844 } })
 
-    test('lock screen, home, each placeholder app, home', async ({ page }) => {
+    test('lock screen, home, each app, home', async ({ page }) => {
       await openHome(page)
-      for (const name of ['Camera', 'Notes']) {
-        await page.getByRole('link', { name, exact: true }).click()
+      const every = [
+        ['Camera', 'Camera'],
+        ['Notes', 'Notes'],
+        ['Packages', 'Packages'],
+        ['How it works', 'How it works'],
+        ['About', 'About'],
+        ['The HONEST Marketer', 'The HONEST Marketer'],
+        ['Photos', 'Photos'],
+      ] as const
+      for (const [name, heading] of every) {
+        await home(page).getByRole('link', { name, exact: true }).click()
         await expect(
-          windowOf(page).getByRole('heading', { name })
+          windowOf(page).getByRole('heading', { level: 1, name: heading })
         ).toBeVisible()
         await windowOf(page)
           .getByRole('button', { name: 'Home screen' })
@@ -403,4 +412,173 @@ test('a computer never sees the phone layout', async ({ page, isMobile }) => {
   await expect(home(page)).toBeHidden()
   await expect(page.getByRole('navigation', { name: 'Dock' })).toBeVisible()
   await expect(lock(page)).toBeHidden()
+})
+
+test.describe('phone apps (M5)', () => {
+  test.skip(({ isMobile }) => !isMobile, 'Phones only')
+
+  const app = (page: Page, name: string) =>
+    home(page).getByRole('link', { name, exact: true })
+  const sheet = (page: Page, name: string) => page.getByRole('dialog', { name })
+
+  async function openApp(page: Page, name: string, heading: string) {
+    await openHome(page)
+    await app(page, name).click()
+    await expect(windowOf(page)).toBeVisible()
+    await expect(
+      windowOf(page).getByRole('heading', { level: 1, name: heading })
+    ).toBeVisible()
+    await settled(page)
+  }
+
+  test('Packages is a store with the same prices as /packages, and no ratings', async ({
+    page,
+  }) => {
+    await openApp(page, 'Packages', 'Packages')
+    const store = windowOf(page).getByRole('list', { name: 'All packages' })
+    // The mock offers (lib/contracts/mocks/fixtures.ts), as the cards show them.
+    await expect(store.getByRole('button', { name: /options$/u })).toHaveText([
+      '$500',
+      '$2,500',
+      '$5,000',
+      'from $25,000',
+    ])
+    await expect(windowOf(page)).not.toContainText(/rating|review|★/iu)
+    expect(await seriousViolations(page)).toEqual([])
+
+    await store
+      .getByRole('button', { name: /Founder Package options/u })
+      .click()
+    const options = sheet(page, 'Founder Package')
+    await expect(options).toBeVisible()
+    await expect(
+      options.getByRole('link', { name: 'Book a call about this' })
+    ).toHaveAttribute('href', '/book?package=founder')
+    await expect(
+      options.getByRole('textbox', { name: 'Email', exact: true })
+    ).toBeVisible()
+    await options.getByRole('button', { name: 'Done' }).click()
+    await expect(options).toBeHidden()
+
+    await store.getByRole('link', { name: /Founder Package/u }).click()
+    await expect(page).toHaveURL(/\/packages\/founder$/u)
+    const detail = windowOf(page)
+    await expect(
+      detail.getByRole('heading', { name: 'Information' })
+    ).toBeVisible()
+    await expect(
+      detail.getByRole('button', { name: /Founder Package options/u })
+    ).toHaveText('$5,000')
+  })
+
+  test('How it works opens each step in a sheet', async ({ page }) => {
+    await openApp(page, 'How it works', 'How it works')
+    const first = windowOf(page).getByRole('button', {
+      name: 'Answer the questions',
+    })
+    await first.click()
+    const step = sheet(page, 'Answer the questions')
+    await expect(step).toBeVisible()
+    expect(await seriousViolations(page)).toEqual([])
+    await page.keyboard.press('Escape')
+    await expect(step).toBeHidden()
+    await expect(windowOf(page)).toBeVisible()
+  })
+
+  test('About shows the CMS’s people and timeline', async ({ page }) => {
+    await openApp(page, 'About', 'About')
+    await expect(windowOf(page).getByRole('article')).not.toHaveCount(0)
+    await expect(
+      windowOf(page).getByRole('heading', { name: 'How we got here' })
+    ).toBeVisible()
+    expect(await seriousViolations(page)).toEqual([])
+  })
+
+  test('The HONEST Marketer offers the book in a sheet', async ({ page }) => {
+    await openApp(page, 'The HONEST Marketer', 'The HONEST Marketer')
+    await windowOf(page).getByRole('button', { name: 'Get the book' }).click()
+    const form = sheet(page, 'Get the book')
+    await expect(form).toBeVisible()
+    await expect(
+      form.getByRole('textbox', { name: 'Email', exact: true })
+    ).toBeVisible()
+  })
+
+  test('Photos: albums, the viewer by keyboard, and reporting a wall photo', async ({
+    page,
+  }) => {
+    await openApp(page, 'Photos', 'Photos')
+    const proof = windowOf(page).getByRole('list', { name: 'Proof' })
+    await expect(proof.getByRole('listitem')).toHaveCount(6)
+    expect(await seriousViolations(page)).toEqual([])
+    await proof.getByRole('button').first().click()
+    const viewer = page.getByRole('dialog', { name: /Notion/u })
+    await expect(viewer).toBeVisible()
+    await expect(viewer.getByText('1 of 6')).toBeVisible()
+    // Keys go where focus is: wait for it to move into the viewer.
+    await expect(viewer.locator(':focus')).toHaveCount(1)
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByText('2 of 6')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.getByText('2 of 6')).toBeHidden()
+    await expect(windowOf(page)).toBeVisible()
+
+    await windowOf(page)
+      .getByRole('button', { name: 'Wall', exact: true })
+      .click()
+    await expect(
+      windowOf(page).getByText('Visitors’ photos. Not clients or endorsements.')
+    ).toBeVisible()
+    const wall = windowOf(page).getByRole('list', { name: 'Wall' })
+    await expect(wall.getByRole('listitem')).toHaveCount(30)
+    await windowOf(page).getByRole('button', { name: 'Load more' }).click()
+    await expect(wall.getByRole('listitem')).toHaveCount(36)
+    await wall.getByRole('button').first().click()
+    await page.getByRole('button', { name: 'Report' }).click()
+    await expect(
+      page.getByRole('status').filter({ hasText: 'Reported' })
+    ).toBeVisible()
+    await page.keyboard.press('Escape')
+
+    await windowOf(page)
+      .getByRole('button', { name: 'Worlds', exact: true })
+      .click()
+    await expect(
+      windowOf(page).getByRole('list', { name: 'Worlds' }).getByRole('listitem')
+    ).toHaveCount(12)
+    await windowOf(page)
+      .getByRole('button', { name: 'Your shots', exact: true })
+      .click()
+    await expect(windowOf(page).getByText('No photos yet')).toBeVisible()
+  })
+
+  test('the classic website: today’s pages, an address bar, and back home', async ({
+    page,
+  }) => {
+    await openHome(page)
+    await home(page).getByRole('button', { name: 'Classic website' }).click()
+    await expect(apps(page)).toBeHidden()
+    const back = page.getByRole('button', { name: 'Home screen', exact: true })
+    await expect(back).toBeVisible()
+    await expect(page.getByText(/Address:/u)).toBeAttached()
+    await expect(page.getByRole('navigation', { name: 'Dock' })).toBeVisible()
+
+    await page.reload()
+    await expect(apps(page)).toBeHidden()
+    await expect(back).toBeVisible()
+
+    await back.click()
+    await expect(apps(page)).toBeVisible()
+    await expect(page.getByText(/Address:/u)).toBeHidden()
+  })
+
+  test('content pages keep their own metadata', async ({ page }) => {
+    await page.goto('/packages')
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      /\/packages$/u
+    )
+    // The CMS's own SEO title, as before the phone layout.
+    await expect(page).toHaveTitle(/\| HONEST Marketing$/u)
+  })
 })

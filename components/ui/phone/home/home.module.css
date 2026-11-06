@@ -230,6 +230,11 @@
     touch-action: none;
   }
 
+  /* The classic website: no home screen, and the story reads as before (M5). */
+  :global(html[data-phone-classic]) :is(.home, .storyHome) {
+    display: none !important;
+  }
+
   /* Unlocked earlier this session, or the visit began elsewhere: before paint. */
   :global(html[data-phone-unlocked]) .lock {
     display: none;

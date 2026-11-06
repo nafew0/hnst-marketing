@@ -80,3 +80,17 @@ export function ListRow({ title, detail, subtitle, icon, href }: ListRowProps) {
     </li>
   )
 }
+
+/** A number or letter in a small gold tile: a row's icon for steps and the like. */
+export function RowBadge({ children }: { children: ReactNode }) {
+  return (
+    <span aria-hidden="true" className={s.badge}>
+      {children}
+    </span>
+  )
+}
+
+/** Body text inside a sheet. */
+export function SheetText({ children }: { children: ReactNode }) {
+  return <p className={s.sheetText}>{children}</p>
+}

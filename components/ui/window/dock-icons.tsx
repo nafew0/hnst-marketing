@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useId, useSyncExternalStore } from 'react'
+import { type ReactNode, useSyncExternalStore } from 'react'
 
 import type { PhoneAppId } from '@/components/ui/phone/registry'
 
@@ -84,8 +84,9 @@ function Gradient({ id, from, to }: { id: string; from: string; to: string }) {
 
 /**
  * One set of gradients for every icon, for the dock and the phone home screen
- * alike. Zero-sized, not hidden: hiding breaks `url()`. Server-safe, so icons
- * have their colours on first paint; the calendar's date is the icon's own.
+ * alike. Zero-sized, not hidden: hiding breaks `url()`. Server-rendered, so
+ * icons have their colours on first paint; the calendar's date fills in on
+ * hydration.
  */
 export function DockIconDefs() {
   return (
@@ -144,6 +145,7 @@ export function DockIconDefs() {
             stopOpacity="0"
           />
         </linearGradient>
+        <CalendarDate />
       </defs>
     </svg>
   )
@@ -323,43 +325,48 @@ const todayHere = () => {
 }
 
 /**
- * Today's date, as a calendar icon shows it. The visitor's own: blank in the
- * server's HTML (its date and time zone may differ), filled in on hydration.
- * Drawn through `<use>` from the icon's own defs, so the date isn't part of
- * the app's accessible name (axe: label-content-name-mismatch).
+ * Today's date for the calendar icon: the visitor's own, so blank in the
+ * server's HTML (its date and time zone may differ) and filled in on
+ * hydration. In the shared defs, outside every link, so it is never part of
+ * an app's accessible name (axe: label-content-name-mismatch).
  */
-function BookIcon() {
+function CalendarDate() {
   const today = useSyncExternalStore(noChange, todayHere, todayOnServer)
   const [weekday, day] = today?.split(' ') ?? []
-  const id = useId().replaceAll(/[^\w-]/gu, '')
+  return (
+    <>
+      <text
+        id="dock-weekday"
+        x={CENTRE}
+        y="31"
+        textAnchor="middle"
+        fontSize="20"
+        fontWeight="600"
+        fill="var(--color-dock-red)"
+      >
+        {weekday}
+      </text>
+      <text
+        id="dock-day"
+        x={CENTRE}
+        y="77"
+        textAnchor="middle"
+        fontSize="50"
+        fontWeight="400"
+        fill="var(--color-dock-ink)"
+      >
+        {day}
+      </text>
+    </>
+  )
+}
+
+/** Today's date, as a calendar icon shows it, drawn from the shared defs. */
+function BookIcon() {
   return (
     <AppIcon tile="paper">
-      <defs>
-        <text
-          id={`${id}-weekday`}
-          x={CENTRE}
-          y="31"
-          textAnchor="middle"
-          fontSize="20"
-          fontWeight="600"
-          fill="var(--color-dock-red)"
-        >
-          {weekday}
-        </text>
-        <text
-          id={`${id}-day`}
-          x={CENTRE}
-          y="77"
-          textAnchor="middle"
-          fontSize="50"
-          fontWeight="400"
-          fill="var(--color-dock-ink)"
-        >
-          {day}
-        </text>
-      </defs>
-      <use href={`#${id}-weekday`} />
-      <use href={`#${id}-day`} />
+      <use href="#dock-weekday" />
+      <use href="#dock-day" />
     </AppIcon>
   )
 }

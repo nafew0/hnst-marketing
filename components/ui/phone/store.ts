@@ -15,6 +15,8 @@ interface PhoneState {
    * server's HTML (lock shown, or hidden by the layout's script) hydrates as is.
    */
   locked: boolean | null
+  /** The classic website is on: today's mobile pages, no phone layout. */
+  classic: boolean
 }
 
 export const usePhone = create<PhoneState>(() => ({
@@ -22,6 +24,7 @@ export const usePhone = create<PhoneState>(() => ({
   launch: null,
   icons: {},
   locked: null,
+  classic: false,
 }))
 
 const { getState, setState } = usePhone
@@ -45,6 +48,36 @@ export function unlock() {
   }
   document.documentElement.setAttribute(UNLOCKED_ATTRIBUTE, '')
   setState({ locked: false })
+}
+
+/** The visit's classic-website flag, read before paint; it holds no visitor input. */
+export const CLASSIC_KEY = 'hnst-phone-classic'
+const CLASSIC_ATTRIBUTE = 'data-phone-classic'
+
+export function syncClassic() {
+  setState({
+    classic: document.documentElement.hasAttribute(CLASSIC_ATTRIBUTE),
+  })
+}
+
+function setClassic(classic: boolean) {
+  try {
+    if (classic) sessionStorage.setItem(CLASSIC_KEY, '1')
+    else sessionStorage.removeItem(CLASSIC_KEY)
+  } catch {
+    // Storage blocked: the choice lasts for this page view only.
+  }
+  document.documentElement.toggleAttribute(CLASSIC_ATTRIBUTE, classic)
+  setState({ classic })
+}
+
+/** The classic website: today's mobile pages, for the rest of the visit. */
+export function enterClassic() {
+  setClassic(true)
+}
+
+export function leaveClassic() {
+  setClassic(false)
 }
 
 export function openStory() {

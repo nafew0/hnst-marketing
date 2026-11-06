@@ -114,10 +114,11 @@ export default async function AppLayout({
       <body>
         {PHONE_LAYOUT && (
           // Before paint: the lock screen shows once a session, and never when
-          // the visit starts anywhere but `/` (docs/phases/M2.md). The flag
-          // holds no visitor input.
+          // the visit starts anywhere but `/` (docs/phases/M2.md); the classic
+          // website stays on for the visit once chosen (M5). The flags hold
+          // no visitor input.
           <Script id="phone-lock" strategy="beforeInteractive">
-            {`try{var k='hnst-phone-unlocked';if(location.pathname!=='/'||/[?&]app=/.test(location.search))sessionStorage.setItem(k,'1');if(sessionStorage.getItem(k)==='1')document.documentElement.setAttribute('data-phone-unlocked','')}catch(e){}`}
+            {`try{var k='hnst-phone-unlocked';if(location.pathname!=='/'||/[?&]app=/.test(location.search))sessionStorage.setItem(k,'1');if(sessionStorage.getItem(k)==='1')document.documentElement.setAttribute('data-phone-unlocked','');if(sessionStorage.getItem('hnst-phone-classic')==='1')document.documentElement.setAttribute('data-phone-classic','')}catch(e){}`}
           </Script>
         )}
         {/* On every page, not just home: deep pages are landed on directly far more often. */}

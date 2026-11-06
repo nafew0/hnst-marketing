@@ -1,0 +1,147 @@
+/* Shared by the phone's content apps (M5). */
+
+.intro {
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--color-silver);
+  text-wrap: pretty;
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid color-mix(in oklab, var(--color-gold) 30%, transparent);
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--color-void-2) 80%, transparent);
+}
+
+.ctaTitle {
+  font-family: var(--next-font-display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid color-mix(in oklab, var(--color-starlight) 12%, transparent);
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--color-void-2) 82%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--color-gold) 40%, transparent);
+  border-radius: 50%;
+
+  & img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.cardName {
+  font-family: var(--next-font-display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.cardRole {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+.cardBody {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-silver);
+  text-wrap: pretty;
+}
+
+.placeholder {
+  display: grid;
+  min-height: 72px;
+  place-items: center;
+  border: 1px dashed color-mix(in oklab, var(--color-gold) 30%, transparent);
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--color-silver);
+}
+
+.book {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+/* The stand-in cover is already a picture of the book: shown plainly. */
+.cover {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+
+  & img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
+.shelf {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(
+    in oklab 180deg,
+    color-mix(in oklab, var(--color-gold) 40%, transparent),
+    color-mix(in oklab, var(--color-gold) 10%, transparent)
+  );
+}
+
+.bookTitle {
+  font-family: var(--next-font-display);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 20px;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: left;
+  list-style: disc;
+}
+
+.notice {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-silver);
+}

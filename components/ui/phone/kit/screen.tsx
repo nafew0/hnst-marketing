@@ -25,10 +25,10 @@ export function PhoneScreen({
 }: PhoneScreenProps) {
   return (
     <div className={cn(s.screen, className)}>
-      <header className={s.header}>
+      <div className={s.header}>
         <h1 className={s.largeTitle}>{title}</h1>
         {accessory}
-      </header>
+      </div>
       {children}
     </div>
   )

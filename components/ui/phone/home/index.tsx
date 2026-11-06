@@ -139,11 +139,12 @@ export function PhoneHome({ content }: { content: PhoneContent }) {
   const ref = useRef<HTMLDivElement>(null)
   const story = usePhone((state) => state.story)
   const locked = usePhone((state) => state.locked)
+  const classic = usePhone((state) => state.classic)
   const windowOpen = useWindows((state) => state.activeHref !== null)
   const { isMobile } = useDeviceDetection()
   const lenis = useLenis()
   const pullFrom = useRef<number | null>(null)
-  const phone = isMobile === true
+  const phone = isMobile === true && !classic
   const covering = phone && !story && !windowOpen
   const homeUp = covering && locked === false
   const lockUp = settings.lockScreen && locked !== false

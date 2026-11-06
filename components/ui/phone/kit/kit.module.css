@@ -81,7 +81,33 @@
     }
   }
 
-  a.row:active {
+  button.row {
+    width: 100%;
+    text-align: left;
+  }
+
+  /* A number or a letter in a small tile, for steps and the like. */
+  .badge {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border-radius: 8px;
+    background: color-mix(in oklab, var(--color-gold) 20%, transparent);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-gold);
+  }
+
+  .sheetText {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-starlight);
+    text-wrap: pretty;
+  }
+
+  a.row:active,
+  button.row:active {
     background: color-mix(in oklab, var(--color-starlight) 8%, transparent);
   }
 

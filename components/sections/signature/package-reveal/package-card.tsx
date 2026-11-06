@@ -19,6 +19,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Image } from '@/components/ui/image'
 
+import { formatDollars, formatPrice } from './offers'
+
 import s from './package-reveal.module.css'
 
 const CAMERA = { fov: 35, position: [0, 0, 1] } as const
@@ -30,12 +32,6 @@ export interface GlintWorldProps {
   hoverRef: RefObject<number>
   revealRef: RefObject<number>
   pointerRef: RefObject<{ x: number; y: number }>
-}
-
-const dollars = new Intl.NumberFormat('en-US')
-
-function formatPrice(price: number, from: boolean | undefined) {
-  return `${from ? 'from ' : ''}$${dollars.format(price)}`
 }
 
 /**
@@ -207,7 +203,7 @@ export function PackageCard({
               data-struck={struck || undefined}
             >
               <span className="sr-only">Stated value </span>$
-              {dollars.format(value)}
+              {formatDollars(value)}
             </span>
           )}
         </p>
