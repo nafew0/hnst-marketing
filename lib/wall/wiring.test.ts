@@ -27,4 +27,11 @@ describe('wall worker wiring', () => {
     expect(report).toContain('reportWall')
     expect(remove).toContain('removeWall')
   })
+
+  it('has Caddy set X-Forwarded-For to the connecting client', () => {
+    const caddy = readFileSync(join(root, 'deploy/Caddyfile'), 'utf8')
+    expect(caddy).toContain(
+      'header_up X-Forwarded-For {http.request.remote.host}'
+    )
+  })
 })

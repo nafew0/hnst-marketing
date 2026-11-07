@@ -49,6 +49,7 @@ describe('purgeWall', () => {
     const result = await purgeWall(store, directory, now)
     expect(result.rejected).toBe(1)
     expect(result.orphans).toBe(1)
+    expect(result.receipts).toBe(0)
     await expect(
       readFile(path.join(directory, `${kept}.webp`))
     ).resolves.toBeDefined()
@@ -59,5 +60,20 @@ describe('purgeWall', () => {
     expect(await readFile(fresh)).toEqual(Buffer.from('fresh'))
     expect(await readFile(odd)).toEqual(Buffer.from('odd'))
     expect(store.statusOf(rejected)).toBeUndefined()
+  })
+
+  it('deletes receipts older than 24 hours and keeps newer ones', async () => {
+    const now = new Date('2026-11-06T12:00:00.000Z')
+    const expired = crypto.randomUUID()
+    const fresh = crypto.randomUUID()
+    store.seedReceipt(expired, '2026-11-05T11:00:00.000Z')
+    store.seedReceipt(fresh, '2026-11-06T00:00:00.000Z')
+
+    const result = await purgeWall(store, directory, now)
+
+    expect(result.receipts).toBe(1)
+    expect(await store.findReceipt(expired)).toBeNull()
+    const kept = await store.findReceipt(fresh)
+    expect(kept).not.toBeNull()
   })
 })

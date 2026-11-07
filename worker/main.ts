@@ -183,7 +183,12 @@ export async function startWorker(): Promise<void> {
   await boss.work(WALL_PURGE_QUEUE, { batchSize: 1 }, async (jobs) => {
     const result = await runWallPurge()
     logger.info(
-      { jobs: jobs.length, rejected: result.rejected, orphans: result.orphans },
+      {
+        jobs: jobs.length,
+        rejected: result.rejected,
+        orphans: result.orphans,
+        receipts: result.receipts,
+      },
       'wall purge'
     )
   })

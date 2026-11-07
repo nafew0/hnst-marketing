@@ -40,6 +40,10 @@ const COUNT_REPORTS = `SELECT count(*)::int AS count
 
 const DELETE_REPORTS = `DELETE FROM integration.wall_reports WHERE public_id = $1`
 
+const DELETE_RECEIPTS = `DELETE FROM integration.wall_posts
+  WHERE created_at < $1
+  RETURNING idempotency_key`
+
 const receiptSchema = z.object({
   public_id: wallPhotoIdSchema,
   remove_token: wallRemoveTokenSchema,
@@ -225,6 +229,7 @@ export function createPayloadWallStore(
     report: (id, visitorHash) => report(db, load, id, visitorHash),
     deleteRejectedBefore: (iso) =>
       deleteRejectedBefore(db, load, directory, iso),
+    deleteReceiptsBefore: (iso) => deleteReceiptsBefore(db, iso),
     listFilenames: () => listFilenames(load),
   }
 }
@@ -382,6 +387,13 @@ async function report(
     })
     return { count }
   })
+}
+
+async function deleteReceiptsBefore(db: WallDb, iso: string): Promise<number> {
+  const result = await db.query<{ idempotency_key: string }>(DELETE_RECEIPTS, [
+    iso,
+  ])
+  return result.rows.length
 }
 
 async function deleteRejectedBefore(

@@ -8,7 +8,11 @@
 		header Cache-Control "public, max-age=31536000, immutable"
 		file_server
 	}
-	reverse_proxy web:3000
+	# The app reads the first X-Forwarded-For value. Set it to the TCP client
+	# so every request that comes through Caddy arrives with an address.
+	reverse_proxy web:3000 {
+		header_up X-Forwarded-For {http.request.remote.host}
+	}
 }
 
 http://127.0.0.1 {
