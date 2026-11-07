@@ -4,18 +4,18 @@ The iPhone-style layout under the `dt:` breakpoint (`docs/phases/PHONE.md`). It 
 
 ## How it fits together
 
-| Piece                      | File                                  | What it does                                                                                                                  |
-| -------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| App registry               | `registry.ts`                         | Every app: label, accessible name, grid or dock, what it opens, owner. Add an app here first.                                 |
-| Settings shape             | `settings.ts`                         | The CMS fields Astra builds in M3, as a Zod schema, plus DRAFT copy. The loader (`load.ts`) returns the draft until M3 lands. |
-| Home screen                | `home/`                               | Server-rendered over the homepage story on `/`, hidden without JavaScript. Lock screen, widgets, grid, dock.                  |
-| App frame                  | `bars.tsx` + `components/ui/window`   | The P7W window in a phone skin: back, title, Privacy, home indicator. Home keeps the app in memory, like minimising.          |
-| Zoom                       | `zoom.ts`                             | Apps grow out of their icon and shrink back into it. First frame before paint. None with reduced motion or at tier 0.         |
-| Phone-only apps            | `only-route.tsx`                      | `/?app=<id>` opens Camera or Notes as a window over the home screen. On a direct visit, `/` is put under it in the history.   |
-| Notifications              | `notifications/`                      | `notify(trigger, vars)`, the banners and the Notification Centre. Copy comes from settings.                                   |
-| Icons                      | `components/ui/window/dock-icons.tsx` | `PhoneAppIcon({ id })`. The art is shared with the macOS dock; the gradients are server-rendered once in `WindowHost`.        |
-| Building blocks            | `kit/`                                | What apps are built from (below).                                                                                             |
-| Content pages' phone views | `view.tsx`                            | `<PhoneView phone={…}>{page content}</PhoneView>`: both server-rendered, CSS picks one.                                       |
+| Piece                      | File                                  | What it does                                                                                                                    |
+| -------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| App registry               | `registry.ts`                         | Every app: label, accessible name, grid or dock, what it opens, owner. Add an app here first. `GRID` and `DOCK` set the layout. |
+| Settings shape             | `settings.ts`                         | The CMS fields Astra builds in M3, as a Zod schema, plus DRAFT copy. The loader (`load.ts`) returns the draft until M3 lands.   |
+| Home screen                | `home/`                               | Server-rendered over the homepage story on `/`, hidden without JavaScript. Lock screen, widgets, grid, dock.                    |
+| App frame                  | `bars.tsx` + `components/ui/window`   | The P7W window in a phone skin: back, title, Privacy, home indicator. Home keeps the app in memory, like minimising.            |
+| Zoom                       | `zoom.ts`                             | Apps grow out of their icon and shrink back into it. First frame before paint. None with reduced motion or at tier 0.           |
+| Phone-only apps            | `only-route.tsx`                      | `/?app=<id>` opens Camera or Notes as a window over the home screen. On a direct visit, `/` is put under it in the history.     |
+| Notifications              | `notifications/`                      | `notify(trigger, vars)`, the banners and the Notification Centre. Copy comes from settings.                                     |
+| Icons                      | `components/ui/window/dock-icons.tsx` | `PhoneAppIcon({ id })`. The art is shared with the macOS dock; the gradients are server-rendered once in `WindowHost`.          |
+| Building blocks            | `kit/`                                | What apps are built from (below).                                                                                               |
+| Content pages' phone views | `view.tsx`                            | `<PhoneView phone={…}>{page content}</PhoneView>`: both server-rendered, CSS picks one.                                         |
 
 ## Building an app
 
@@ -44,6 +44,9 @@ The iPhone-style layout under the `dt:` breakpoint (`docs/phases/PHONE.md`). It 
 - **Every gesture has a button.** Swipes start away from the screen edges, which iOS and Android own.
 - **Reduced motion and tier 0:** no wallpaper video, no zoom, no sliding, and everything still works.
 - **No Apple artwork, fonts or names.** The browser app is "Classic website"; Packages is never "App Store".
+- **Social apps use each network's own logo** (`public/social/`, credited in THIRD-PARTY-NOTICES.md), never a redrawn one, and never in an HONEST tile. They link to HONEST's profile from the CMS `socialLinks`, or the network's home page until there is one, in a new tab. The desktop dock shows the same links, and Phone, Messages and Mail, after a divider.
+- **Phone, Messages and Mail on the dock are `PHONE_LINKS`, not apps.** They open the visitor's own apps (`tel:`, `sms:`, `mailto:`) at the CMS's `publicPhone` and `publicEmail`, or `CONTACT_FALLBACK` until those are set. The site's contact form is the Contact app on the grid.
+- **PHONE_APPS ids are a CMS enum.** Notifications store their app by id in Postgres, so a new or renamed id needs a migration. Links that open nothing on the site stay in `PHONE_LINKS`.
 
 ## Privacy choices
 

@@ -147,8 +147,8 @@ test.describe('phone home screen', () => {
     await expect(
       page.getByRole('navigation', { name: 'Dock' }).getByRole('listitem')
     ).toHaveCount(4)
-    // Two widgets and seven apps: social icons wait for real handles.
-    await expect(apps(page).getByRole('listitem')).toHaveCount(9)
+    // Two widgets and fifteen apps, five of them HONEST's social profiles.
+    await expect(apps(page).getByRole('listitem')).toHaveCount(17)
     await expect(
       page.getByRole('button', {
         name: /next free call.*\d/iu,
@@ -158,6 +158,40 @@ test.describe('phone home screen', () => {
       page.locator('#main-content > :not([data-phone-home])').first()
     ).toHaveAttribute('inert', '')
     expect(await seriousViolations(page)).toEqual([])
+  })
+
+  test('social apps open the network in a new tab; the dock calls, texts and emails HONEST', async ({
+    page,
+  }) => {
+    await openHome(page)
+    for (const [name, host] of [
+      ['Instagram', /^https:\/\/(www\.)?instagram\.com\//u],
+      ['X', /^https:\/\/(www\.)?(x|twitter)\.com\//u],
+      ['YouTube', /^https:\/\/(www\.)?(youtube\.com|youtu\.be)\//u],
+      ['TikTok', /^https:\/\/(www\.)?tiktok\.com\//u],
+      ['LinkedIn', /^https:\/\/([a-z]+\.)?linkedin\.com\//u],
+    ] as const) {
+      const link = apps(page).getByRole('link', {
+        name: `HONEST on ${name} (opens in a new tab)`,
+      })
+      await expect(link).toHaveAttribute('href', host)
+      await expect(link).toHaveAttribute('target', '_blank')
+      // The network's own logo, not a redrawn one.
+      await expect(link.locator('img')).toHaveAttribute('src', /social/u)
+    }
+    const dock = page.getByRole('navigation', { name: 'Dock' })
+    await expect(
+      dock.getByRole('link', { name: /^Call HONEST: \+\d+$/u })
+    ).toHaveAttribute('href', /^tel:\+\d+$/u)
+    await expect(
+      dock.getByRole('link', { name: /^Text HONEST: \+\d+$/u })
+    ).toHaveAttribute('href', /^sms:\+\d+$/u)
+    await expect(
+      dock.getByRole('link', { name: /^Email HONEST: \S+@\S+$/u })
+    ).toHaveAttribute('href', /^mailto:\S+@\S+$/u)
+    await expect(
+      dock.getByRole('button', { name: 'Classic website' })
+    ).toBeVisible()
   })
 
   test('an app opens, goes home kept as it was, and comes back', async ({

@@ -17,9 +17,12 @@ import {
   resetNotifications,
   setCentreOpen,
 } from '@/components/ui/phone/notifications/store'
-import { PHONE_APPS } from '@/components/ui/phone/registry'
+import { PHONE_APPS, PHONE_LINKS } from '@/components/ui/phone/registry'
 import { NOTIFICATION_TRIGGERS } from '@/components/ui/phone/settings'
-import { PhoneAppIcon } from '@/components/ui/window/dock-icons'
+import {
+  ContactLinkIcon,
+  PhoneAppIcon,
+} from '@/components/ui/window/dock-icons'
 
 import s from './lab.module.css'
 
@@ -45,7 +48,10 @@ export function PhoneLab() {
       }
       className={s.lab}
     >
-      <GroupedList header="Icons" footer="Shared with the macOS dock.">
+      <GroupedList
+        header="Icons"
+        footer="Shared with the macOS dock. Social apps use each network's own logo."
+      >
         {PHONE_APPS.map((app) => (
           <ListRow
             key={app.id}
@@ -53,6 +59,15 @@ export function PhoneLab() {
             title={app.label}
             subtitle={app.name}
             detail={`${app.owner}, ${app.phase}`}
+          />
+        ))}
+        {PHONE_LINKS.map((link) => (
+          <ListRow
+            key={link.id}
+            icon={<ContactLinkIcon id={link.id} />}
+            title={link.label}
+            subtitle={link.name}
+            detail="dock link"
           />
         ))}
       </GroupedList>

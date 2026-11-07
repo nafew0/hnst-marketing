@@ -2,7 +2,12 @@
 
 import { type ReactNode, useSyncExternalStore } from 'react'
 
-import type { PhoneAppId } from '@/components/ui/phone/registry'
+import { Image } from '@/components/ui/image'
+import type {
+  PhoneAppId,
+  PhoneLink,
+  SocialNetwork,
+} from '@/components/ui/phone/registry'
 
 import s from './dock.module.css'
 
@@ -287,7 +292,8 @@ function MarketerIcon() {
   )
 }
 
-function ContactIcon() {
+/** Mail: the visitor's own mail app, opened at HONEST's address. */
+function MailIcon() {
   return (
     <AppIcon tile="sky">
       <rect
@@ -333,16 +339,22 @@ const todayHere = () => {
 function CalendarDate() {
   const today = useSyncExternalStore(noChange, todayHere, todayOnServer)
   const [weekday, day] = today?.split(' ') ?? []
+  // Inline styles, not presentation attributes: `<use>` draws a copy in its
+  // own shadow tree, where the reset (lib/styles/css/reset.css) doesn't see an
+  // `svg` ancestor and unsets every attribute-set property. An inline style
+  // outranks the reset's layer.
   return (
     <>
       <text
         id="dock-weekday"
         x={CENTRE}
         y="31"
-        textAnchor="middle"
-        fontSize="20"
-        fontWeight="600"
-        fill="var(--color-dock-red)"
+        style={{
+          fill: 'var(--color-dock-red)',
+          fontSize: 20,
+          fontWeight: 600,
+          textAnchor: 'middle',
+        }}
       >
         {weekday}
       </text>
@@ -350,10 +362,12 @@ function CalendarDate() {
         id="dock-day"
         x={CENTRE}
         y="77"
-        textAnchor="middle"
-        fontSize="50"
-        fontWeight="400"
-        fill="var(--color-dock-ink)"
+        style={{
+          fill: 'var(--color-dock-ink)',
+          fontSize: 50,
+          fontWeight: 400,
+          textAnchor: 'middle',
+        }}
       >
         {day}
       </text>
@@ -499,76 +513,93 @@ function PhotosIcon() {
   )
 }
 
-function InstagramIcon() {
+/** Phone: a handset, for calling HONEST from the visitor's own phone. */
+function PhoneIcon() {
   return (
-    <AppIcon tile="rose">
-      <g fill="none" stroke="var(--color-dock-paper-1)" strokeWidth="5">
-        <rect x="27" y="27" width="46" height="46" rx="13" />
-        <circle cx={CENTRE} cy={CENTRE} r="11" />
-      </g>
-      <circle cx="62.5" cy="37.5" r="3.2" fill="var(--color-dock-paper-1)" />
-    </AppIcon>
-  )
-}
-
-function XIcon() {
-  return (
-    <AppIcon tile="graphite">
-      <path d="M28 26H40L72 74H60Z" fill="var(--color-dock-paper-1)" />
+    <AppIcon tile="green">
       <path
-        d="M69 27 54 44M46 56 31 73"
-        fill="none"
-        stroke="var(--color-dock-paper-1)"
-        strokeLinecap="round"
-        strokeWidth="4"
+        d="M38 24Q34 22 31 25L26 30Q21 35 23 43Q29 61 44 74Q53 81 62 78L68 74Q71 71 69 67L64 59Q61 55 57 57L51 60Q45 57 41 51Q37 45 39 41L43 37Q46 34 44 30Z"
+        fill="url(#dock-paper)"
       />
     </AppIcon>
   )
 }
 
-function YouTubeIcon() {
+/** Messages: a speech bubble, for texting HONEST. */
+function MessagesIcon() {
   return (
-    <AppIcon tile="paper">
-      <rect
-        x="20"
-        y="31"
-        width="60"
-        height="38"
-        rx="12"
-        fill="var(--color-dock-red)"
+    <AppIcon tile="green">
+      <path
+        d="M50 24C32 24 20 35 20 49C20 57 24 63 31 68L27 78Q39 76 44 73Q47 74 50 74C68 74 80 63 80 49C80 35 68 24 50 24Z"
+        fill="url(#dock-paper)"
       />
-      <path d="M44 40 61 50 44 60Z" fill="var(--color-dock-paper-1)" />
     </AppIcon>
   )
 }
 
-function TikTokIcon() {
-  return (
-    <AppIcon tile="graphite">
-      <g
-        fill="none"
-        stroke="var(--color-dock-paper-1)"
-        strokeLinecap="round"
-        strokeWidth="8"
-      >
-        <path d="M54 24V63" />
-        <circle cx="43" cy="64" r="11" />
-        <path d="M54 25Q57 37 70 39" />
-      </g>
-    </AppIcon>
-  )
-}
-
-function LinkedInIcon() {
+/** Contact: the site's own form (M6), a paper plane, sent from here. */
+function ContactFormIcon() {
   return (
     <AppIcon tile="sky">
-      <g fill="var(--color-dock-paper-1)">
-        <circle cx="33" cy="31" r="6" />
-        <rect x="28" y="42" width="10" height="32" rx="2" />
-        <path d="M46 42H56V47Q60 41 67 41Q76 41 76 53V74H66V56Q66 50 61 50Q56 50 56 57V74H46Z" />
-      </g>
+      <path d="M20 49 79 24 64 77 49 61Z" fill="url(#dock-paper)" />
+      <path d="M49 61 79 24 54 72Z" fill="var(--color-dock-paper-2)" />
+      <path
+        d="M49 61 79 24"
+        fill="none"
+        stroke="var(--color-dock-sky-2)"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
     </AppIcon>
   )
+}
+
+/**
+ * Each network's own logo, from its brand page, as supplied: resized to 256px
+ * and nothing else. Their rules forbid redrawing, recolouring, outlines and
+ * shadows, so these never sit in an `AppIcon` tile. Sources, rules and credit:
+ * THIRD-PARTY-NOTICES.md § Social media logos.
+ */
+const SOCIAL_FILES = {
+  instagram: { width: 256, height: 256 },
+  x: { width: 250, height: 256 },
+  youtube: { width: 256, height: 219 },
+  tiktok: { width: 256, height: 256 },
+  linkedin: { width: 256, height: 218 },
+} as const satisfies Record<SocialNetwork, { width: number; height: number }>
+
+export function SocialMark({
+  network,
+  sizes,
+}: {
+  network: SocialNetwork
+  /** How wide it draws, for the image's `sizes`. */
+  sizes: string
+}) {
+  return (
+    <Image
+      src={`/social/${network}.png`}
+      alt=""
+      {...SOCIAL_FILES[network]}
+      sizes={sizes}
+      placeholder="empty"
+      objectFit="contain"
+      className={s.social}
+      data-network={network}
+    />
+  )
+}
+
+/** The phone's Phone, Messages and Mail, and the desktop dock's. */
+export function ContactLinkIcon({ id }: { id: PhoneLink['id'] }) {
+  switch (id) {
+    case 'phone':
+      return <PhoneIcon />
+    case 'messages':
+      return <MessagesIcon />
+    case 'email':
+      return <MailIcon />
+  }
 }
 
 /** Every app on the phone home screen, sharing the dock's art where it has one. */
@@ -589,15 +620,11 @@ export function PhoneAppIcon({ id }: { id: PhoneAppId }) {
     case 'marketer':
       return <MarketerIcon />
     case 'instagram':
-      return <InstagramIcon />
     case 'x':
-      return <XIcon />
     case 'youtube':
-      return <YouTubeIcon />
     case 'tiktok':
-      return <TikTokIcon />
     case 'linkedin':
-      return <LinkedInIcon />
+      return <SocialMark network={id} sizes="62px" />
     case 'photos':
       return <PhotosIcon />
     case 'browser':
@@ -605,7 +632,7 @@ export function PhoneAppIcon({ id }: { id: PhoneAppId }) {
     case 'notes':
       return <NotesIcon />
     case 'mail':
-      return <ContactIcon />
+      return <ContactFormIcon />
   }
 }
 
@@ -618,7 +645,7 @@ export function DockIcon({ href }: { href: string }) {
   if (href === '/proof') return <ProofIcon />
   if (href === '/about') return <AboutIcon />
   if (href === '/the-honest-marketer') return <MarketerIcon />
-  if (href === '/contact') return <ContactIcon />
+  if (href === '/contact') return <ContactFormIcon />
   if (href === '/book') return <BookIcon />
   return <WindowIcon />
 }

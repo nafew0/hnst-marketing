@@ -13,7 +13,7 @@ import { PrivacyControls } from '@/components/forms/privacy'
 import { DeviceTierProvider } from '@/components/motion/device-tier'
 import { Link } from '@/components/ui/link'
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
-import { loadPhoneContent } from '@/components/ui/phone/load'
+import { loadPhoneContent, siteLinks } from '@/components/ui/phone/load'
 import { PhoneHost } from '@/components/ui/phone/notifications/host'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
@@ -103,6 +103,7 @@ export default async function AppLayout({
   window: windowSlot,
 }: PropsWithChildren<{ window: ReactNode }>) {
   const { isEnabled: isDraftMode } = await draftMode()
+  const phoneContent = await loadPhoneContent()
   return (
     <html
       lang="en"
@@ -143,10 +144,8 @@ export default async function AppLayout({
               <DeviceTierProvider>
                 {children}
                 {windowSlot}
-                <WindowHost />
-                {PHONE_LAYOUT && (
-                  <PhoneHost settings={(await loadPhoneContent()).settings} />
-                )}
+                <WindowHost links={siteLinks(phoneContent)} />
+                {PHONE_LAYOUT && <PhoneHost settings={phoneContent.settings} />}
               </DeviceTierProvider>
             </TransformProvider>
             <ToastViewport />

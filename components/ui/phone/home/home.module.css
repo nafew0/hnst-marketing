@@ -104,11 +104,18 @@
     }
   }
 
+  /* Taller than a short screen: the row under the edge fades instead of being
+     cut, and the padding lets the last row scroll clear of the fade. */
   .screen {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    mask-image: linear-gradient(
+      180deg,
+      oklch(0 0 0) calc(100% - 28px),
+      transparent
+    );
   }
 
   .grid {
@@ -116,6 +123,7 @@
     grid-template-columns: repeat(4, 1fr);
     row-gap: 20px;
     column-gap: 8px;
+    padding-bottom: 28px;
   }
 
   /* A widget is two columns wide and two icon rows tall. */
@@ -168,6 +176,11 @@
       width: 100%;
       height: 100%;
     }
+  }
+
+  /* A network's own logo: as supplied, so no shadow (their rules forbid one). */
+  .icon.official {
+    filter: none;
   }
 
   .label {

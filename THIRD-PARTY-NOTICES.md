@@ -30,3 +30,26 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Social media logos
+
+`public/social/*.png` are the networks' own logos, downloaded from their brand
+pages on 7 November 2026 and resized to 256px; nothing else is changed. They
+link to HONEST's profiles (or the network's home page until the CMS has one)
+from the phone's home screen and the desktop dock (`SocialMark` in
+`components/ui/window/dock-icons.tsx`). Each network's rules forbid redrawing,
+recolouring, outlines and shadows, so they are drawn as supplied, outside the
+HONEST icon tiles.
+
+| File            | Source                                                                   | Owner                |
+| --------------- | ------------------------------------------------------------------------ | -------------------- |
+| `instagram.png` | Instagram glyph (gradient), meta.com/brand/resources/instagram           | Meta                 |
+| `x.png`         | X logo (white), about.x.com/en/who-we-are/brand-toolkit                  | X Corp.              |
+| `youtube.png`   | YouTube icon (red, digital), brand.youtube/youtube-icon                  | Google LLC           |
+| `tiktok.png`    | TikTok icon (black square), developers.tiktok.com design guidelines pack | TikTok               |
+| `linkedin.png`  | LinkedIn "in" bug (blue), brand.linkedin.com/downloads                   | LinkedIn Corporation |
+
+Instagram is a trademark of Meta. X is a trademark of X Corp. YouTube is a
+trademark of Google LLC. TikTok and the TikTok logo are trademarks of TikTok.
+LinkedIn is a registered trademark of LinkedIn Corporation. HONEST Marketing is
+not affiliated with or endorsed by these companies.

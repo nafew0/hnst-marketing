@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { useEffect } from 'react'
 
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
+import type { SiteLinks } from '@/components/ui/phone/load'
 import { usePhone } from '@/components/ui/phone/store'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { pauseDrawing } from '@/webgl/utils/awake'
@@ -23,8 +24,8 @@ const WindowDock = dynamic(
   { ssr: false }
 )
 
-/** The window layer, in the site layout. */
-export function WindowHost() {
+/** The window layer, in the site layout. `links` feed the dock's way-out icons. */
+export function WindowHost({ links }: { links: SiteLinks }) {
   const routeHref = useWindows((state) => state.routeHref)
   const open = useWindows((state) => state.activeHref !== null)
   const hasContent = useWindows((state) =>
@@ -61,7 +62,7 @@ export function WindowHost() {
       {/* The icons' gradients, once, server-rendered, for both layouts. */}
       <DockIconDefs />
       {(open || hasContent) && <WindowDialog />}
-      {dock && <WindowDock />}
+      {dock && <WindowDock links={links} />}
     </>
   )
 }

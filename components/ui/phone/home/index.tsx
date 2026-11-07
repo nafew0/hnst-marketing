@@ -6,7 +6,10 @@ import { type PointerEvent, useEffect, useRef } from 'react'
 
 import { openPrivacyPreferences } from '@/components/forms/privacy'
 import { Link } from '@/components/ui/link'
-import { PhoneAppIcon } from '@/components/ui/window/dock-icons'
+import {
+  ContactLinkIcon,
+  PhoneAppIcon,
+} from '@/components/ui/window/dock-icons'
 import { useMeasure } from '@/components/ui/window/genie'
 import { useWindows } from '@/components/ui/window/store'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
@@ -15,7 +18,19 @@ import { HomeBar } from '../bars'
 import type { PhoneContent } from '../load'
 import { notify, setCentreOpen } from '../notifications/store'
 import { appHref, useOpenApp } from '../open'
-import { PHONE_APPS, type PhoneApp, socialNetworkOf } from '../registry'
+import {
+  contactDetail,
+  contactHref,
+  DOCK,
+  GRID,
+  isPhoneLinkId,
+  type PhoneApp,
+  type PhoneLink,
+  phoneApp,
+  phoneLink,
+  type SiteContact,
+  socialUrl,
+} from '../registry'
 import { showHome, syncLocked, usePhone } from '../store'
 import { InstallWidget } from '../widgets/install'
 import { NextCallWidget } from '../widgets/next-call'
@@ -81,16 +96,16 @@ function Tile({ app }: { app: PhoneApp }) {
   )
 }
 
+/** HONEST on a network: its profile, or the network's home until it has one. */
 function SocialTile({ app, url }: { app: PhoneApp; url: string }) {
   return (
     <Link
       href={url}
       className={s.app}
       aria-label={`${app.name} (opens in a new tab)`}
-      target="_blank"
-      rel="noopener noreferrer"
+      newTab
     >
-      <span className={s.icon}>
+      <span className={cn(s.icon, s.official)}>
         <PhoneAppIcon id={app.id} />
       </span>
       <span className={s.label} aria-hidden="true">
@@ -128,6 +143,27 @@ function TopRow() {
   )
 }
 
+/** The visitor's own Phone, Messages or Mail, at HONEST's number or address. */
+function ContactTile({
+  link,
+  contact,
+}: {
+  link: PhoneLink
+  contact: SiteContact
+}) {
+  return (
+    <Link
+      href={contactHref(link.channel, contact)}
+      className={s.app}
+      aria-label={`${link.name}: ${contactDetail(link.channel, contact)}`}
+    >
+      <span className={s.icon}>
+        <ContactLinkIcon id={link.id} />
+      </span>
+    </Link>
+  )
+}
+
 /**
  * The phone's home screen, over the homepage story on `/` (docs/phases/M2.md).
  * Server-rendered and shown by CSS under the `dt:` breakpoint, so a phone sees
@@ -135,7 +171,7 @@ function TopRow() {
  * before. The lock screen sits on top once a session.
  */
 export function PhoneHome({ content }: { content: PhoneContent }) {
-  const { settings, socialLinks } = content
+  const { settings, socialLinks, contact } = content
   const ref = useRef<HTMLDivElement>(null)
   const story = usePhone((state) => state.story)
   const locked = usePhone((state) => state.locked)
@@ -177,15 +213,7 @@ export function PhoneHome({ content }: { content: PhoneContent }) {
     return () => clearTimeout(timer)
   }, [homeUp])
 
-  const socialUrl = (app: PhoneApp) =>
-    app.opens.kind === 'social'
-      ? socialLinks.find((link) => socialNetworkOf(link.url) === app.id)?.url
-      : undefined
-  const grid = PHONE_APPS.filter(
-    (app) =>
-      app.place === 'grid' && (app.opens.kind !== 'social' || socialUrl(app))
-  )
-  const dock = PHONE_APPS.filter((app) => app.place === 'dock')
+  const grid = GRID.map(phoneApp)
 
   // Pull down from the top part of the home screen for the Notification Centre.
   const onPointerDown = (event: PointerEvent) => {
@@ -226,25 +254,29 @@ export function PhoneHome({ content }: { content: PhoneContent }) {
               <li className={s.widgetCell}>
                 <InstallWidget copy={settings.widgets} />
               </li>
-              {grid.map((app) => {
-                const url = socialUrl(app)
-                return (
-                  <li key={app.id}>
-                    {url ? (
-                      <SocialTile app={app} url={url} />
-                    ) : (
-                      <Tile app={app} />
-                    )}
-                  </li>
-                )
-              })}
+              {grid.map((app) => (
+                <li key={app.id}>
+                  {app.opens.kind === 'social' ? (
+                    <SocialTile
+                      app={app}
+                      url={socialUrl(app.opens.network, socialLinks)}
+                    />
+                  ) : (
+                    <Tile app={app} />
+                  )}
+                </li>
+              ))}
             </ul>
           </nav>
           <nav aria-label="Dock" className={s.dockArea}>
             <ul className={s.dock}>
-              {dock.map((app) => (
-                <li key={app.id}>
-                  <Tile app={app} />
+              {DOCK.map((id) => (
+                <li key={id}>
+                  {isPhoneLinkId(id) ? (
+                    <ContactTile link={phoneLink(id)} contact={contact} />
+                  ) : (
+                    <Tile app={phoneApp(id)} />
+                  )}
                 </li>
               ))}
             </ul>
