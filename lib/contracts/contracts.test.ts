@@ -58,6 +58,18 @@ describe('booking contract', () => {
     expect(bookingInputSchema.safeParse(sampleBooking).success).toBe(true)
   })
 
+  it('keeps an optional package and rejects an unknown one', () => {
+    const founder = bookingInputSchema.safeParse({
+      ...sampleBooking,
+      packageInterest: 'founder',
+    })
+    expect(founder.data?.packageInterest).toBe('founder')
+    expect(
+      bookingInputSchema.safeParse({ ...sampleBooking, packageInterest: 'x' })
+        .success
+    ).toBe(false)
+  })
+
   it('rejects slot ranges over 31 days or reversed', () => {
     const tz = 'America/New_York'
     expect(

@@ -8,6 +8,7 @@ import {
   isoDateTimeSchema,
   nameSchema,
   phoneSchema,
+  tierSchema,
   timezoneSchema,
   utmSchema,
 } from './common'
@@ -86,6 +87,8 @@ export const bookingInputSchema = z
     }),
     /** Qualifying question id → answer (questions come from CMS SiteSettings). */
     answers: z.record(z.string().max(80), z.string().max(2000)),
+    /** The package the visitor came from (`/book?package=`), if any (M6). */
+    packageInterest: tierSchema.optional(),
     consent: consentSchema,
     utm: utmSchema,
     pageUrl: z.url().max(2000),

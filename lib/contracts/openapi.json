@@ -265,6 +265,10 @@
               "maxLength": 2000
             }
           },
+          "packageInterest": {
+            "type": "string",
+            "enum": ["basic-diy", "executive", "founder", "diamond"]
+          },
           "consent": {
             "type": "object",
             "properties": {
