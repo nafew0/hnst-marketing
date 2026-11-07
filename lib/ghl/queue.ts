@@ -2,6 +2,7 @@ import { PgBoss } from 'pg-boss'
 import { z } from 'zod'
 
 import { env } from '@/lib/env'
+import { WALL_PURGE_QUEUE } from '@/lib/wall/constants'
 
 import {
   BOOKING_DLQ,
@@ -75,6 +76,14 @@ async function openBoss(databaseUrl: string): Promise<PgBoss> {
     retryBackoff: true,
     policy: 'exclusive',
     expireInSeconds: 300,
+  })
+  // pg-boss refuses a schedule for a queue that doesn't exist yet.
+  await ensureQueue(boss, WALL_PURGE_QUEUE, {
+    retryLimit: 2,
+    retryDelay: 60,
+    retryBackoff: true,
+    policy: 'exclusive',
+    expireInSeconds: 900,
   })
   return boss
 }
