@@ -36,4 +36,10 @@ const mono = Archivo_Narrow({
 const fonts = [display, body, mono]
 const fontsVariable = fonts.map((font) => font.variable).join(' ')
 
-export { fontsVariable }
+/**
+ * The display family as a CSS `font-family` value, for drawing on a canvas,
+ * which can't read the `--next-font-display` variable (Camera's frame, M7).
+ */
+const displayFontFamily = display.style.fontFamily
+
+export { displayFontFamily, fontsVariable }
