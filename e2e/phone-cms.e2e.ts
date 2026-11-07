@@ -19,9 +19,10 @@ const photoSchema = z.object({
 test('moderation protects originals, thumbnails and evidence through approval and removal', async ({
   playwright,
   request,
+  baseURL,
 }) => {
   const editor = await playwright.request.newContext({
-    baseURL: 'http://localhost:3013',
+    ...(baseURL && { baseURL }),
   })
   try {
     const login = await editor.post('/api/cms/users/login', {
@@ -45,7 +46,7 @@ test('moderation protects originals, thumbnails and evidence through approval an
     if (!photo) throw new Error('Run phone-cms-setup first')
     expect(photo.sizes.thumbnail.width).toBe(400)
     const paths = [photo.url, photo.sizes.thumbnail.url].map(
-      (url) => new URL(url, 'http://localhost:3013').pathname
+      (url) => new URL(url, baseURL).pathname
     )
     const anonymous = await request.get(`/api/cms/wallPhotos/${photo.id}`)
     expect([403, 404]).toContain(anonymous.status())
@@ -131,9 +132,10 @@ test('moderation protects originals, thumbnails and evidence through approval an
 test('notes and legal drafts stay private, and editors cannot approve phone copy', async ({
   playwright,
   request,
+  baseURL,
 }) => {
   const editor = await playwright.request.newContext({
-    baseURL: 'http://localhost:3013',
+    ...(baseURL && { baseURL }),
   })
   try {
     const login = await editor.post('/api/cms/users/login', {
