@@ -2,7 +2,9 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 
+import { FormSheet } from '@/components/apps/mail/form-sheet'
 import { captureAttribution } from '@/components/forms/attribution'
+import { BookingReceipt } from '@/components/forms/booking-receipt'
 import { useBookingReceipt } from '@/components/forms/booking-receipt'
 import {
   calendarDays,
@@ -12,7 +14,9 @@ import {
 } from '@/components/forms/booking-utils'
 import { Captcha } from '@/components/forms/captcha'
 import { ConsentFields } from '@/components/forms/consent-fields'
+import { DraftField } from '@/components/forms/draft-field'
 import type { ConsentCopy } from '@/components/forms/lead-form'
+import { clearDraft, submissionFor } from '@/components/forms/visit-drafts'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -20,8 +24,9 @@ import {
   SubmitButton,
   useFormContext,
 } from '@/components/ui/form'
-import { InputField, TextareaField } from '@/components/ui/form/fields'
 import { addValidator } from '@/components/ui/form/hook'
+import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
+import { notify } from '@/components/ui/phone/notifications/store'
 import { Select } from '@/components/ui/select'
 import type { BookingCopy } from '@/lib/cms/form-copy'
 import {
@@ -30,6 +35,7 @@ import {
   nameSchema,
   phoneSchema,
   timezoneSchema,
+  tierSchema,
   type SlotsResponse,
 } from '@/lib/contracts'
 import { api, newIdempotencyKey, toFormState } from '@/lib/contracts/client'
@@ -37,6 +43,8 @@ import { HONEYPOT_FIELD } from '@/lib/ghl/constants'
 import { track } from '@/lib/track'
 import type { FormState } from '@/lib/types/form'
 import { zodToValidator } from '@/utils/validation'
+
+import s from '@/components/apps/calendar/calendar.module.css'
 
 addValidator('contact.firstName', zodToValidator(nameSchema))
 addValidator('contact.email', zodToValidator(emailSchema))
@@ -64,9 +72,11 @@ function BookingErrors() {
 }
 function subscribeTimezone(notify: () => void) {
   window.addEventListener('focus', notify)
+  window.addEventListener('popstate', notify)
   const timer = window.setInterval(notify, 60000)
   return () => {
     window.removeEventListener('focus', notify)
+    window.removeEventListener('popstate', notify)
     window.clearInterval(timer)
   }
 }
@@ -100,6 +110,18 @@ export function BookingForm({
   embedUrl,
 }: BookingFormProps) {
   const id = useId()
+  useEffect(() => {
+    if (PHONE_LAYOUT) track('cta_clicked', { app: 'calendar', action: 'open' })
+  }, [])
+  const packageQuery = useSyncExternalStore(
+    subscribeTimezone,
+    () => new URLSearchParams(window.location.search).get('package') ?? '',
+    () => ''
+  )
+  const requestedPackage = tierSchema.safeParse(packageQuery)
+  const packageInterest = requestedPackage.success
+    ? requestedPackage.data
+    : undefined
   const router = useRouter()
   const setReceipt = useBookingReceipt((state) => state.setReceipt)
   const detectedTz = useSyncExternalStore(
@@ -125,12 +147,16 @@ export function BookingForm({
   const [conflict, setConflict] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [timezoneOpen, setTimezoneOpen] = useState(false)
-  const keyRef = useRef<string | null>(null)
-  const intentRef = useRef<string | null>(null)
-  const pendingRef = useRef<Promise<FormState> | null>(null)
-  const [uncertain, setUncertain] = useState(false)
+  const [phoneSubmission, setPhoneSubmission] = useState(false)
+  const [finished, setFinished] = useState(submissionFor('calendar').complete)
+  const [uncertain, updateUncertain] = useState(
+    submissionFor('calendar').uncertain
+  )
+  function setUncertain(value: boolean) {
+    submissionFor('calendar').uncertain = value
+    updateUncertain(value)
+  }
   const navigatedRef = useRef(false)
-  const confirmedRef = useRef(false)
   const available =
     consent.approved || process.env.NEXT_PUBLIC_API_MOCKS === '1'
   const requestKey = `${month}|${tz}|${revision}`
@@ -179,7 +205,8 @@ export function BookingForm({
     setConflict(false)
   }
   async function performSubmit(data: FormData): Promise<FormState> {
-    if (confirmedRef.current) return { status: 202, message: copy.success }
+    const submission = submissionFor('calendar')
+    if (submission.complete) return { status: 202, message: copy.success }
     const field = (name: string) => String(data.get(name) ?? '')
     if (field(HONEYPOT_FIELD)) return { status: 400, message: copy.invalid }
     if (!available) return { status: 503, message: copy.unavailable }
@@ -227,26 +254,33 @@ export function BookingForm({
       tz: input.tz,
       contact: input.contact,
       answers: input.answers,
+      packageInterest,
       consent: { email: input.consent.email, sms: input.consent.sms },
     })
     // After a lost response the first attempt may have booked, so every retry
     // keeps its key, edited or not: the server replays that booking if it
     // exists, and only otherwise creates this one. A new key could book twice.
-    let key = keyRef.current
+    let key = submission.key
     const replaying = uncertain && key !== null
     if (!replaying && !slots.some((item) => item.slots.includes(slot)))
       return { status: 400, message: copy.chooseSlot }
-    if (!key || (!replaying && intentRef.current !== intent)) {
+    if (!key || (!replaying && submission.intent !== intent)) {
       key = newIdempotencyKey()
-      keyRef.current = key
-      intentRef.current = intent
+      submission.key = key
+      submission.intent = intent
     }
     track('booking_step', { step: 'submit' })
-    const body = { ...input, [HONEYPOT_FIELD]: '' }
+    // M6 decision: optional top-level field. Claude/Grok must extend the frozen
+    // booking schema and server mapping; older servers discard this field.
+    const body = {
+      ...input,
+      ...(packageInterest && { packageInterest }),
+      [HONEYPOT_FIELD]: '',
+    }
     const result = await api.book(body, key)
     if (result.ok) {
-      confirmedRef.current = true
-      keyRef.current = null
+      submission.complete = true
+      submission.key = null
       setUncertain(false)
       if ('appointmentId' in result.data)
         setReceipt({
@@ -256,6 +290,18 @@ export function BookingForm({
           tz,
         })
       else setReceipt({ kind: 'queued', ref: result.data.ref })
+      clearDraft('calendar')
+      if (phoneSubmission) {
+        if ('appointmentId' in result.data)
+          notify('booking-confirmed', {
+            time: new Intl.DateTimeFormat(undefined, {
+              dateStyle: 'full',
+              timeStyle: 'short',
+              timeZone: tz,
+            }).format(new Date(result.data.start)),
+          })
+        else notify('booking-queued')
+      }
       track('booking_step', {
         step: 'appointmentId' in result.data ? 'confirmed' : 'queued',
       })
@@ -276,13 +322,14 @@ export function BookingForm({
     _previous: FormState | null,
     data: FormData
   ): Promise<FormState> {
-    if (pendingRef.current) return pendingRef.current
+    const submission = submissionFor('calendar')
+    if (submission.pending) return submission.pending
     setSubmitting(true)
     const pending = performSubmit(data).finally(() => {
-      pendingRef.current = null
+      submission.pending = null
       setSubmitting(false)
     })
-    pendingRef.current = pending
+    submission.pending = pending
     return pending
   }
   if (!available)
@@ -291,6 +338,7 @@ export function BookingForm({
         {copy.unavailable}
       </p>
     )
+  if (finished && phoneSubmission) return <BookingReceipt copy={copy} />
   const weekdays = Array.from({ length: 7 }, (_, index) =>
     new Intl.DateTimeFormat(undefined, {
       weekday: 'short',
@@ -300,7 +348,16 @@ export function BookingForm({
   const cells = ready ? calendarDays(month) : []
   const selectedSlots = slots.find((item) => item.date === day)?.slots ?? []
   return (
-    <div className="flex min-w-0 flex-col dr-gap-32">
+    <div
+      className="flex min-w-0 flex-col dr-gap-32"
+      data-phone-calendar={PHONE_LAYOUT || undefined}
+    >
+      {packageInterest && (
+        <p className="caption text-gold">
+          Package:{' '}
+          {packageInterest === 'founder' ? 'Founder Package' : packageInterest}
+        </p>
+      )}
       <div className="flex min-w-0 flex-col dr-gap-12">
         <label
           id={`${id}-timezone-label`}
@@ -328,7 +385,7 @@ export function BookingForm({
           </Select.Trigger>
           {timezoneOpen && (
             <Select.Portal>
-              <Select.Positioner>
+              <Select.Positioner className={s.timezonePositioner}>
                 <Select.Popup>
                   {['UTC', ...Intl.supportedValuesOf('timeZone')].map(
                     (zone) => (
@@ -406,6 +463,10 @@ export function BookingForm({
                               (item) => item.date === date && item.slots.length
                             )
                           }
+                          aria-current={date === today ? 'date' : undefined}
+                          data-available={slots.some(
+                            (item) => item.date === date
+                          )}
                           aria-pressed={date === day}
                           aria-label={new Intl.DateTimeFormat(undefined, {
                             dateStyle: 'full',
@@ -420,6 +481,9 @@ export function BookingForm({
                           className="min-h-[44px] w-full rounded-[8px] border border-gold/30 px-[2px] text-starlight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:opacity-35 aria-pressed:bg-gold aria-pressed:text-void"
                         >
                           {Number(date.slice(-2))}
+                          {PHONE_LAYOUT && (
+                            <span aria-hidden="true" className={s.dot} />
+                          )}
                         </button>
                       )}
                     </td>
@@ -459,110 +523,117 @@ export function BookingForm({
           )}
         </div>
       )}
-      <Form
-        action={submit}
-        onSuccess={() => {
-          if (!navigatedRef.current) {
-            navigatedRef.current = true
-            router.push('/thanks/booking')
-          }
-        }}
-        className="flex flex-col dr-gap-24"
-      >
-        <fieldset className="flex flex-wrap dr-gap-12">
-          <legend className="dr-mb-16 p-big">{copy.chooseTime}</legend>
-          {selectedSlots.map((time) => (
-            <label
-              key={time}
-              className="flex min-h-[44px] items-center dr-gap-8 rounded-[8px] border border-gold/30 dr-px-16"
-            >
-              <input
-                type="radio"
-                name="slot"
-                value={time}
-                checked={slot === time}
-                onChange={() => {
-                  setSlot(time)
-                  setConflict(false)
-                  track('booking_step', { step: 'slot' })
-                }}
-                className="size-[20px] appearance-auto accent-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
-              />
-              <span>
-                {new Intl.DateTimeFormat(undefined, {
-                  timeStyle: 'short',
-                  timeZone: tz,
-                }).format(new Date(time))}
-              </span>
-            </label>
-          ))}
-        </fieldset>
-        <InputField
-          id={`${id}-name`}
-          name="contact.firstName"
-          label={copy.name}
-          required
-          disabled={submitting}
-        />
-        <InputField
-          id={`${id}-email`}
-          name="contact.email"
-          type="email"
-          label={copy.email}
-          required
-          disabled={submitting}
-        />
-        <InputField
-          id={`${id}-phone`}
-          name="contact.phone"
-          type="tel"
-          label={copy.phone}
-        />
-        {questions.length > 0 && (
-          <fieldset className="flex flex-col dr-gap-24">
-            <legend className="dr-mb-16 p-big">{copy.questions}</legend>
-            {questions.map((question) => (
-              <TextareaField
-                key={question.id}
-                id={`${id}-${question.id}`}
-                name={`answers.${question.id}`}
-                label={question.question}
-                required
-                disabled={submitting}
-                rows={2}
-              />
-            ))}
-          </fieldset>
-        )}
-        <div hidden aria-hidden="true">
-          <label htmlFor={`${id}-website`}>{copy.invalid}</label>
-          <input
-            id={`${id}-website`}
-            name={HONEYPOT_FIELD}
-            autoComplete="off"
-            tabIndex={-1}
-          />
-        </div>
-        <ConsentFields
-          consent={consent}
-          legend={copy.consentLegend}
-          disabled={submitting}
-        />
-        <Captcha />
-        <BookingErrors />
-        <Messages role="alert" />
-        <SubmitButton
-          disabled={
-            !slot || loading || (!uncertain && !selectedSlots.includes(slot))
-          }
-          pendingText={copy.pending}
-          successText={copy.success}
-          errorText={copy.retry}
-          className="min-h-[48px] rounded-full cta"
+      <fieldset className="flex flex-wrap dr-gap-12">
+        <legend className="dr-mb-16 p-big">{copy.chooseTime}</legend>
+        {selectedSlots.map((time) => (
+          <label
+            key={time}
+            className="flex min-h-[44px] items-center dr-gap-8 rounded-[8px] border border-gold/30 dr-px-16"
+          >
+            <input
+              type="radio"
+              name="slot"
+              value={time}
+              checked={slot === time}
+              onChange={() => {
+                setSlot(time)
+                setConflict(false)
+                track('booking_step', { step: 'slot' })
+              }}
+              className="size-[20px] appearance-auto accent-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+            />
+            <span>
+              {new Intl.DateTimeFormat(undefined, {
+                timeStyle: 'short',
+                timeZone: tz,
+              }).format(new Date(time))}
+            </span>
+          </label>
+        ))}
+      </fieldset>
+      <FormSheet title="Book this time" onOpen={() => setPhoneSubmission(true)}>
+        <Form
+          action={submit}
+          onSuccess={() => {
+            if (phoneSubmission) {
+              setFinished(true)
+              return
+            }
+            if (!navigatedRef.current) {
+              navigatedRef.current = true
+              router.push('/thanks/booking')
+            }
+          }}
+          className="flex flex-col dr-gap-24"
         >
-          {copy.submit}
-        </SubmitButton>
-      </Form>
+          <DraftField
+            draftKey="calendar"
+            name="contact.firstName"
+            label={copy.name}
+            required
+            disabled={submitting}
+          />
+          <DraftField
+            draftKey="calendar"
+            name="contact.email"
+            type="email"
+            label={copy.email}
+            required
+            disabled={submitting}
+          />
+          <DraftField
+            draftKey="calendar"
+            name="contact.phone"
+            type="tel"
+            label={copy.phone}
+          />
+          {questions.length > 0 && (
+            <fieldset className="flex flex-col dr-gap-24">
+              <legend className="dr-mb-16 p-big">{copy.questions}</legend>
+              {questions.map((question) => (
+                <DraftField
+                  multiline
+                  draftKey="calendar"
+                  key={question.id}
+                  name={`answers.${question.id}`}
+                  label={question.question}
+                  required
+                  disabled={submitting}
+                />
+              ))}
+            </fieldset>
+          )}
+          <div hidden aria-hidden="true">
+            <label htmlFor={`${id}-website`}>{copy.invalid}</label>
+            <input
+              id={`${id}-website`}
+              name={HONEYPOT_FIELD}
+              autoComplete="off"
+              tabIndex={-1}
+            />
+          </div>
+          <ConsentFields
+            draftKey="calendar"
+            consent={consent}
+            legend={copy.consentLegend}
+            disabled={submitting}
+          />
+          <Captcha />
+          <BookingErrors />
+          <Messages role="alert" />
+          <SubmitButton
+            disabled={
+              !slot || loading || (!uncertain && !selectedSlots.includes(slot))
+            }
+            pendingText={copy.pending}
+            successText={copy.success}
+            errorText={copy.retry}
+            className="min-h-[48px] rounded-full cta"
+          >
+            {copy.submit}
+          </SubmitButton>
+        </Form>
+      </FormSheet>
     </div>
   )
 }

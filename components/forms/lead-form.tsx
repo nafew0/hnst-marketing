@@ -1,17 +1,18 @@
 'use client'
 import { useRouter } from 'next/navigation'
-import { useId, useRef } from 'react'
+import { useId } from 'react'
 
 import { captureAttribution } from '@/components/forms/attribution'
 import { Captcha } from '@/components/forms/captcha'
 import { ConsentFields } from '@/components/forms/consent-fields'
+import { DraftField } from '@/components/forms/draft-field'
+import { clearDraft, submissionFor } from '@/components/forms/visit-drafts'
 import {
   Form,
   Messages,
   SubmitButton,
   useFormContext,
 } from '@/components/ui/form'
-import { InputField, TextareaField } from '@/components/ui/form/fields'
 import { addValidator } from '@/components/ui/form/hook'
 import type { LeadCopy } from '@/lib/cms/form-copy'
 import {
@@ -23,6 +24,7 @@ import {
 } from '@/lib/contracts'
 import { api, newIdempotencyKey, toFormState } from '@/lib/contracts/client'
 import { HONEYPOT_FIELD } from '@/lib/ghl/constants'
+import { track } from '@/lib/track'
 import type { FormState } from '@/lib/types/form'
 import { zodToValidator } from '@/utils/validation'
 addValidator('firstName', zodToValidator(nameSchema))
@@ -38,6 +40,10 @@ interface Props {
   type: 'contact' | 'package' | 'magnet'
   tier?: Tier
   copy?: LeadCopy | undefined
+  draftKey?: string
+  messageLabel?: string
+  compose?: boolean
+  onSent?: () => void
 }
 function PhoneConsentError() {
   const { state } = useFormContext()
@@ -65,29 +71,39 @@ function ServerErrors() {
     </ul>
   )
 }
-export function LeadForm({ consent, type, tier, copy }: Props) {
+export function LeadForm({
+  consent,
+  type,
+  tier,
+  copy,
+  draftKey,
+  compose = false,
+  messageLabel,
+  onSent,
+}: Props) {
   const id = useId()
   const router = useRouter()
-  const keyRef = useRef<string | null>(null)
-  const payloadRef = useRef<string | null>(null)
-  const completeRef = useRef(false)
-  async function submit(
-    _previous: FormState | null,
-    data: FormData
-  ): Promise<FormState> {
-    if (completeRef.current)
+  const memoryKey = draftKey ?? `lead-${type}-${tier ?? id}`
+  async function performSubmit(data: FormData): Promise<FormState> {
+    const submission = submissionFor(memoryKey)
+    if (submission.complete)
       return { status: 202, message: 'Already received.' }
     const field = (name: string) => String(data.get(name) ?? '')
     if (field(HONEYPOT_FIELD))
       return { status: 400, message: 'Unable to submit this form.' }
     if (!consent.approved && process.env.NEXT_PUBLIC_API_MOCKS !== '1')
       return { status: 503, message: 'This form is not available yet.' }
+    if (compose && (!field('subject').trim() || !field('message').trim()))
+      return { status: 400, message: 'Add a subject and message.' }
     const parsed = leadInputSchema.safeParse({
       type,
       firstName: field('firstName'),
       email: field('email'),
       phone: field('phone') || undefined,
-      message: field('message') || undefined,
+      message:
+        (compose
+          ? `Subject: ${field('subject')}\n\n${field('message')}`
+          : field('message')) || undefined,
       packageInterest: tier,
       consent: {
         email: data.get('consent.email') === 'on',
@@ -121,18 +137,41 @@ export function LeadForm({ consent, type, tier, copy }: Props) {
       consent: { email: visitor.consent.email, sms: visitor.consent.sms },
     })
     // Changed input is a new submission; unchanged retries retain the key.
-    if (keyRef.current === null || payloadRef.current !== serialized) {
-      keyRef.current = newIdempotencyKey()
-      payloadRef.current = serialized
+    if (
+      submission.key === null ||
+      (!submission.uncertain && submission.intent !== serialized)
+    ) {
+      submission.key = newIdempotencyKey()
+      submission.intent = serialized
     }
     const body = { ...parsed.data, [HONEYPOT_FIELD]: '' }
-    const result = await api.submitLead(body, keyRef.current)
+    const result = await api.submitLead(body, submission.key)
     if (result.ok) {
-      completeRef.current = true
-      keyRef.current = null
+      submission.complete = true
+      submission.key = null
+      submission.uncertain = false
+      clearDraft(memoryKey)
+      if (onSent)
+        track('cta_clicked', {
+          app: memoryKey.startsWith('note-') ? 'notes' : 'mail',
+          action: 'sent',
+        })
     }
+    if (!result.ok && (result.status === 0 || result.status >= 500))
+      submission.uncertain = true
     const state = toFormState(result, 'Your request has been received.')
     return state.status === 0 ? { ...state, status: 503 } : state
+  }
+  async function submit(
+    _previous: FormState | null,
+    data: FormData
+  ): Promise<FormState> {
+    const submission = submissionFor(memoryKey)
+    if (submission.pending) return submission.pending
+    submission.pending = performSubmit(data).finally(() => {
+      submission.pending = null
+    })
+    return submission.pending
   }
   const available =
     consent.approved || process.env.NEXT_PUBLIC_API_MOCKS === '1'
@@ -145,34 +184,49 @@ export function LeadForm({ consent, type, tier, copy }: Props) {
   return (
     <Form
       action={submit}
-      onSuccess={() => router.push(`/thanks/${type}`)}
+      onSuccess={() => (onSent ? onSent() : router.push(`/thanks/${type}`))}
       className="flex flex-col dr-gap-24"
     >
-      <InputField
-        id={`${id}-firstName`}
+      <DraftField
+        draftKey={memoryKey}
         name="firstName"
         label={copy?.firstName ?? 'First name'}
         required
       />
-      <InputField
-        id={`${id}-email`}
+      <DraftField
+        draftKey={memoryKey}
         name="email"
         type="email"
         label={copy?.email ?? 'Email'}
         required
       />
-      <InputField
-        id={`${id}-phone`}
+      <DraftField
+        draftKey={memoryKey}
         name="phone"
         type="tel"
         label={copy?.phone ?? 'Phone (optional, international format)'}
       />
       <PhoneConsentError />
+      {compose && (
+        <DraftField
+          draftKey={memoryKey}
+          name="subject"
+          label="Subject"
+          required
+        />
+      )}
       {type !== 'magnet' && (
-        <TextareaField
-          id={`${id}-message`}
+        <DraftField
+          multiline
+          draftKey={memoryKey}
           name="message"
-          label={copy?.message ?? 'Tell us about your business'}
+          label={
+            messageLabel ??
+            (compose
+              ? 'Message'
+              : (copy?.message ?? 'Tell us about your business'))
+          }
+          required={compose || messageLabel !== undefined}
         />
       )}
       <div hidden aria-hidden="true">
@@ -185,6 +239,7 @@ export function LeadForm({ consent, type, tier, copy }: Props) {
         />
       </div>
       <ConsentFields
+        draftKey={memoryKey}
         consent={consent}
         legend={copy?.consentLegend ?? 'Stay in touch (optional)'}
       />
