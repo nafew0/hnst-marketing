@@ -1,0 +1,28 @@
+@layer components {
+  /* Above the app window (101) and dock (102); local to Calendar. */
+  .timezonePositioner {
+    z-index: 122;
+  }
+  .dot {
+    display: none;
+  }
+  @media (--mobile) {
+    :global(html:not([data-phone-classic]))
+      :global([data-phone-calendar])
+      :global([data-available='true'])
+      .dot {
+      display: block;
+      width: 4px;
+      height: 4px;
+      margin: 3px auto 0;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    :global(html:not([data-phone-classic]))
+      :global([data-phone-calendar])
+      :global([aria-current='date']) {
+      outline: 1px solid var(--color-gold);
+      outline-offset: -4px;
+    }
+  }
+}

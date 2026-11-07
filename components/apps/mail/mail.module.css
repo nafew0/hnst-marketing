@@ -1,0 +1,26 @@
+@layer components {
+  .phone {
+    display: none;
+  }
+  .desktop {
+    display: block;
+  }
+  .inline {
+    display: contents;
+  }
+  @media (--mobile) {
+    :global(html:not([data-phone-classic])) .phone {
+      display: block;
+    }
+    :global(html:not([data-phone-classic])) .desktop {
+      display: none;
+    }
+    :global(html:not([data-phone-classic])) .inline {
+      display: none;
+    }
+  }
+  .compose {
+    display: grid;
+    gap: 24px;
+  }
+}
