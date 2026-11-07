@@ -2,12 +2,14 @@ import { create } from 'zustand'
 
 /**
  * The photos taken with Camera this visit, in memory only (docs/phases/M7.md):
- * never written to any browser storage, gone on reload. Camera (M7) adds to
- * it; Photos shows them as "Your shots".
+ * never written to any browser storage, gone on reload. Camera adds to it;
+ * Photos shows them as "Your shots".
  */
 export interface Shot {
   id: string
-  /** An object URL for the photo's blob, revoked when it's removed. */
+  /** The photo: a JPEG, frame included, longest side at most SHOT_MAX_EDGE. */
+  blob: Blob
+  /** An object URL for `blob`, revoked when the shot is removed. */
   url: string
   width: number
   height: number
@@ -26,4 +28,8 @@ export function removeShot(id: string) {
     if (gone) URL.revokeObjectURL(gone.url)
     return { shots: shots.filter((shot) => shot.id !== id) }
   })
+}
+
+export function findShot(id: string) {
+  return useShots.getState().shots.find((shot) => shot.id === id)
 }

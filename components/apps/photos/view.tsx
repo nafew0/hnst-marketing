@@ -3,7 +3,12 @@
 import { Dialog } from '@base-ui/react/dialog'
 import { type PointerEvent, useRef, useState } from 'react'
 
-import { useShots } from '@/components/apps/camera/shots'
+import { saveShot, shareShot } from '@/components/apps/camera/capture'
+import {
+  type ShotSheetMode,
+  ShotSheet,
+} from '@/components/apps/camera/shot-sheet'
+import { findShot, useShots } from '@/components/apps/camera/shots'
 import { useDeviceTier } from '@/components/motion/device-tier'
 import { Button } from '@/components/ui/button'
 import { Image } from '@/components/ui/image'
@@ -59,6 +64,8 @@ interface Viewable {
    * already a WebP of at most 1600 px, served `no-store`.
    */
   wallId?: string
+  /** Set for the visitor's own photos (Your shots): save, share or post. */
+  shotId?: string
 }
 
 // SAFETY: CLIP_FOCUS `satisfies Record<WorldClip, string>`, so its keys are the clips.
@@ -130,10 +137,13 @@ function Viewer({
   items,
   index,
   onIndex,
+  onPost,
 }: {
   items: readonly Viewable[]
   index: number | null
   onIndex: (index: number | null) => void
+  /** Posts one of the visitor's own photos: the viewer closes for the post sheet. */
+  onPost: (shotId: string) => void
 }) {
   const { state: device } = useDeviceTier()
   const [reports, setReports] = useState<Record<string, ReportState>>({})
@@ -167,6 +177,8 @@ function Viewer({
   }
 
   const reportState = item?.wallId ? reports[item.wallId] : undefined
+  const shot = item?.shotId ? findShot(item.shotId) : undefined
+  const [shared, setShared] = useState('')
 
   return (
     <Dialog.Root
@@ -213,6 +225,44 @@ function Viewer({
                   <Dialog.Description className={s.viewerCaption}>
                     {item.caption}
                   </Dialog.Description>
+                )}
+                {shot && (
+                  <div className={s.viewerControls}>
+                    <button
+                      type="button"
+                      className={s.viewerButton}
+                      onClick={() => saveShot(shot)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className={s.viewerButton}
+                      onClick={() => {
+                        void shareShot(shot).then((result) =>
+                          setShared(
+                            result === 'saved'
+                              ? 'Sharing isn’t available here, so it was saved.'
+                              : ''
+                          )
+                        )
+                      }}
+                    >
+                      Share
+                    </button>
+                    <button
+                      type="button"
+                      className={s.viewerButton}
+                      onClick={() => onPost(shot.id)}
+                    >
+                      Post to wall
+                    </button>
+                  </div>
+                )}
+                {shared && (
+                  <p role="status" className={s.viewerStatus}>
+                    {shared}
+                  </p>
                 )}
                 <div className={s.viewerControls}>
                   <button
@@ -341,6 +391,13 @@ export function PhotosView({
   const [open, setOpen] = useState<{ album: Album; index: number } | null>(null)
   const { wall, load } = useWall()
   const shots = useShots((state) => state.shots)
+  const [posting, setPosting] = useState<{
+    id: string
+    mode: ShotSheetMode
+  } | null>(null)
+  const postingShot = posting
+    ? (shots.find((shot) => shot.id === posting.id) ?? null)
+    : null
 
   const proofItems: Viewable[] = proof.map((photo) => ({
     id: photo.id,
@@ -366,6 +423,7 @@ export function PhotosView({
       : []
   const shotItems: Viewable[] = shots.map((shot, index) => ({
     id: shot.id,
+    shotId: shot.id,
     title: `Your shot ${shots.length - index}`,
     image: {
       src: shot.url,
@@ -488,6 +546,16 @@ export function PhotosView({
             index === null || !current ? null : { ...current, index }
           )
         }
+        onPost={(id) => {
+          setOpen(null)
+          setPosting({ id, mode: 'post' })
+        }}
+      />
+      <ShotSheet
+        shot={postingShot}
+        mode={posting?.mode ?? 'post'}
+        onModeChange={(mode) => posting && setPosting({ ...posting, mode })}
+        onClose={() => setPosting(null)}
       />
     </PhoneScreen>
   )
