@@ -133,6 +133,9 @@ export const getPublishedPhoneContent = cache(async () => {
   return {
     settings: parsed.success ? parsed.data : PHONE_SETTINGS_DRAFT,
     socialLinks: settings?.socialLinks ?? [],
+    // The phone's Phone, Messages and Mail icons, and the desktop dock's.
+    publicEmail: settings?.publicEmail ?? null,
+    publicPhone: settings?.publicPhone ?? null,
   }
 })
 

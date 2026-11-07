@@ -535,6 +535,34 @@ test('yellow plays the genie into the icon, and restoring plays it back', async 
   await expect(windowOf(page).getByRole('heading')).toHaveText('Window fixture')
 })
 
+test('after a divider, the dock calls, texts and emails HONEST and opens its profiles in a new tab', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const dock = page.getByRole('navigation', { name: 'Dock' })
+  await expect(
+    dock.getByRole('link', { name: /^Call HONEST: \+\d+$/u })
+  ).toHaveAttribute('href', /^tel:\+\d+$/u)
+  await expect(
+    dock.getByRole('link', { name: /^Text HONEST: \+\d+$/u })
+  ).toHaveAttribute('href', /^sms:\+\d+$/u)
+  await expect(
+    dock.getByRole('link', { name: /^Email HONEST: \S+@\S+$/u })
+  ).toHaveAttribute('href', /^mailto:\S+@\S+$/u)
+  for (const name of ['Instagram', 'X', 'YouTube', 'TikTok', 'LinkedIn']) {
+    const link = dock.getByRole('link', {
+      name: `HONEST on ${name} (opens in a new tab)`,
+    })
+    await expect(link).toHaveAttribute('href', /^https:\/\//u)
+    await expect(link).toHaveAttribute('target', '_blank')
+  }
+  // Fits from the desktop breakpoint up, magnified icon and all.
+  await page.setViewportSize({ width: 820, height: 720 })
+  const box = await dock.boundingBox()
+  expect(box?.x).toBeGreaterThanOrEqual(0)
+  expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(820)
+})
+
 test('every page has an icon in the dock, and it opens that page', async ({
   page,
 }) => {

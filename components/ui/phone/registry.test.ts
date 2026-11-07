@@ -1,10 +1,18 @@
 import { describe, expect, it } from 'bun:test'
 
 import {
+  CONTACT_FALLBACK,
+  contactHref,
+  DOCK,
+  GRID,
+  isPhoneLinkId,
   isPhoneOnlyApp,
   PHONE_APPS,
   phoneOnlyHref,
+  SOCIAL_HOME,
+  siteContact,
   socialNetworkOf,
+  socialUrl,
 } from './registry'
 import {
   fillNotification,
@@ -16,11 +24,42 @@ import {
 // (M2) all rely on.
 
 describe('phone app registry', () => {
-  it('lays out 12 grid icons and a 4-icon dock, each id once', () => {
+  it('lays out 15 grid icons and an iPhone dock, each id once', () => {
     const ids = PHONE_APPS.map((app) => app.id)
     expect(new Set(ids).size).toBe(ids.length)
-    expect(PHONE_APPS.filter((app) => app.place === 'grid')).toHaveLength(12)
-    expect(PHONE_APPS.filter((app) => app.place === 'dock')).toHaveLength(4)
+    const grid = PHONE_APPS.filter((app) => app.place === 'grid')
+    expect(grid).toHaveLength(15)
+    expect([...GRID].sort()).toEqual(grid.map((app) => app.id).sort())
+    expect(DOCK).toEqual(['phone', 'browser', 'messages', 'email'])
+    for (const id of DOCK)
+      expect(
+        isPhoneLinkId(id) ||
+          PHONE_APPS.some((app) => app.id === id && app.place === 'dock')
+      ).toBe(true)
+  })
+
+  // The CMS stores a notification's app as a Postgres enum built from these
+  // ids (lib/cms/phone-settings.ts, migration 20261106-142013): a new or
+  // renamed id needs a migration, so links stay out of PHONE_APPS.
+  it('keeps the ids the CMS enum holds', () => {
+    expect(PHONE_APPS.map((app) => app.id)).toEqual([
+      'honest',
+      'calendar',
+      'camera',
+      'packages',
+      'how-it-works',
+      'about',
+      'marketer',
+      'instagram',
+      'x',
+      'youtube',
+      'tiktok',
+      'linkedin',
+      'photos',
+      'browser',
+      'notes',
+      'mail',
+    ])
   })
 
   it('never names an app after Apple', () => {
@@ -48,6 +87,27 @@ describe('phone app registry', () => {
     )
     expect(socialNetworkOf('https://notinstagram.com/honest')).toBeUndefined()
     expect(socialNetworkOf('not a url')).toBeUndefined()
+  })
+
+  it('links each network to HONEST’s profile, or its home page until then', () => {
+    const links = [{ url: 'https://www.instagram.com/honest' }]
+    expect(socialUrl('instagram', links)).toBe(
+      'https://www.instagram.com/honest'
+    )
+    expect(socialUrl('youtube', links)).toBe(SOCIAL_HOME.youtube)
+    for (const url of Object.values(SOCIAL_HOME))
+      expect(url).toMatch(/^https:\/\//u)
+  })
+
+  it('opens the visitor’s own Phone, Messages and Mail', () => {
+    const contact = siteContact({ email: null, phone: ' +1 (234) 567-89 ' })
+    expect(contact.email).toBe(CONTACT_FALLBACK.email)
+    expect(contactHref('phone', contact)).toBe('tel:+123456789')
+    expect(contactHref('sms', contact)).toBe('sms:+123456789')
+    expect(contactHref('email', contact)).toBe(
+      `mailto:${CONTACT_FALLBACK.email}`
+    )
+    expect(siteContact({})).toEqual(CONTACT_FALLBACK)
   })
 })
 

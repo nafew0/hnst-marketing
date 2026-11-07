@@ -2,15 +2,23 @@
 
 import type { Route } from 'next'
 import { usePathname, useRouter } from 'next/navigation'
-import { type MouseEvent, useEffect } from 'react'
+import { type MouseEvent, type ReactNode, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useDeviceTier } from '@/components/motion/device-tier'
 import { Link } from '@/components/ui/link'
+import type { SiteLinks } from '@/components/ui/phone/load'
+import {
+  contactDetail,
+  contactHref,
+  PHONE_LINKS,
+  phoneApp,
+  SOCIAL_NETWORKS,
+} from '@/components/ui/phone/registry'
 import { bookCall, footerNav } from '@/lib/navigation'
 
 import { focusWindow } from './actions'
-import { DockIcon } from './dock-icons'
+import { ContactLinkIcon, DockIcon, SocialMark } from './dock-icons'
 import { genieIn, registerTile, registerViewport, useMeasure } from './genie'
 import {
   dismissMinimised,
@@ -111,12 +119,39 @@ function Tile({ href, label, entry, onSite }: TileProps) {
   )
 }
 
+interface LinkTileProps {
+  href: string
+  /** Over the icon on hover. */
+  label: string
+  /** The accessible name. */
+  name: string
+  icon: ReactNode
+}
+
 /**
- * The site's dock: one app icon per main page, and one more for anything else
- * open, such as a package tier. A portal on `body`, so
- * it stays usable above a window while everything else behind one is inert.
+ * A way out of the site: the visitor's own Phone, Messages and Mail, or
+ * HONEST on a social network (a new tab, as `Link` does for http links).
  */
-export function WindowDock() {
+function LinkTile({ href, label, name, icon }: LinkTileProps) {
+  return (
+    <li className={s.tile} data-dock-link>
+      <Link href={href} className={s.app} aria-label={name}>
+        {icon}
+      </Link>
+      <span aria-hidden="true" className={s.label}>
+        {label}
+      </span>
+    </li>
+  )
+}
+
+/**
+ * The site's dock: one app icon per main page; after a divider, the visitor's
+ * own Phone, Messages and Mail and HONEST's social profiles; and one more for
+ * anything else open, such as a package tier. A portal on `body`, so it stays
+ * usable above a window while everything else behind one is inert.
+ */
+export function WindowDock({ links }: { links: SiteLinks }) {
   const entries = useWindows((state) => state.entries)
   const open = useWindows((state) => state.activeHref !== null)
   const pathname = usePathname()
@@ -145,6 +180,25 @@ export function WindowDock() {
               label={label}
               entry={entryOf(href)}
               onSite={href !== '/' && pathname === href}
+            />
+          ))}
+          <li aria-hidden="true" className={s.divider} />
+          {PHONE_LINKS.map((link) => (
+            <LinkTile
+              key={link.id}
+              href={contactHref(link.channel, links.contact)}
+              label={link.label}
+              name={`${link.name}: ${contactDetail(link.channel, links.contact)}`}
+              icon={<ContactLinkIcon id={link.id} />}
+            />
+          ))}
+          {SOCIAL_NETWORKS.map((network) => (
+            <LinkTile
+              key={network}
+              href={links.social[network]}
+              label={phoneApp(network).label}
+              name={`${phoneApp(network).name} (opens in a new tab)`}
+              icon={<SocialMark network={network} sizes="62px" />}
             />
           ))}
           {others.length > 0 && <li aria-hidden="true" className={s.divider} />}
