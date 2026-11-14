@@ -9,7 +9,12 @@ import { useDeviceTier } from '@/components/motion/device-tier'
 import { HomeBar, PhoneAppBar } from '@/components/ui/phone/bars'
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
 import { phoneTitle } from '@/components/ui/phone/registry'
-import { iconOf, takeLaunch, usePhone } from '@/components/ui/phone/store'
+import {
+  iconOf,
+  returnHome,
+  takeLaunch,
+  usePhone,
+} from '@/components/ui/phone/store'
 import { clearZoom, zoomHome, zoomOpen } from '@/components/ui/phone/zoom'
 import { worldHost, WorldSky } from '@/components/world'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
@@ -96,17 +101,27 @@ export function WindowDialog() {
   // Phone layout: home keeps the app as it is, like minimising, and shrinks
   // it back into its icon on the way.
   const goHome = () => {
-    if (!active) return
+    if (!active) {
+      returnHome()
+      return
+    }
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
+      minimiseWindow(active)
+      if (popup) clearZoom(popup)
+    }
     const frame = measure()
     const icon = iconOf(active.href)
     if (!device?.motionMedia || !popup || !frame || !icon) {
-      minimiseWindow(active)
+      finish()
       return
     }
+    const timer = window.setTimeout(finish, 800)
     void zoomHome(popup, frame, icon).then(() => {
-      minimiseWindow(active)
-      // After the dialog has hidden it, so it never flashes back at full size.
-      setTimeout(() => clearZoom(popup), 400)
+      window.clearTimeout(timer)
+      finish()
     })
   }
 

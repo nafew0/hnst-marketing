@@ -220,7 +220,7 @@
   .storyHome {
     position: fixed;
     inset: auto 0 0;
-    z-index: 80;
+    z-index: 120;
     background: linear-gradient(
       in oklab 0deg,
       color-mix(in oklab, var(--color-void-deep) 70%, transparent),
@@ -307,6 +307,7 @@
     align-items: center;
     gap: 6px;
     min-height: 56px;
+    margin-top: auto;
     padding: 8px 24px;
     border-radius: 16px;
     font-size: 14px;

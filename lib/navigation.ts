@@ -20,8 +20,6 @@ export const bookCall: NavItem = { href: '/book', label: 'Book a call' }
 
 export const legalNav: readonly NavItem[] = [
   { href: '/legal/privacy', label: 'Privacy' },
-  { href: '/legal/terms', label: 'Terms' },
-  { href: '/legal/sms', label: 'SMS terms' },
 ]
 
 export const footerNav: readonly NavItem[] = [

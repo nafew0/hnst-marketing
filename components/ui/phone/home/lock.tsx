@@ -90,7 +90,7 @@ export function LockScreen({ cards, up }: LockScreenProps) {
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
     >
-      <Wallpaper active={false} loop={false} />
+      <Wallpaper active={up} />
       <div className={s.lockClock}>
         <p className={s.lockDate}>{clock?.date ?? ''}</p>
         <p className={s.lockTime}>{clock?.time ?? ''}</p>

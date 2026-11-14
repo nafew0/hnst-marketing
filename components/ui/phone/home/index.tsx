@@ -14,7 +14,7 @@ import { useMeasure } from '@/components/ui/window/genie'
 import { useWindows } from '@/components/ui/window/store'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 
-import { HomeBar } from '../bars'
+import { StoryHomeBar } from '../classic'
 import type { PhoneContent } from '../load'
 import { notify, setCentreOpen } from '../notifications/store'
 import { appHref, useOpenApp } from '../open'
@@ -31,7 +31,7 @@ import {
   type SiteContact,
   socialUrl,
 } from '../registry'
-import { showHome, syncLocked, usePhone } from '../store'
+import { syncLocked, usePhone } from '../store'
 import { InstallWidget } from '../widgets/install'
 import { NextCallWidget } from '../widgets/next-call'
 import { useClock } from './clock'
@@ -292,10 +292,9 @@ export function PhoneHome({ content }: { content: PhoneContent }) {
         )}
       </div>
       {story && (
-        <HomeBar
-          className={cn(s.storyHome, 'mobile-only')}
-          onAction={showHome}
-        />
+        <div className="mobile-only">
+          <StoryHomeBar />
+        </div>
       )}
     </>
   )

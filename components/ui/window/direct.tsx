@@ -16,6 +16,7 @@ import { useDeviceTier } from '@/components/motion/device-tier'
 import { HomeBar, PhoneAppBar } from '@/components/ui/phone/bars'
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
 import { phoneTitle } from '@/components/ui/phone/registry'
+import { returnHome } from '@/components/ui/phone/store'
 import { worldHost, WorldSky } from '@/components/world'
 
 import { TitleBar } from './controls'
@@ -62,11 +63,10 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
   // Phone layout: back and home both go to the home screen with this page kept
   // in memory, as yellow does. Without JavaScript they are links to `/`.
   const homeKeepingPage = (event: MouseEvent) => {
-    const element = frameRef.current
-    if (!element) return
     event.preventDefault()
-    setMinimised({ href, title, draft: captureDraft(element) })
-    router.push('/' satisfies Route)
+    const element = frameRef.current
+    if (element) setMinimised({ href, title, draft: captureDraft(element) })
+    returnHome()
   }
 
   return (
