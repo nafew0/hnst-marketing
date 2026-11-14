@@ -80,6 +80,20 @@ export function leaveClassic() {
   setClassic(false)
 }
 
+/**
+ * Back to the phone home screen from the story, the classic website, or a
+ * page opened in the phone's browser. A client-side `router.push` is dropped
+ * by mobile Safari and by a desktop window narrowed to phone width, so a
+ * different URL is a real navigation.
+ */
+export function returnHome() {
+  leaveClassic()
+  showHome()
+  if (location.pathname !== '/' || location.search !== '') {
+    window.location.assign('/')
+  }
+}
+
 export function openStory() {
   setState({ story: true })
 }

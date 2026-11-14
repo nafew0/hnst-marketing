@@ -43,5 +43,14 @@ export function resetDepth() {
 
 /** Back to the page the window opened over. */
 export function returnToBase() {
-  history.go(-Math.max(depth, 1))
+  const steps = Math.max(depth, 1)
+  if (history.length <= 1) {
+    window.location.assign('/')
+    return
+  }
+  const before = location.href
+  history.go(-steps)
+  window.setTimeout(() => {
+    if (location.href === before) window.location.assign('/')
+  }, 600)
 }

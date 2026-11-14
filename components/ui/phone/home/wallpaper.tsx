@@ -14,7 +14,7 @@ const FOCUS = '42% 50%'
 /**
  * The home screen's wallpaper: the lunar-walk poster, then its loop once the
  * device may play motion media. Tier 0 and reduced motion keep the poster.
- * Plays only while `active`: not behind an app, the story or the lock screen.
+ * Plays while `active`, including the lock screen.
  */
 export function Wallpaper({
   active,
