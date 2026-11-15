@@ -41,16 +41,26 @@ export function resetDepth() {
   stampedUrl = null
 }
 
-/** Back to the page the window opened over. */
+/**
+ * Back to the page the window opened over. When there is nothing to go back
+ * to, or the browser doesn't move (some in-app browsers), it loads `/`.
+ * "Didn't move" means no popstate arrived: comparing URLs instead reloaded the
+ * site whenever the same window was reopened within the wait.
+ */
 export function returnToBase() {
   const steps = Math.max(depth, 1)
-  if (history.length <= 1) {
+  if (history.length <= steps) {
     window.location.assign('/')
     return
   }
-  const before = location.href
+  let moved = false
+  const onPop = () => {
+    moved = true
+  }
+  window.addEventListener('popstate', onPop, { once: true })
   history.go(-steps)
   window.setTimeout(() => {
-    if (location.href === before) window.location.assign('/')
+    window.removeEventListener('popstate', onPop)
+    if (!moved) window.location.assign('/')
   }, 600)
 }
