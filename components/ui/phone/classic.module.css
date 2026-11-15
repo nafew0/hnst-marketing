@@ -5,7 +5,7 @@
  */
 @media (--mobile) {
   :global(html[data-phone-classic]) {
-    --classic-bar: 40px;
+    --classic-bar: 48px;
   }
 
   :global(html[data-phone-classic] body) {
@@ -21,7 +21,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    height: var(--classic-bar, 40px);
+    height: var(--classic-bar, 48px);
     padding-inline: 8px 4px;
     border-bottom: 1px solid
       color-mix(in oklab, var(--color-starlight) 12%, transparent);
@@ -70,5 +70,24 @@
       outline: 2px solid var(--color-starlight);
       outline-offset: 2px;
     }
+  }
+
+  /* The HONEST app's way home: a floating pill top right, clear of the site's
+     logo (top left), over the story. */
+  .floating {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 8px);
+    right: 8px;
+    z-index: 150;
+    border-radius: 16px;
+    background: color-mix(in oklab, var(--color-void-2) 80%, transparent);
+    box-shadow: 0 4px 16px
+      color-mix(in oklab, var(--color-void-deep) 50%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+  }
+
+  :global(html[data-phone-classic]) .floating {
+    display: none;
   }
 }

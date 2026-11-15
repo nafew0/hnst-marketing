@@ -82,16 +82,24 @@ export function leaveClassic() {
 
 /**
  * Back to the phone home screen from the story, the classic website, or a
- * page opened in the phone's browser. A client-side `router.push` is dropped
- * by mobile Safari and by a desktop window narrowed to phone width, so a
- * different URL is a real navigation.
+ * page opened in the phone's browser. `navigate` is the app router's push:
+ * it keeps what this visit holds in memory (a page kept like a minimised app,
+ * form drafts, notes). Some browsers (mobile Safari, a desktop window narrowed
+ * to phone width) were seen not to complete it, so if `/` hasn't arrived
+ * shortly after, it loads `/` for real, at the cost of that memory.
  */
-export function returnHome() {
+export function returnHome(navigate?: (href: '/') => void) {
   leaveClassic()
   showHome()
-  if (location.pathname !== '/' || location.search !== '') {
+  if (location.pathname === '/' && location.search === '') return
+  if (!navigate) {
     window.location.assign('/')
+    return
   }
+  navigate('/')
+  window.setTimeout(() => {
+    if (location.pathname !== '/') window.location.assign('/')
+  }, 800)
 }
 
 export function openStory() {

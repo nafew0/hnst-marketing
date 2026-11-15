@@ -436,7 +436,8 @@ test.describe('phone layout without JavaScript', () => {
     await expect(home(page)).toBeHidden()
     await expect(page.locator('#main-content h1').first()).toBeVisible()
     await page.goto('/book')
-    await expect(page.locator('main h1')).toBeVisible()
+    // /book also holds the Calendar app's own title, hidden on this layout.
+    await expect(page.locator('main h1:visible')).toHaveCount(1)
   })
 })
 

@@ -66,7 +66,7 @@ export function DirectWindow({ href, title, children }: DirectWindowProps) {
     event.preventDefault()
     const element = frameRef.current
     if (element) setMinimised({ href, title, draft: captureDraft(element) })
-    returnHome()
+    returnHome((home) => router.push(home))
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSyncExternalStore } from 'react'
 
 import { returnHome } from './store'
@@ -17,6 +17,7 @@ const noHostOnServer = () => null
  */
 export function ClassicBar() {
   const pathname = usePathname()
+  const router = useRouter()
   const host = useSyncExternalStore(noChange, hostHere, noHostOnServer)
   return (
     <div className={s.bar} data-theme="dark">
@@ -28,7 +29,11 @@ export function ClassicBar() {
         {host ?? ''}
         {pathname === '/' ? '' : pathname}
       </p>
-      <button type="button" className={s.pill} onClick={() => returnHome()}>
+      <button
+        type="button"
+        className={s.pill}
+        onClick={() => returnHome((href) => router.push(href))}
+      >
         Home screen
       </button>
     </div>
@@ -37,9 +42,14 @@ export function ClassicBar() {
 
 /** The HONEST app shows the site itself. This is the way back to the icons. */
 export function StoryHomeBar() {
+  const router = useRouter()
   return (
-    <div className={s.bar} data-theme="dark">
-      <button type="button" className={s.pill} onClick={() => returnHome()}>
+    <div className={s.floating} data-theme="dark">
+      <button
+        type="button"
+        className={s.pill}
+        onClick={() => returnHome((href) => router.push(href))}
+      >
         Home screen
       </button>
     </div>
