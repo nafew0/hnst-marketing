@@ -6,6 +6,7 @@ import { revalidateTag } from 'next/cache'
 import { APIError, type CollectionConfig, type FieldAccess } from 'payload'
 
 import { isEditor } from '@/lib/cms/access'
+import { ADMIN_GROUP } from '@/lib/cms/admin-groups'
 import { WALL_NAME_MAX, wallPhotoIdSchema } from '@/lib/contracts/wall'
 import { env } from '@/lib/env'
 
@@ -56,6 +57,7 @@ export const WallPhotos: CollectionConfig<'wallPhotos'> = {
   labels: { singular: 'Wall photo', plural: 'Wall photos' },
   defaultSort: '-createdAt',
   admin: {
+    group: ADMIN_GROUP.phone,
     useAsTitle: 'publicId',
     defaultColumns: [
       'filename',
