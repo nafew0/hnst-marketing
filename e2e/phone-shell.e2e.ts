@@ -605,6 +605,16 @@ test.describe('phone apps (M5)', () => {
     await back.click()
     await expect(apps(page)).toBeVisible()
     await expect(page.getByText(/Address:/u)).toBeHidden()
+
+    // A link opens its page as a window, which shuts out the page behind it;
+    // the address bar's Home screen still works from there.
+    await home(page).getByRole('button', { name: 'Classic website' }).click()
+    await page.locator('a[href="/proof"]:visible').first().click()
+    await expect(page).toHaveURL(/\/proof$/u)
+    await expect(windowOf(page)).toBeVisible()
+    await back.click()
+    await expect(apps(page)).toBeVisible()
+    await expect(page).toHaveURL(/\/$/u)
   })
 
   test('content pages keep their own metadata', async ({ page }) => {
