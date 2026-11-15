@@ -140,6 +140,7 @@ export function WindowDialog() {
         !element.contains(popup) &&
         element.id !== 'cc-main' &&
         !element.hasAttribute('data-window-dock') &&
+        !element.hasAttribute('data-phone-classic-bar') &&
         element.tagName !== 'SCRIPT'
     )
     for (const element of behind) element.setAttribute('inert', '')

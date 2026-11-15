@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useSyncExternalStore } from 'react'
+import { createPortal } from 'react-dom'
 
 import { returnHome } from './store'
 
@@ -19,8 +20,11 @@ export function ClassicBar() {
   const pathname = usePathname()
   const router = useRouter()
   const host = useSyncExternalStore(noChange, hostHere, noHostOnServer)
-  return (
-    <div className={s.bar} data-theme="dark">
+  // On <body> and exempt from the window's inert pass (as the dock is): a page
+  // opened from a link is a window, and the bar must still take Home taps.
+  // Client-only: PhoneHost renders nothing on the server.
+  return createPortal(
+    <div className={s.bar} data-theme="dark" data-phone-classic-bar>
       <p className={s.address}>
         <svg viewBox="0 0 10 12" aria-hidden="true" focusable="false">
           <path d="M2.5 5V3.5a2.5 2.5 0 0 1 5 0V5M1.5 5h7v6h-7z" />
@@ -36,7 +40,8 @@ export function ClassicBar() {
       >
         Home screen
       </button>
-    </div>
+    </div>,
+    document.body
   )
 }
 
