@@ -91,6 +91,11 @@
   justify-content: flex-end;
   min-height: 88svh;
   overflow: hidden;
+
+  /* Phones: a shorter first screen, so the page's content starts sooner. */
+  @media (--mobile) {
+    min-height: 56svh;
+  }
 }
 
 /* The scene dissolves into the nebula above the copy, so the headline stays clear. */
@@ -115,7 +120,7 @@
   display: flex;
   flex-direction: column;
   gap: mobile-vw(16px);
-  padding-block: mobile-vw(120px) mobile-vw(32px);
+  padding-block: mobile-vw(88px) mobile-vw(28px);
 
   @media (--desktop) {
     gap: desktop-vw(14px);

@@ -1,3 +1,5 @@
+import cn from 'clsx'
+
 import { MailApp } from '@/components/apps/mail'
 import {
   ContentBlocks,
@@ -12,6 +14,7 @@ import { siteContact } from '@/components/ui/phone/registry'
 import { Section, Container } from '@/components/ui/section'
 import { getPage, getSettings, readContext } from '@/lib/cms/data'
 
+import c from './contact.module.css'
 import s from '@/components/apps/mail/mail.module.css'
 
 export async function ContactContent() {
@@ -28,7 +31,7 @@ export async function ContactContent() {
           (page?._status === 'draft' || settings?._status === 'draft')
         }
       />
-      <div className={PHONE_LAYOUT ? s.desktop : undefined}>
+      <div className={PHONE_LAYOUT ? cn(s.desktop, c.hero) : undefined}>
         {page ? (
           <ContentBlocks page={page} packages={[]} faqs={[]} />
         ) : (

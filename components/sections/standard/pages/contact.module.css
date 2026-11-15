@@ -1,0 +1,18 @@
+@layer components {
+  /* Phones: the form comes first. The hero's headline stays for screen
+     readers, and its scene isn't drawn. */
+  @media (--mobile) {
+    .hero {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+
+      & :is(img, video) {
+        display: none;
+      }
+    }
+  }
+}
