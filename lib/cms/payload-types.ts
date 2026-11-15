@@ -145,11 +145,16 @@ export interface UserAuthOperations {
   }
 }
 /**
+ * Who can sign in here. Admins manage the team; editors edit content.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number
+  /**
+   * Admins can also manage the team.
+   */
   role: 'admin' | 'editor'
   updatedAt: string
   createdAt: string
@@ -172,16 +177,33 @@ export interface User {
   collection: 'users'
 }
 /**
+ * The four packages: shown on the Packages pages and the homepage. Press Publish to put changes live.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "packages".
  */
 export interface Package {
   id: number
+  /**
+   * Which package this is. Each one exists once.
+   */
   tier: 'basic-diy' | 'executive' | 'founder' | 'diamond'
   name: string
+  /**
+   * Its web address: /packages/<this>.
+   */
   slug: string
+  /**
+   * Whole dollars, no symbol.
+   */
   price: number
+  /**
+   * Optional, for example “One-time”.
+   */
   valueLabel?: string | null
+  /**
+   * For example “7–14 days”.
+   */
   turnaround: string
   revisions?: string | null
   bots?: number | null
@@ -192,7 +214,13 @@ export interface Package {
         id?: string | null
       }[]
     | null
+  /**
+   * Only the Founder Package can be highlighted.
+   */
   highlight?: boolean | null
+  /**
+   * Lower numbers come first.
+   */
   order: number
   ctaLabel: string
   ctaType: 'book' | 'buy' | 'contact'
@@ -202,6 +230,8 @@ export interface Package {
   _status?: ('draft' | 'published') | null
 }
 /**
+ * Privacy, terms and the rest. A page shows on the site only when its Status is published.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "legal-docs".
  */
@@ -224,6 +254,9 @@ export interface LegalDoc {
     }
     [k: string]: CmsJson
   }
+  /**
+   * For example “1.0”. Change it when the text changes.
+   */
   version: string
   effectiveDate?: string | null
   status: 'draft' | 'published'
@@ -232,6 +265,8 @@ export interface LegalDoc {
   _status?: ('draft' | 'published') | null
 }
 /**
+ * Questions and answers shown on the site.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "faqs".
  */
@@ -240,24 +275,38 @@ export interface Faq {
   question: string
   answer: string
   category: 'process' | 'ownership' | 'pricing' | 'tools' | 'timeline'
+  /**
+   * Lower numbers come first.
+   */
   order: number
   updatedAt: string
   createdAt: string
   _status?: ('draft' | 'published') | null
 }
 /**
+ * The site’s pages, except the homepage (its text is part of the design). Press Publish to put changes live.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
   id: number
   title: string
+  /**
+   * Its web address, for example “about”.
+   */
   slug: string
+  /**
+   * How the page appears in Google and in shared links.
+   */
   seo?: {
     title?: string | null
     description?: string | null
     ogImage?: (number | null) | Media
   }
+  /**
+   * The page’s sections, top to bottom.
+   */
   blocks?:
     | (
         | {
@@ -504,11 +553,16 @@ export interface Page {
   _status?: ('draft' | 'published') | null
 }
 /**
+ * Images used on the site’s pages.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: number
+  /**
+   * What the image shows, for people who can’t see it.
+   */
   alt: string
   updatedAt: string
   createdAt: string
@@ -1162,12 +1216,66 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T
 }
 /**
+ * Contact details, booking, consent text and the phone layout. Press Publish to put changes live.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings".
  */
 export interface SiteSetting {
   id: number
   companyLegalName?: string | null
+  address?: string | null
+  /**
+   * Shown on the site, and opened by the Mail icon.
+   */
+  publicEmail?: string | null
+  /**
+   * International format, for example +1 555 123 4567. Used by the Phone and Messages icons.
+   */
+  publicPhone?: string | null
+  /**
+   * HONEST’s own profile links. Until one is set, the icon opens the network’s home page.
+   */
+  socialLinks?:
+    | {
+        label: string
+        url: string
+        id?: string | null
+      }[]
+    | null
+  footerLinks?:
+    | {
+        label: string
+        url: string
+        id?: string | null
+      }[]
+    | null
+  /**
+   * Shown if live availability can’t load, so visitors can still book.
+   */
+  bookingEmbedUrl?: string | null
+  qualifyingQuestions?:
+    | {
+        question: string
+        id?: string | null
+      }[]
+    | null
+  /**
+   * The exact words beside the email and SMS checkboxes. Forms stay off on the live site until “Approved” is ticked.
+   */
+  consentTexts: {
+    sms: string
+    email: string
+    approved?: boolean | null
+  }
+  /**
+   * Shown with the packages: what tools cost on top.
+   */
+  toolCostDisclosure?: string | null
+  /**
+   * Optional. Leave empty to show none.
+   */
+  announcementBar?: string | null
   /**
    * [DRAFT] Phone copy requires Founder approval before launch.
    */
@@ -1228,37 +1336,9 @@ export interface SiteSetting {
       rulesHref: string
     }
   }
-  address?: string | null
-  publicEmail?: string | null
-  publicPhone?: string | null
-  consentTexts: {
-    sms: string
-    email: string
-    approved?: boolean | null
-  }
-  footerLinks?:
-    | {
-        label: string
-        url: string
-        id?: string | null
-      }[]
-    | null
-  socialLinks?:
-    | {
-        label: string
-        url: string
-        id?: string | null
-      }[]
-    | null
-  announcementBar?: string | null
-  toolCostDisclosure?: string | null
-  bookingEmbedUrl?: string | null
-  qualifyingQuestions?:
-    | {
-        question: string
-        id?: string | null
-      }[]
-    | null
+  /**
+   * Admins only. Loads only after consent.
+   */
   ghlTrackingId?: string | null
   _status?: ('draft' | 'published') | null
   updatedAt?: string | null
@@ -1270,6 +1350,39 @@ export interface SiteSetting {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   companyLegalName?: T
+  address?: T
+  publicEmail?: T
+  publicPhone?: T
+  socialLinks?:
+    | T
+    | {
+        label?: T
+        url?: T
+        id?: T
+      }
+  footerLinks?:
+    | T
+    | {
+        label?: T
+        url?: T
+        id?: T
+      }
+  bookingEmbedUrl?: T
+  qualifyingQuestions?:
+    | T
+    | {
+        question?: T
+        id?: T
+      }
+  consentTexts?:
+    | T
+    | {
+        sms?: T
+        email?: T
+        approved?: T
+      }
+  toolCostDisclosure?: T
+  announcementBar?: T
   phone?:
     | T
     | {
@@ -1304,39 +1417,6 @@ export interface SiteSettingsSelect<T extends boolean = true> {
               consentText?: T
               rulesHref?: T
             }
-      }
-  address?: T
-  publicEmail?: T
-  publicPhone?: T
-  consentTexts?:
-    | T
-    | {
-        sms?: T
-        email?: T
-        approved?: T
-      }
-  footerLinks?:
-    | T
-    | {
-        label?: T
-        url?: T
-        id?: T
-      }
-  socialLinks?:
-    | T
-    | {
-        label?: T
-        url?: T
-        id?: T
-      }
-  announcementBar?: T
-  toolCostDisclosure?: T
-  bookingEmbedUrl?: T
-  qualifyingQuestions?:
-    | T
-    | {
-        question?: T
-        id?: T
       }
   ghlTrackingId?: T
   _status?: T

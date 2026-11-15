@@ -1,12 +1,14 @@
 import type { CollectionConfig } from 'payload'
 
 import { contentAccess } from '@/lib/cms/access'
+import { ADMIN_GROUP } from '@/lib/cms/admin-groups'
 import { contentHooks } from '@/lib/cms/revalidate'
 
 export const PhoneNotes: CollectionConfig = {
   slug: 'phoneNotes',
   labels: { singular: 'Phone note', plural: 'Phone notes' },
   admin: {
+    group: ADMIN_GROUP.phone,
     useAsTitle: 'title',
     defaultColumns: ['title', '_status', 'order'],
     description:

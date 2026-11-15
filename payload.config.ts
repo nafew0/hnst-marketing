@@ -26,16 +26,30 @@ export default buildConfig({
   admin: {
     user: 'users',
     importMap: { baseDir: path.resolve('.'), autoGenerate: false },
+    // The HONEST look and a start page (components/cms/admin/brand.tsx).
+    // After changing these paths, run `bun run cms:importmap`, then change its
+    // `../../../components/` imports to `@/components/` (lint forbids ../../).
+    theme: 'dark',
+    meta: { titleSuffix: ' · HONEST Admin' },
+    components: {
+      providers: ['/components/cms/admin/brand#AdminBrandStyles'],
+      graphics: {
+        Logo: '/components/cms/admin/brand#AdminLogo',
+        Icon: '/components/cms/admin/brand#AdminIcon',
+      },
+      beforeDashboard: ['/components/cms/admin/brand#AdminStart'],
+    },
   },
+  // The admin menu follows this order: Website, Phone app, Library, Team.
   collections: [
-    Users,
     Packages,
-    LegalDocs,
-    FAQs,
     Pages,
-    Media,
+    FAQs,
+    LegalDocs,
     WallPhotos,
     PhoneNotes,
+    Media,
+    Users,
   ],
   globals: [SiteSettings],
   editor: lexicalEditor(),
