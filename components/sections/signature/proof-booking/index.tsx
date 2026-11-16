@@ -1,4 +1,4 @@
-import { proofCopy } from '@/components/sections/signature/copy'
+import type { HomeCopy } from '@/components/sections/signature/home-copy'
 import { RevealHeading } from '@/components/sections/signature/reveal-heading'
 import { Button } from '@/components/ui/button'
 import { Eyebrow, Heading } from '@/components/ui/heading'
@@ -13,8 +13,8 @@ import s from './proof-booking.module.css'
  * under reduced motion and on phones they lay out as a static gallery. Then the
  * closing band with the one gold booking button.
  */
-export function ProofBooking() {
-  const { eyebrow, heading, body, shots, ctaHeading, cta } = proofCopy
+export function ProofBooking({ copy }: { copy: HomeCopy['proof'] }) {
+  const { eyebrow, heading, body, shots, ctaHeading, cta } = copy
   return (
     <>
       <section className={s.proof} aria-labelledby="proof-title">

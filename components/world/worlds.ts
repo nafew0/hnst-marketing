@@ -95,6 +95,41 @@ const PAGE_WORLDS = new Map<string, WorldScenes>(
   } satisfies Record<string, WorldScenes>)
 )
 
-export function worldFor(slug: string): WorldScenes {
-  return PAGE_WORLDS.get(slug) ?? DEFAULT_WORLD
+/** Each clip with the name the CMS's scene picker shows. */
+export const WORLD_CLIPS = [
+  { value: 'amber-moon', label: 'Amber moon' },
+  { value: 'astronaut-window', label: 'Astronaut at the window' },
+  { value: 'canyon', label: 'Canyon' },
+  { value: 'cockpit', label: 'Cockpit' },
+  { value: 'desert-planet', label: 'Desert planet' },
+  { value: 'frontier-street', label: 'Frontier street' },
+  { value: 'lunar-horizon', label: 'Lunar horizon' },
+  { value: 'lunar-walk', label: 'Lunar walk' },
+  { value: 'pink-mountains', label: 'Pink mountains' },
+  { value: 'ringed-mist', label: 'Ringed planet in mist' },
+  { value: 'ringed-orbit', label: 'Ringed planet in orbit' },
+  { value: 'silk', label: 'Golden silk' },
+] as const satisfies readonly { value: WorldClip; label: string }[]
+
+const isClip = (value: string | null | undefined): value is WorldClip =>
+  WORLD_CLIPS.some((clip) => clip.value === value)
+
+/**
+ * A page's scenes: the ones its editor picked in the CMS (Pages → Background
+ * scenes), and this file's choice for any left on "Default".
+ */
+export function worldFor(
+  slug: string,
+  picked?: {
+    hero?: string | null
+    band?: string | null
+    closing?: string | null
+  } | null
+): WorldScenes {
+  const base = PAGE_WORLDS.get(slug) ?? DEFAULT_WORLD
+  return {
+    hero: isClip(picked?.hero) ? picked.hero : base.hero,
+    band: isClip(picked?.band) ? picked.band : base.band,
+    closing: isClip(picked?.closing) ? picked.closing : base.closing,
+  }
 }

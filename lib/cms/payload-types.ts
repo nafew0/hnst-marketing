@@ -72,14 +72,14 @@ export interface Config {
   }
   blocks: {}
   collections: {
-    users: User
     packages: Package
-    'legal-docs': LegalDoc
-    faqs: Faq
     pages: Page
-    media: Media
+    faqs: Faq
+    'legal-docs': LegalDoc
     wallPhotos: WallPhoto
     phoneNotes: PhoneNote
+    media: Media
+    users: User
     'payload-kv': PayloadKv
     'payload-locked-documents': PayloadLockedDocument
     'payload-preferences': PayloadPreference
@@ -87,14 +87,14 @@ export interface Config {
   }
   collectionsJoins: {}
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>
     packages: PackagesSelect<false> | PackagesSelect<true>
-    'legal-docs': LegalDocsSelect<false> | LegalDocsSelect<true>
-    faqs: FaqsSelect<false> | FaqsSelect<true>
     pages: PagesSelect<false> | PagesSelect<true>
-    media: MediaSelect<false> | MediaSelect<true>
+    faqs: FaqsSelect<false> | FaqsSelect<true>
+    'legal-docs': LegalDocsSelect<false> | LegalDocsSelect<true>
     wallPhotos: WallPhotosSelect<false> | WallPhotosSelect<true>
     phoneNotes: PhoneNotesSelect<false> | PhoneNotesSelect<true>
+    media: MediaSelect<false> | MediaSelect<true>
+    users: UsersSelect<false> | UsersSelect<true>
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>
     'payload-locked-documents':
       | PayloadLockedDocumentsSelect<false>
@@ -111,9 +111,11 @@ export interface Config {
   }
   fallbackLocale: null
   globals: {
+    homepage: Homepage
     'site-settings': SiteSetting
   }
   globalsSelect: {
+    homepage: HomepageSelect<false> | HomepageSelect<true>
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>
   }
   locale: null
@@ -143,38 +145,6 @@ export interface UserAuthOperations {
     email: string
     password: string
   }
-}
-/**
- * Who can sign in here. Admins manage the team; editors edit content.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
- */
-export interface User {
-  id: number
-  /**
-   * Admins can also manage the team.
-   */
-  role: 'admin' | 'editor'
-  updatedAt: string
-  createdAt: string
-  email: string
-  resetPasswordToken?: string | null
-  resetPasswordExpiration?: string | null
-  salt?: string | null
-  hash?: string | null
-  resetPasswordRequestedAt?: string | null
-  loginAttempts?: number | null
-  lockUntil?: string | null
-  sessions?:
-    | {
-        id: string
-        createdAt?: string | null
-        expiresAt: string
-      }[]
-    | null
-  password?: string | null
-  collection: 'users'
 }
 /**
  * The four packages: shown on the Packages pages and the homepage. Press Publish to put changes live.
@@ -265,25 +235,6 @@ export interface LegalDoc {
   _status?: ('draft' | 'published') | null
 }
 /**
- * Questions and answers shown on the site.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "faqs".
- */
-export interface Faq {
-  id: number
-  question: string
-  answer: string
-  category: 'process' | 'ownership' | 'pricing' | 'tools' | 'timeline'
-  /**
-   * Lower numbers come first.
-   */
-  order: number
-  updatedAt: string
-  createdAt: string
-  _status?: ('draft' | 'published') | null
-}
-/**
  * The site’s pages, except the homepage (its text is part of the design). Press Publish to put changes live.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -303,6 +254,56 @@ export interface Page {
     title?: string | null
     description?: string | null
     ogImage?: (number | null) | Media
+  }
+  scenes?: {
+    hero?:
+      | (
+          | 'amber-moon'
+          | 'astronaut-window'
+          | 'canyon'
+          | 'cockpit'
+          | 'desert-planet'
+          | 'frontier-street'
+          | 'lunar-horizon'
+          | 'lunar-walk'
+          | 'pink-mountains'
+          | 'ringed-mist'
+          | 'ringed-orbit'
+          | 'silk'
+        )
+      | null
+    band?:
+      | (
+          | 'amber-moon'
+          | 'astronaut-window'
+          | 'canyon'
+          | 'cockpit'
+          | 'desert-planet'
+          | 'frontier-street'
+          | 'lunar-horizon'
+          | 'lunar-walk'
+          | 'pink-mountains'
+          | 'ringed-mist'
+          | 'ringed-orbit'
+          | 'silk'
+        )
+      | null
+    closing?:
+      | (
+          | 'amber-moon'
+          | 'astronaut-window'
+          | 'canyon'
+          | 'cockpit'
+          | 'desert-planet'
+          | 'frontier-street'
+          | 'lunar-horizon'
+          | 'lunar-walk'
+          | 'pink-mountains'
+          | 'ringed-mist'
+          | 'ringed-orbit'
+          | 'silk'
+        )
+      | null
   }
   /**
    * The page’s sections, top to bottom.
@@ -587,6 +588,25 @@ export interface Media {
   }
 }
 /**
+ * Questions and answers shown on the site.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number
+  question: string
+  answer: string
+  category: 'process' | 'ownership' | 'pricing' | 'tools' | 'timeline'
+  /**
+   * Lower numbers come first.
+   */
+  order: number
+  updatedAt: string
+  createdAt: string
+  _status?: ('draft' | 'published') | null
+}
+/**
  * Visitors’ photos, not clients or endorsements. Opens on pending; choose a Status filter to review other photos.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -655,6 +675,38 @@ export interface PhoneNote {
   _status?: ('draft' | 'published') | null
 }
 /**
+ * Who can sign in here. Admins manage the team; editors edit content.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number
+  /**
+   * Admins can also manage the team.
+   */
+  role: 'admin' | 'editor'
+  updatedAt: string
+  createdAt: string
+  email: string
+  resetPasswordToken?: string | null
+  resetPasswordExpiration?: string | null
+  salt?: string | null
+  hash?: string | null
+  resetPasswordRequestedAt?: string | null
+  loginAttempts?: number | null
+  lockUntil?: string | null
+  sessions?:
+    | {
+        id: string
+        createdAt?: string | null
+        expiresAt: string
+      }[]
+    | null
+  password?: string | null
+  collection: 'users'
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -679,28 +731,20 @@ export interface PayloadLockedDocument {
   id: number
   document?:
     | ({
-        relationTo: 'users'
-        value: number | User
-      } | null)
-    | ({
         relationTo: 'packages'
         value: number | Package
-      } | null)
-    | ({
-        relationTo: 'legal-docs'
-        value: number | LegalDoc
-      } | null)
-    | ({
-        relationTo: 'faqs'
-        value: number | Faq
       } | null)
     | ({
         relationTo: 'pages'
         value: number | Page
       } | null)
     | ({
-        relationTo: 'media'
-        value: number | Media
+        relationTo: 'faqs'
+        value: number | Faq
+      } | null)
+    | ({
+        relationTo: 'legal-docs'
+        value: number | LegalDoc
       } | null)
     | ({
         relationTo: 'wallPhotos'
@@ -709,6 +753,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'phoneNotes'
         value: number | PhoneNote
+      } | null)
+    | ({
+        relationTo: 'media'
+        value: number | Media
+      } | null)
+    | ({
+        relationTo: 'users'
+        value: number | User
       } | null)
   globalSlug?: string | null
   user: {
@@ -754,30 +806,6 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
- */
-export interface UsersSelect<T extends boolean = true> {
-  role?: T
-  updatedAt?: T
-  createdAt?: T
-  email?: T
-  resetPasswordToken?: T
-  resetPasswordExpiration?: T
-  salt?: T
-  hash?: T
-  resetPasswordRequestedAt?: T
-  loginAttempts?: T
-  lockUntil?: T
-  sessions?:
-    | T
-    | {
-        id?: T
-        createdAt?: T
-        expiresAt?: T
-      }
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "packages_select".
  */
 export interface PackagesSelect<T extends boolean = true> {
@@ -807,34 +835,6 @@ export interface PackagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "legal-docs_select".
- */
-export interface LegalDocsSelect<T extends boolean = true> {
-  title?: T
-  slug?: T
-  body?: T
-  version?: T
-  effectiveDate?: T
-  status?: T
-  updatedAt?: T
-  createdAt?: T
-  _status?: T
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "faqs_select".
- */
-export interface FaqsSelect<T extends boolean = true> {
-  question?: T
-  answer?: T
-  category?: T
-  order?: T
-  updatedAt?: T
-  createdAt?: T
-  _status?: T
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
@@ -846,6 +846,13 @@ export interface PagesSelect<T extends boolean = true> {
         title?: T
         description?: T
         ogImage?: T
+      }
+  scenes?:
+    | T
+    | {
+        hero?: T
+        band?: T
+        closing?: T
       }
   blocks?:
     | T
@@ -1093,35 +1100,31 @@ export interface PagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media_select".
+ * via the `definition` "faqs_select".
  */
-export interface MediaSelect<T extends boolean = true> {
-  alt?: T
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T
+  answer?: T
+  category?: T
+  order?: T
   updatedAt?: T
   createdAt?: T
-  url?: T
-  thumbnailURL?: T
-  filename?: T
-  mimeType?: T
-  filesize?: T
-  width?: T
-  height?: T
-  focalX?: T
-  focalY?: T
-  sizes?:
-    | T
-    | {
-        thumbnail?:
-          | T
-          | {
-              url?: T
-              width?: T
-              height?: T
-              mimeType?: T
-              filesize?: T
-              filename?: T
-            }
-      }
+  _status?: T
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "legal-docs_select".
+ */
+export interface LegalDocsSelect<T extends boolean = true> {
+  title?: T
+  slug?: T
+  body?: T
+  version?: T
+  effectiveDate?: T
+  status?: T
+  updatedAt?: T
+  createdAt?: T
+  _status?: T
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1177,6 +1180,62 @@ export interface PhoneNotesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T
+  updatedAt?: T
+  createdAt?: T
+  url?: T
+  thumbnailURL?: T
+  filename?: T
+  mimeType?: T
+  filesize?: T
+  width?: T
+  height?: T
+  focalX?: T
+  focalY?: T
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T
+              width?: T
+              height?: T
+              mimeType?: T
+              filesize?: T
+              filename?: T
+            }
+      }
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  role?: T
+  updatedAt?: T
+  createdAt?: T
+  email?: T
+  resetPasswordToken?: T
+  resetPasswordExpiration?: T
+  salt?: T
+  hash?: T
+  resetPasswordRequestedAt?: T
+  loginAttempts?: T
+  lockUntil?: T
+  sessions?:
+    | T
+    | {
+        id?: T
+        createdAt?: T
+        expiresAt?: T
+      }
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -1214,6 +1273,109 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T
   updatedAt?: T
   createdAt?: T
+}
+/**
+ * The homepage’s words, section by section. Press Publish to put them live. A field left empty shows the original wording.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage".
+ */
+export interface Homepage {
+  id: number
+  hero?: {
+    eyebrow?: string | null
+    line1?: string | null
+    line2?: string | null
+    lede?: string | null
+    /**
+     * Opens the booking page.
+     */
+    primaryLabel?: string | null
+    /**
+     * Opens the packages page.
+     */
+    secondaryLabel?: string | null
+  }
+  film?: {
+    /**
+     * Read by screen readers.
+     */
+    title?: string | null
+    pinnedLine?: string | null
+    /**
+     * Three, matched to the film’s pictures and timing, in order.
+     */
+    chapters?:
+      | {
+          label: string
+          body: string
+          id?: string | null
+        }[]
+      | null
+  }
+  turn?: {
+    heading?: string | null
+    body?: string | null
+    closing?: string | null
+  }
+  platter?: {
+    eyebrow?: string | null
+    heading?: string | null
+    body?: string | null
+    note?: string | null
+    /**
+     * Six, one for each object on the platter, in the order they appear.
+     */
+    deliverables?:
+      | {
+          name: string
+          description: string
+          id?: string | null
+        }[]
+      | null
+  }
+  steps?: {
+    heading?: string | null
+    note?: string | null
+    /**
+     * In order. Drag to reorder.
+     */
+    items?:
+      | {
+          title: string
+          description: string
+          id?: string | null
+        }[]
+      | null
+  }
+  packages?: {
+    eyebrow?: string | null
+    heading?: string | null
+    terms?: string | null
+  }
+  proof?: {
+    eyebrow?: string | null
+    heading?: string | null
+    body?: string | null
+    /**
+     * Three, for the three screenshots, in order. The pictures stay as they are.
+     */
+    shots?:
+      | {
+          label: string
+          caption: string
+          id?: string | null
+        }[]
+      | null
+    ctaHeading?: string | null
+    /**
+     * Opens the booking page.
+     */
+    ctaLabel?: string | null
+  }
+  _status?: ('draft' | 'published') | null
+  updatedAt?: string | null
+  createdAt?: string | null
 }
 /**
  * Contact details, booking, consent text and the phone layout. Press Publish to put changes live.
@@ -1343,6 +1505,97 @@ export interface SiteSetting {
   _status?: ('draft' | 'published') | null
   updatedAt?: string | null
   createdAt?: string | null
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage_select".
+ */
+export interface HomepageSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        eyebrow?: T
+        line1?: T
+        line2?: T
+        lede?: T
+        primaryLabel?: T
+        secondaryLabel?: T
+      }
+  film?:
+    | T
+    | {
+        title?: T
+        pinnedLine?: T
+        chapters?:
+          | T
+          | {
+              label?: T
+              body?: T
+              id?: T
+            }
+      }
+  turn?:
+    | T
+    | {
+        heading?: T
+        body?: T
+        closing?: T
+      }
+  platter?:
+    | T
+    | {
+        eyebrow?: T
+        heading?: T
+        body?: T
+        note?: T
+        deliverables?:
+          | T
+          | {
+              name?: T
+              description?: T
+              id?: T
+            }
+      }
+  steps?:
+    | T
+    | {
+        heading?: T
+        note?: T
+        items?:
+          | T
+          | {
+              title?: T
+              description?: T
+              id?: T
+            }
+      }
+  packages?:
+    | T
+    | {
+        eyebrow?: T
+        heading?: T
+        terms?: T
+      }
+  proof?:
+    | T
+    | {
+        eyebrow?: T
+        heading?: T
+        body?: T
+        shots?:
+          | T
+          | {
+              label?: T
+              caption?: T
+              id?: T
+            }
+        ctaHeading?: T
+        ctaLabel?: T
+      }
+  _status?: T
+  updatedAt?: T
+  createdAt?: T
+  globalType?: T
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -154,3 +154,44 @@ export const getPhoneNotes = cache(async () => {
     })
   ).docs
 })
+
+/**
+ * The homepage's CMS words, published only, for the static `/`: the Homepage
+ * global, the published packages (the cards' names and prices) and the
+ * tool-costs note. Never reads draftMode. A missing CMS or table gives null,
+ * and the page shows its original words (components/sections/signature/home-copy.ts).
+ */
+export const getPublishedHome = unstable_cache(
+  async () => {
+    const cms = await getCms()
+    if (!cms) return null
+    try {
+      const [homepage, packages, settings] = await Promise.all([
+        cms.findGlobal({ slug: 'homepage', overrideAccess: false }),
+        cms.find({
+          collection: 'packages',
+          overrideAccess: false,
+          where: { _status: { equals: 'published' } },
+          sort: 'order',
+          limit: 4,
+          depth: 0,
+        }),
+        cms.findGlobal({ slug: 'site-settings', overrideAccess: false }),
+      ])
+      return {
+        // An unpublished first draft isn't the homepage's words yet.
+        homepage: homepage._status === 'draft' ? null : homepage,
+        packages: packages.docs,
+        toolCosts: settings.toolCostDisclosure ?? null,
+      }
+    } catch (error) {
+      console.error(
+        'homepage CMS read failed; showing the original words',
+        error
+      )
+      return null
+    }
+  },
+  ['honest-home'],
+  { tags: ['honest-cms'], revalidate: 3600 }
+)

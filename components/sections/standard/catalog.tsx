@@ -178,7 +178,7 @@ export function ContentBlocks({
   faqs: Faq[]
   settings?: SiteSetting | null
 }) {
-  const world = worldFor(page.slug)
+  const world = worldFor(page.slug, page.scenes)
   // After the first section, on pages with enough sections to want a break.
   const bandAfter = (page.blocks?.length ?? 0) > 3 ? 1 : -1
   return (

@@ -15,6 +15,7 @@ import {
   SiteSettings,
   Users,
 } from '@/lib/cms/collections'
+import { Homepage } from '@/lib/cms/homepage'
 import { PhoneNotes } from '@/lib/cms/phone-notes'
 import { WallPhotos } from '@/lib/cms/wall-photos'
 import { APP_BASE_URL, env } from '@/lib/env'
@@ -51,7 +52,7 @@ export default buildConfig({
     Media,
     Users,
   ],
-  globals: [SiteSettings],
+  globals: [Homepage, SiteSettings],
   editor: lexicalEditor(),
   sharp,
   db: postgresAdapter({
