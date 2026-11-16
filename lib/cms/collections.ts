@@ -7,6 +7,7 @@ import {
   type GlobalConfig,
 } from 'payload'
 
+import { WORLD_CLIPS } from '@/components/world/worlds'
 import {
   adminOrSelf,
   adminField,
@@ -278,6 +279,29 @@ export const Pages: CollectionConfig = {
           relationTo: 'media',
         },
       ],
+    },
+    {
+      name: 'scenes',
+      type: 'group',
+      label: 'Background scenes',
+      admin: {
+        components: {
+          Description: '/components/cms/admin/scene-gallery#SceneGallery',
+        },
+      },
+      fields: (
+        [
+          ['hero', 'Behind the top heading'],
+          ['band', 'Between sections'],
+          ['closing', 'Behind the closing button'],
+        ] as const
+      ).map(([name, label]): Field => ({
+        name,
+        type: 'select',
+        label,
+        options: WORLD_CLIPS.map((clip) => ({ ...clip })),
+        admin: { placeholder: 'Default', isClearable: true },
+      })),
     },
     {
       name: 'blocks',

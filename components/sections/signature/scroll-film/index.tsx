@@ -1,4 +1,4 @@
-import { filmCopy } from '@/components/sections/signature/copy'
+import type { HomeCopy } from '@/components/sections/signature/home-copy'
 import { Heading } from '@/components/ui/heading'
 import { Image } from '@/components/ui/image'
 
@@ -12,7 +12,7 @@ import s from './scroll-film.module.css'
  * under the other, with no scroll trickery. Both are in the HTML; CSS and the
  * tier pick one.
  */
-export function ScrollFilm() {
+export function ScrollFilm({ copy: filmCopy }: { copy: HomeCopy['film'] }) {
   return (
     <section className={s.section} aria-label={filmCopy.title}>
       <FilmTrack

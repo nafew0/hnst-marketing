@@ -61,6 +61,11 @@ ${STEPS.map(
 .hnst-start strong { display: block; color: var(--hnst-gold); }
 .hnst-start span { display: block; margin-top: 4px; font-size: 13px; color: var(--hnst-silver); }
 .hnst-start .hnst-note { margin-top: 20px; font-size: 13px; }
+.hnst-scenes { margin: 4px 0 16px; color: var(--hnst-silver); }
+.hnst-scenes p { margin: 0 0 12px; }
+.hnst-scenes ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.hnst-scenes li { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.hnst-scenes img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; }
 `
 
 /** Wraps the whole admin, so the brand variables reach every screen. */
@@ -100,6 +105,11 @@ export function AdminIcon() {
 
 const SHORTCUTS = [
   {
+    href: '/admin/globals/homepage',
+    title: 'Homepage',
+    hint: 'The homepage’s words, section by section.',
+  },
+  {
     href: '/admin/collections/packages',
     title: 'Packages and prices',
     hint: 'Names, prices, delivery times. Also shown on the homepage.',
@@ -107,7 +117,7 @@ const SHORTCUTS = [
   {
     href: '/admin/collections/pages',
     title: 'Pages',
-    hint: 'About, How it works, Proof, Contact and the other pages.',
+    hint: 'About, How it works, Proof, Contact: words, images and background scenes.',
   },
   {
     href: '/admin/collections/faqs',
@@ -158,8 +168,8 @@ export function AdminStart() {
         ))}
       </ul>
       <p className="hnst-note">
-        Changes go live when you press Publish. The homepage’s headline text is
-        part of the site’s design, so ask your developer to change it.
+        Changes go live when you press Publish. Live prices from GoHighLevel,
+        when set, take over from the prices here.
       </p>
     </section>
   )

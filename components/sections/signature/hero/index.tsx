@@ -1,6 +1,6 @@
 import cn from 'clsx'
 
-import { heroCopy } from '@/components/sections/signature/copy'
+import type { HomeCopy } from '@/components/sections/signature/home-copy'
 import { Button } from '@/components/ui/button'
 import { Eyebrow } from '@/components/ui/heading'
 import { Logo } from '@/components/ui/logo'
@@ -16,8 +16,8 @@ import s from './hero.module.css'
  * and, at tiers 2–3, the live gas, stars and planet. Reduced motion shows the
  * final state.
  */
-export function Hero() {
-  const { eyebrow, lines, lede, primaryCta, secondaryCta } = heroCopy
+export function Hero({ copy }: { copy: HomeCopy['hero'] }) {
+  const { eyebrow, lines, lede, primaryCta, secondaryCta } = copy
   return (
     <section className={s.hero} aria-labelledby="hero-title">
       <HeroStage />

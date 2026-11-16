@@ -3,6 +3,9 @@ import type { CollectionConfig, GlobalConfig } from 'payload'
 
 function invalidate() {
   revalidateTag('honest-cms', { expire: 0 })
+  // The homepage reads its words through the tag; the path makes sure the
+  // static page itself is rebuilt on the next visit.
+  revalidatePath('/')
   for (const route of [
     '/packages',
     '/contact',

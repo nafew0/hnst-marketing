@@ -1,5 +1,5 @@
 import { ProgressText } from '@/components/effects/progress-text'
-import { turnCopy } from '@/components/sections/signature/copy'
+import type { HomeCopy } from '@/components/sections/signature/home-copy'
 import { Container, Section } from '@/components/ui/section'
 
 import { TurnStage } from './turn-stage'
@@ -8,7 +8,7 @@ import { TurnStage } from './turn-stage'
  * S3. The dunes at scroll-linked camera, the palette turning from the nebula to
  * frontier light, then the statement on the frontier theme below.
  */
-export function TheTurn() {
+export function TheTurn({ copy: turnCopy }: { copy: HomeCopy['turn'] }) {
   return (
     <>
       <TurnStage heading={turnCopy.heading} />

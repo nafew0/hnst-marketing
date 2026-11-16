@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { Wrapper } from '@/components/layout/wrapper'
+import { DEFAULT_HOME_COPY } from '@/components/sections/signature/home-copy'
 import { HomeSections } from '@/components/sections/signature/home-sections'
 
 import { TierSwitch } from './tier-switch'
@@ -20,7 +21,7 @@ export default async function LabHomePage({
   return (
     <Wrapper theme="dark" lenis={{}}>
       <TierSwitch initialTier={tier}>
-        <HomeSections />
+        <HomeSections copy={DEFAULT_HOME_COPY} />
       </TierSwitch>
     </Wrapper>
   )
