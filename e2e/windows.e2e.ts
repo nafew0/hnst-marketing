@@ -541,10 +541,10 @@ test('after a divider, the dock calls, texts and emails HONEST and opens its pro
   await page.goto('/')
   const dock = page.getByRole('navigation', { name: 'Dock' })
   await expect(
-    dock.getByRole('link', { name: /^Call HONEST: \+\d+$/u })
+    dock.getByRole('link', { name: /^Call HONEST: \+[\d ()-]+$/u })
   ).toHaveAttribute('href', /^tel:\+\d+$/u)
   await expect(
-    dock.getByRole('link', { name: /^Text HONEST: \+\d+$/u })
+    dock.getByRole('link', { name: /^Text HONEST: \+[\d ()-]+$/u })
   ).toHaveAttribute('href', /^sms:\+\d+$/u)
   await expect(
     dock.getByRole('link', { name: /^Email HONEST: \S+@\S+$/u })

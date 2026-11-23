@@ -1,5 +1,6 @@
 import cn from 'clsx'
 
+import { useHomeScreenNav } from '@/components/home-screen/footer-nav'
 import { Button } from '@/components/ui/button'
 import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
@@ -13,6 +14,8 @@ import s from './footer.module.css'
 const YEAR = new Date().getFullYear()
 
 export function Footer() {
+  // The home screen's pages while it is on; the old site's otherwise.
+  const homeNav = useHomeScreenNav()
   return (
     <footer className={s.footer} data-theme="dark">
       {/* Decorative: astronauts walking into the light. Each image is only
@@ -45,17 +48,25 @@ export function Footer() {
           <p className="eyebrow text-silver uppercase">
             Powered by HONEST SuperIntelligence
           </p>
-          <p className="max-w-[28ch] p-big text-pretty text-starlight">
+          {/* The old packages and booking: hidden while the home screen is on. */}
+          <p
+            className={cn(
+              'max-w-[28ch] p-big text-pretty text-starlight',
+              s.legacy
+            )}
+          >
             Complete marketing packages, produced with AI and reviewed by
             people.
           </p>
-          <Button href={bookCall.href}>{bookCall.label}</Button>
+          <div className={s.legacy}>
+            <Button href={bookCall.href}>{bookCall.label}</Button>
+          </div>
         </div>
 
         <div className={s.aside}>
           <nav aria-label="Footer" className={s.columns}>
             <ul className={s.list}>
-              {footerNav.map((item) => (
+              {(homeNav ?? footerNav).map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}

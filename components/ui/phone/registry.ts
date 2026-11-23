@@ -239,10 +239,10 @@ export interface SiteContact {
   phone: string
 }
 
-/** `phone` is a placeholder until HONEST has a number (7 Nov 2026). */
+/** Dylan's line and HONEST's inbox (23 Nov 2026), until the CMS sets them. */
 export const CONTACT_FALLBACK: SiteContact = {
-  email: 'service@hnst.marketing',
-  phone: '+123456789',
+  email: 'hello@hnst.marketing',
+  phone: '+1 945 220 9222',
 }
 
 /** The CMS's values where set, the fallback where not. */

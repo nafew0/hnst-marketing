@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { DraftMark } from './draft-mark'
 import { GoldenPlatter } from './golden-platter'
 import { Hero } from './hero'
@@ -14,7 +16,14 @@ import { TheTurn } from './the-turn'
  * under a tier override to check every section at every tier. `copy` is the
  * CMS's words over the originals (home-copy.ts).
  */
-export function HomeSections({ copy }: { copy: HomeCopy }) {
+export function HomeSections({
+  copy,
+  offers,
+}: {
+  copy: HomeCopy
+  /** In place of the priced packages (S6) while the home screen is on. */
+  offers?: ReactNode
+}) {
   return (
     <ScrollHairline>
       <Hero copy={copy.hero} />
@@ -22,7 +31,7 @@ export function HomeSections({ copy }: { copy: HomeCopy }) {
       <TheTurn copy={copy.turn} />
       <GoldenPlatter copy={copy.platter} />
       <HowItWorks copy={copy.steps} />
-      <Packages copy={copy.packages} />
+      {offers ?? <Packages copy={copy.packages} />}
       <ProofBooking copy={copy.proof} />
       <DraftMark />
     </ScrollHairline>

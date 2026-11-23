@@ -1,0 +1,177 @@
+/* The social media page: a profile header, follow buttons and a post grid. */
+@layer components {
+  .head {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 88px;
+    height: 88px;
+    border: 3px solid var(--color-gold);
+    border-radius: 50%;
+    background: var(--color-void-deep);
+    color: var(--color-gold);
+    font-family: var(--font-display);
+    font-size: 48px;
+    line-height: 1;
+
+    @media (--desktop) {
+      width: 120px;
+      height: 120px;
+      font-size: 64px;
+    }
+  }
+
+  .follow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .followLink {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 16px;
+    border: 1px solid color-mix(in oklab, var(--color-gold) 45%, transparent);
+    border-radius: 999px;
+    color: var(--color-starlight);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+
+    & img {
+      border-radius: 5px;
+    }
+
+    @media (--hover) {
+      &:hover {
+        background: color-mix(in oklab, var(--color-gold) 14%, transparent);
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 2px;
+    }
+  }
+
+  /* Three across, square, like a profile grid. */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+
+    @media (--desktop) {
+      gap: 8px;
+    }
+  }
+
+  .tile {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--color-void-2);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 2px;
+    }
+
+    @media (--motion-ok) {
+      & img {
+        transition: transform 300ms var(--ease-out-expo);
+      }
+
+      &:hover img {
+        transform: scale(1.04);
+      }
+    }
+  }
+
+  .viewer {
+    width: min(560px, calc(100vw - 24px));
+    max-height: calc(100dvh - 24px);
+    margin: auto;
+    padding: 0;
+    overflow: auto;
+    border: 1px solid color-mix(in oklab, var(--color-gold) 30%, transparent);
+    border-radius: 18px;
+    background: var(--color-void);
+    color: var(--color-starlight);
+
+    &::backdrop {
+      background: color-mix(in oklab, var(--color-void-deep) 80%, transparent);
+    }
+  }
+
+  .post {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 16px;
+  }
+
+  .postImage {
+    width: 100%;
+    height: auto;
+  }
+
+  .caption {
+    padding-inline: 16px;
+    font-size: 16px;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  .meta {
+    padding-inline: 16px;
+    font-size: 13px;
+    color: var(--color-silver);
+  }
+
+  .postActions {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    padding-inline: 16px;
+  }
+
+  .out,
+  .close {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 2px;
+    }
+  }
+
+  .out {
+    background: var(--color-gold);
+    color: var(--color-void-deep);
+  }
+
+  .close {
+    margin-left: auto;
+    border: 1px solid
+      color-mix(in oklab, var(--color-starlight) 30%, transparent);
+    color: var(--color-starlight);
+  }
+}

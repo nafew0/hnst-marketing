@@ -10,20 +10,36 @@ export function SceneGallery() {
         sections, and behind its closing button. Leave one on “Default” to keep
         the page’s own choice.
       </p>
-      <ul>
-        {WORLD_CLIPS.map((clip) => (
-          <li key={clip.value}>
-            <Image
-              src={`/worlds/${clip.value}.webp`}
-              alt=""
-              width={160}
-              height={90}
-              sizes="160px"
-            />
-            <span>{clip.label}</span>
-          </li>
-        ))}
-      </ul>
+      <SceneList />
     </div>
+  )
+}
+
+/** Home screen → Background video: the same choices, without the pages’ note. */
+export function BackgroundGallery() {
+  return (
+    <div className="hnst-scenes">
+      <p>The video loops behind the buttons. Each choice looks like this:</p>
+      <SceneList />
+    </div>
+  )
+}
+
+function SceneList() {
+  return (
+    <ul>
+      {WORLD_CLIPS.map((clip) => (
+        <li key={clip.value}>
+          <Image
+            src={`/worlds/${clip.value}.webp`}
+            alt=""
+            width={160}
+            height={90}
+            sizes="160px"
+          />
+          <span>{clip.label}</span>
+        </li>
+      ))}
+    </ul>
   )
 }

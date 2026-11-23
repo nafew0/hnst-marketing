@@ -179,6 +179,11 @@ const nextConfig: NextConfig = {
     isIntegrationKept('sanity')
       ? [{ source: '/studio/:path+', destination: '/studio' }]
       : [],
+  // Short addresses from Dylan's brief (21 Nov 2026) for the offer pages.
+  redirects: async () => [
+    { source: '/app', destination: '/mobile-application', permanent: true },
+    { source: '/gallery', destination: '/content-gallery', permanent: true },
+  ],
   headers: async () => [
     {
       source: '/(.*)',

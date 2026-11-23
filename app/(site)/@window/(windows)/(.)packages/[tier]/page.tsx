@@ -1,4 +1,5 @@
 import { PackageDetailApp } from '@/components/apps/packages'
+import { retiredForOffers } from '@/components/home-screen/retired'
 import { PackageDetailContent } from '@/components/sections/standard/pages/package-detail'
 import { PhoneView } from '@/components/ui/phone/view'
 import { WindowRoute } from '@/components/ui/window/route'
@@ -11,6 +12,7 @@ export default async function PackageWindow({
 }: {
   params: Promise<{ tier: string }>
 }) {
+  await retiredForOffers()
   const { tier } = await params
   const item = (await getPackages()).find((p) => p.tier === tier)
   return (

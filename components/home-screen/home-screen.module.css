@@ -1,0 +1,699 @@
+/*
+ * The home screen for the high-end offers (Dylan's layout, 20–21 Nov 2026):
+ * four widgets, 4 by 1, over a looping scene; square app icons under them; the
+ * Call / Text / Email dock at the bottom; and, first, a lock screen whose
+ * priority notification asks whether they came with an audit. Under any open
+ * window (100+), over the cinematic homepage until "Home page" is chosen.
+ */
+
+/* The dock takes the old dock's place, so windows and pages keep it clear.
+   Unlayered and more specific than the old dock's own :root value. */
+:global(html[data-home-screen]:root) {
+  --dock-space: 96px;
+
+  @media (--desktop) {
+    --dock-space: 92px;
+  }
+}
+
+/* Unlocked earlier this visit, or it began elsewhere: hidden before paint. */
+:global(html[data-home-unlocked]) .lock {
+  display: none;
+}
+
+@layer components {
+  .screen {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--color-void-deep);
+    color: var(--color-starlight);
+
+    @media (--motion-ok) {
+      transition:
+        opacity var(--duration-fast) var(--ease-out-expo),
+        transform var(--duration-fast) var(--ease-out-expo),
+        visibility 0s linear;
+    }
+
+    /* "Home page": the cinematic homepage underneath is the page now. */
+    &[data-hidden] {
+      visibility: hidden;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(1.04);
+
+      @media (--motion-ok) {
+        transition:
+          opacity var(--duration-fast) var(--ease-out-expo),
+          transform var(--duration-fast) var(--ease-out-expo),
+          visibility 0s linear var(--duration-fast);
+      }
+    }
+  }
+
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        in oklab 180deg,
+        color-mix(in oklab, var(--color-void-deep) 30%, transparent),
+        transparent 40%,
+        color-mix(in oklab, var(--color-void-deep) 45%, transparent)
+      );
+    }
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 560px;
+    min-height: 0;
+    margin-inline: auto;
+    padding: calc(env(safe-area-inset-top) + 4px) 10px
+      calc(var(--dock-space) + env(safe-area-inset-bottom));
+
+    /* "Significantly larger" on a computer (20 Nov 2026). */
+    @media (--desktop) {
+      gap: 16px;
+      max-width: min(880px, 72vw);
+      padding-top: 20px;
+    }
+  }
+
+  .topRow {
+    display: flex;
+    flex: none;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* "Sarah, I knew you'd show up.": for a prospect who came by their link. */
+  .greeting {
+    min-width: 0;
+    padding-left: 6px;
+    font-family: var(--font-display);
+    font-size: 20px;
+    line-height: 1.2;
+    text-shadow: 0 1px 8px
+      color-mix(in oklab, var(--color-void-deep) 70%, transparent);
+
+    @media (--desktop) {
+      font-size: 28px;
+    }
+  }
+
+  .topButton {
+    min-width: 44px;
+    min-height: 36px;
+    padding-inline: 10px;
+    border-radius: 12px;
+    color: var(--color-starlight);
+    font-size: 13px;
+    font-weight: 600;
+    text-shadow: 0 1px 4px
+      color-mix(in oklab, var(--color-void-deep) 80%, transparent);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: -2px;
+    }
+  }
+
+  /* Four widgets, 4 by 1: they share the height the icons and dock leave. */
+  .widgets {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+
+    & > li {
+      display: flex;
+      flex: 1 1 0;
+      min-height: 76px;
+      max-height: 190px;
+    }
+
+    @media (--desktop) {
+      gap: 14px;
+    }
+  }
+
+  /* An iOS widget: one frosted panel, one tap target (21 Nov 2026). */
+  .widget {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 14px 18px;
+    border: 1px solid
+      color-mix(in oklab, var(--color-starlight) 22%, transparent);
+    border-radius: 24px;
+    background: color-mix(
+      in oklab,
+      color-mix(in oklab, var(--color-void-deep) 70%, var(--color-starlight))
+        42%,
+      transparent
+    );
+    box-shadow: 0 10px 34px
+      color-mix(in oklab, var(--color-void-deep) 35%, transparent);
+    color: var(--color-starlight);
+    text-align: center;
+    text-decoration: none;
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-tap-highlight-color: transparent;
+
+    @media (--motion-ok) {
+      transition:
+        transform 160ms var(--ease-out-expo),
+        background-color 160ms var(--ease-out-expo);
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+
+    @media (--hover) {
+      &:hover {
+        background: color-mix(
+          in oklab,
+          var(--color-starlight) 20%,
+          transparent
+        );
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 3px;
+    }
+
+    @media (--desktop) {
+      border-radius: 30px;
+    }
+  }
+
+  .widgetLabel {
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-shadow: 0 1px 8px
+      color-mix(in oklab, var(--color-void-deep) 55%, transparent);
+    text-wrap: balance;
+
+    @media (--desktop) {
+      font-size: 26px;
+    }
+  }
+
+  .note {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--color-gold);
+    color: var(--color-void-deep);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* The page's headlines, one at a time: the "animated GIF" of 20 Nov. */
+  .ticker {
+    position: relative;
+    width: 100%;
+    height: 2.6em;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--color-starlight);
+
+    @media (--desktop) {
+      font-size: 17px;
+    }
+  }
+
+  .tick {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    text-wrap: balance;
+    transition: opacity 500ms var(--ease-out-expo);
+
+    @media (--motion-ok) {
+      transform: translateY(8px);
+      transition:
+        opacity 500ms var(--ease-out-expo),
+        transform 500ms var(--ease-out-expo);
+    }
+
+    &[data-active] {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* The social media widget: a profile card, as in Dylan's mockup. */
+  .profile {
+    justify-content: flex-end;
+    align-items: stretch;
+    padding: 0;
+    text-align: left;
+  }
+
+  .cover {
+    position: absolute;
+    inset: 0;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        in oklab 180deg,
+        transparent 30%,
+        color-mix(in oklab, var(--color-void-deep) 70%, transparent)
+      );
+    }
+  }
+
+  .profileLabel {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    left: 0;
+    text-align: center;
+  }
+
+  .profileRow {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 0 14px 12px;
+  }
+
+  .avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border: 2px solid var(--color-gold);
+    border-radius: 50%;
+    background: var(--color-void-deep);
+    color: var(--color-gold);
+    font-family: var(--font-display);
+    font-size: 24px;
+    line-height: 1;
+
+    @media (--desktop) {
+      width: 60px;
+      height: 60px;
+      font-size: 32px;
+    }
+  }
+
+  .handle {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .networks {
+    display: flex;
+    gap: 6px;
+
+    & img {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+    }
+  }
+
+  /* Home page, about, offers: square app icons, above the dock. */
+  .icons {
+    display: flex;
+    flex: none;
+    gap: 22px;
+    justify-content: center;
+  }
+
+  .icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    padding: 6px;
+    border: 1px solid
+      color-mix(in oklab, var(--color-starlight) 22%, transparent);
+    border-radius: 16px;
+    background: color-mix(
+      in oklab,
+      color-mix(in oklab, var(--color-void-deep) 65%, var(--color-starlight))
+        50%,
+      transparent
+    );
+    color: var(--color-starlight);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
+    text-decoration: none;
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(18px) saturate(150%);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 3px;
+    }
+
+    @media (--desktop) {
+      width: 76px;
+      height: 76px;
+      border-radius: 19px;
+      font-size: 13px;
+    }
+  }
+
+  /* On the cinematic homepage: the way back to the widgets. */
+  .back {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 12px);
+    left: 50%;
+    z-index: 95;
+    transform: translateX(-50%);
+  }
+
+  .backButton {
+    min-height: 44px;
+    padding: 10px 18px;
+    border: 1px solid
+      color-mix(in oklab, var(--color-starlight) 25%, transparent);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--color-void-deep) 55%, transparent);
+    color: var(--color-starlight);
+    font-size: 15px;
+    font-weight: 600;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 2px;
+    }
+  }
+
+  /* The lock screen: clock, and the priority notification that qualifies. */
+  .lock {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: calc(env(safe-area-inset-top) + 48px) 12px
+      calc(var(--dock-space) + env(safe-area-inset-bottom));
+    background: color-mix(in oklab, var(--color-void-deep) 35%, transparent);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    touch-action: none;
+  }
+
+  .lockClock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-shadow: 0 2px 12px
+      color-mix(in oklab, var(--color-void-deep) 60%, transparent);
+  }
+
+  .lockDate {
+    min-height: 1.3em;
+    font-size: 17px;
+    font-weight: 500;
+  }
+
+  .lockTime {
+    min-height: 1em;
+    font-family: var(--font-display);
+    font-size: 80px;
+    line-height: 1;
+
+    @media (--desktop) {
+      font-size: 104px;
+    }
+  }
+
+  /* Big enough to dominate the screen, as a priority notification does. */
+  .priority {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 520px;
+    margin-top: auto;
+    padding: 16px;
+    border: 1px solid color-mix(in oklab, var(--color-gold) 55%, transparent);
+    border-radius: 26px;
+    background: color-mix(in oklab, var(--color-starlight) 16%, transparent);
+    box-shadow:
+      0 0 0 4px color-mix(in oklab, var(--color-gold) 14%, transparent),
+      0 18px 50px color-mix(in oklab, var(--color-void-deep) 50%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+
+    @media (--motion-ok) {
+      &[data-nudge] {
+        animation: nudge 420ms var(--ease-out-expo);
+      }
+    }
+  }
+
+  .priorityHead {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: color-mix(in oklab, var(--color-starlight) 85%, transparent);
+  }
+
+  /* HONEST's app icon on the notification: a gold monogram. */
+  .mark {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--color-void-deep);
+    color: var(--color-gold);
+    font-family: var(--font-display);
+    font-size: 15px;
+    line-height: 1;
+  }
+
+  .tag {
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--color-gold);
+    color: var(--color-void-deep);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .priorityTitle {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  .priorityBody {
+    font-size: 15px;
+    line-height: 1.4;
+    color: color-mix(in oklab, var(--color-starlight) 85%, transparent);
+  }
+
+  .choices {
+    display: grid;
+    gap: 8px;
+
+    @media (--desktop) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .choice {
+    min-height: 52px;
+    padding: 10px 16px;
+    border-radius: 16px;
+    background: color-mix(in oklab, var(--color-starlight) 18%, transparent);
+    color: var(--color-starlight);
+    font-size: 16px;
+    font-weight: 600;
+
+    &:first-child {
+      background: var(--color-gold);
+      color: var(--color-void-deep);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 2px;
+    }
+  }
+
+  .locked {
+    min-height: 1.4em;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-gold);
+    text-align: center;
+  }
+
+  .hint {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    min-height: 44px;
+    padding: 4px 16px;
+    border-radius: 14px;
+    color: color-mix(in oklab, var(--color-starlight) 80%, transparent);
+    font-size: 13px;
+
+    & svg {
+      width: 18px;
+      height: 10px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 2px;
+    }
+  }
+
+  /* Call / Text / Email: app icons on a phone's dock, where the old dock was. */
+  .bar {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom) + 56px);
+    left: 50%;
+    z-index: 102;
+    display: flex;
+    gap: 22px;
+    padding: 10px 18px;
+    border: 1px solid
+      color-mix(in oklab, var(--color-starlight) 18%, transparent);
+    border-radius: 28px;
+    background: color-mix(in oklab, var(--color-starlight) 12%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--color-starlight) 22%, transparent),
+      0 12px 36px color-mix(in oklab, var(--color-void-deep) 45%, transparent);
+    transform: translateX(-50%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+
+    /* A window or the home screen covers the corner pills: down to the edge. */
+    &[data-low],
+    :global(html[data-home-covering]) & {
+      bottom: calc(env(safe-area-inset-bottom) + 10px);
+    }
+
+    @media (--desktop) and (width >= 1200px) {
+      bottom: 14px;
+    }
+  }
+
+  .barLink {
+    display: block;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    filter: drop-shadow(
+      0 4px 10px color-mix(in oklab, var(--color-void-deep) 40%, transparent)
+    );
+    -webkit-tap-highlight-color: transparent;
+
+    & > svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (--motion-ok) {
+      transition: transform 120ms var(--ease-out-expo);
+
+      &:active {
+        transform: scale(0.92);
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-starlight);
+      outline-offset: 3px;
+    }
+  }
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(-14px);
+  }
+
+  60% {
+    transform: translateY(4px);
+  }
+}
+
+/* The classic website's address bar (components/ui/phone/classic) isn't shown
+   with the home screen, so nothing makes room for it. Unlayered, as that is. */
+@media (--mobile) {
+  :global(html[data-home-screen][data-phone-classic]) {
+    --classic-bar: 0px;
+  }
+
+  :global(html[data-home-screen][data-phone-classic] body) {
+    padding-top: 0;
+  }
+}

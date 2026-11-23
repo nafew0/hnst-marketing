@@ -24,8 +24,17 @@ const WindowDock = dynamic(
   { ssr: false }
 )
 
-/** The window layer, in the site layout. `links` feed the dock's way-out icons. */
-export function WindowHost({ links }: { links: SiteLinks }) {
+/**
+ * The window layer, in the site layout. `links` feed the dock's way-out icons.
+ * `dock={false}` while the home screen's Call / Text / Email bar replaces it.
+ */
+export function WindowHost({
+  links,
+  dock: showDock = true,
+}: {
+  links: SiteLinks
+  dock?: boolean
+}) {
   const routeHref = useWindows((state) => state.routeHref)
   const open = useWindows((state) => state.activeHref !== null)
   const hasContent = useWindows((state) =>
@@ -35,7 +44,7 @@ export function WindowHost({ links }: { links: SiteLinks }) {
   const { isMobile } = useDeviceDetection()
   // The phone layout's home screen has its own dock (docs/phases/M1.md).
   const classic = usePhone((state) => state.classic)
-  const dock = !PHONE_LAYOUT || isMobile === false || classic
+  const dock = showDock && (!PHONE_LAYOUT || isMobile === false || classic)
 
   useEffect(() => {
     if (routeHref !== null) return

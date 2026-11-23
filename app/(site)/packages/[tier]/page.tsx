@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { PackageDetailApp } from '@/components/apps/packages'
+import { retiredForOffers } from '@/components/home-screen/retired'
 import { PackageDetailContent } from '@/components/sections/standard/pages/package-detail'
 import { PhoneView } from '@/components/ui/phone/view'
 import { WindowPage } from '@/components/ui/window'
@@ -27,6 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return metadata
 }
 export default async function PackagePage({ params }: Props) {
+  await retiredForOffers()
   const { tier } = await params
   const item = (await getPackages()).find((p) => p.tier === tier)
   return (

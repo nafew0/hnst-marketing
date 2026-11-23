@@ -142,3 +142,8 @@
     }
   }
 }
+
+/* The home screen's Call / Text / Email bar replaces packages and booking. */
+:global(html[data-home-screen]) .legacy {
+  display: none;
+}

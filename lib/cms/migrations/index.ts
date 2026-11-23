@@ -3,6 +3,8 @@ import * as wave3 from './20261030-143655-p6-pages-booking'
 import * as wall from './20261106-141330-m3-wall-photos'
 import * as phone from './20261106-142013-m3-phone-content'
 import * as homepage from './20261115-201613-homepage-and-scenes'
+import * as highEnd from './20261123-102240-high-end-offers'
+import * as highEnd2 from './20261123-140606-high-end-phase-2'
 export const migrations = [
   { up: initial.up, down: initial.down, name: '20261030_002251_initial' },
   { up: wave3.up, down: wave3.down, name: '20261030-143655-p6-pages-booking' },
@@ -12,5 +14,15 @@ export const migrations = [
     up: homepage.up,
     down: homepage.down,
     name: '20261115-201613-homepage-and-scenes',
+  },
+  {
+    up: highEnd.up,
+    down: highEnd.down,
+    name: '20261123-102240-high-end-offers',
+  },
+  {
+    up: highEnd2.up,
+    down: highEnd2.down,
+    name: '20261123-140606-high-end-phase-2',
   },
 ]

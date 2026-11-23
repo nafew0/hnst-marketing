@@ -15,6 +15,12 @@ import {
   SiteSettings,
   Users,
 } from '@/lib/cms/collections'
+import {
+  Prospects,
+  ProspectVisits,
+  SocialPosts,
+} from '@/lib/cms/high-end-collections'
+import { HomeScreen } from '@/lib/cms/home-screen'
 import { Homepage } from '@/lib/cms/homepage'
 import { PhoneNotes } from '@/lib/cms/phone-notes'
 import { WallPhotos } from '@/lib/cms/wall-photos'
@@ -45,6 +51,9 @@ export default buildConfig({
   collections: [
     Packages,
     Pages,
+    SocialPosts,
+    Prospects,
+    ProspectVisits,
     FAQs,
     LegalDocs,
     WallPhotos,
@@ -52,7 +61,7 @@ export default buildConfig({
     Media,
     Users,
   ],
-  globals: [Homepage, SiteSettings],
+  globals: [Homepage, HomeScreen, SiteSettings],
   editor: lexicalEditor(),
   sharp,
   db: postgresAdapter({
