@@ -12,12 +12,6 @@ export const NETWORK_LABELS = {
   linkedin: 'LinkedIn',
 } as const satisfies Record<SocialNetwork, string>
 
-/** The admin's choices for a post's network. */
-export const NETWORK_OPTIONS = SOCIAL_NETWORKS.map((value) => ({
-  value,
-  label: NETWORK_LABELS[value],
-}))
-
 export interface Profile {
   network: SocialNetwork
   label: string
