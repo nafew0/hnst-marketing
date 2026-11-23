@@ -4,22 +4,36 @@ import {
   PageHero,
 } from '@/components/sections/standard/catalog'
 import { DraftIndicator } from '@/components/sections/standard/draft-indicator'
-import { getFaqs, getPage, getSettings, readContext } from '@/lib/cms/data'
+import {
+  getFaqs,
+  getPage,
+  getPublishedHomeScreen,
+  getSettings,
+  readContext,
+} from '@/lib/cms/data'
 
 export async function loadPageContent(slug: string) {
-  const [page, settings, context, faqs] = await Promise.all([
+  const [page, settings, context, faqs, { screen }] = await Promise.all([
     getPage(slug),
     getSettings(),
     readContext(),
     slug === 'how-it-works' ? getFaqs() : Promise.resolve([]),
+    getPublishedHomeScreen(),
   ])
-  return { page, settings, preview: context?.preview === true, faqs }
+  return {
+    page,
+    settings,
+    preview: context?.preview === true,
+    faqs,
+    bar: screen.bar,
+  }
 }
 export function StandardPageContent({
   page,
   settings,
   preview,
   faqs,
+  bar,
 }: Awaited<ReturnType<typeof loadPageContent>>) {
   if (!page)
     return (
@@ -40,6 +54,7 @@ export function StandardPageContent({
         settings={settings}
         faqs={faqs}
         packages={[]}
+        bar={bar}
       />
     </>
   )

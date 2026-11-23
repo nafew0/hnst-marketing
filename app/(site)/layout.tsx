@@ -10,7 +10,10 @@ import { type PropsWithChildren, type ReactNode, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
 import { PrivacyControls } from '@/components/forms/privacy'
+import { ContactBar } from '@/components/home-screen/bar'
+import { HomeScreenNavProvider } from '@/components/home-screen/footer-nav'
 import { DeviceTierProvider } from '@/components/motion/device-tier'
+import { ProspectTracker } from '@/components/prospects/tracker'
 import { Link } from '@/components/ui/link'
 import { PHONE_LAYOUT } from '@/components/ui/phone/flag'
 import { loadPhoneContent, siteLinks } from '@/components/ui/phone/load'
@@ -18,6 +21,7 @@ import { PhoneHost } from '@/components/ui/phone/notifications/host'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
 import { WindowHost } from '@/components/ui/window/host'
+import { getPublishedHomeScreen } from '@/lib/cms/data'
 import { ApiMocks } from '@/lib/contracts/mocks/api-mocks'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
@@ -103,23 +107,46 @@ export default async function AppLayout({
   window: windowSlot,
 }: PropsWithChildren<{ window: ReactNode }>) {
   const { isEnabled: isDraftMode } = await draftMode()
-  const phoneContent = await loadPhoneContent()
+  const [phoneContent, { screen, titles }] = await Promise.all([
+    loadPhoneContent(),
+    getPublishedHomeScreen(),
+  ])
+  // The high-end home screen (components/home-screen): its Call / Text / Email
+  // bar replaces the dock, and the phone's app icons, lock screen and
+  // notifications step aside; phones get the classic website's plain windows.
+  const homeScreen = screen.enabled
+  const phoneLayout = PHONE_LAYOUT && !homeScreen
+  const footerNav = homeScreen
+    ? [...screen.buttons, ...screen.links]
+        .filter((item) => item.href.startsWith('/'))
+        .map(({ href, label }) => ({ href, label }))
+    : null
   return (
     <html
       lang="en"
       dir="ltr"
       className={fontsVariable}
       data-theme="dark"
+      data-home-screen={homeScreen ? '' : undefined}
+      data-phone-classic={homeScreen && PHONE_LAYOUT ? '' : undefined}
       suppressHydrationWarning
     >
       <body>
-        {PHONE_LAYOUT && (
+        {phoneLayout && (
           // Before paint: the lock screen shows once a session, and never when
           // the visit starts anywhere but `/` (docs/phases/M2.md); the classic
           // website stays on for the visit once chosen (M5). The flags hold
           // no visitor input.
           <Script id="phone-lock" strategy="beforeInteractive">
             {`try{var k='hnst-phone-unlocked';if(location.pathname!=='/'||/[?&]app=/.test(location.search))sessionStorage.setItem(k,'1');if(sessionStorage.getItem(k)==='1')document.documentElement.setAttribute('data-phone-unlocked','');if(sessionStorage.getItem('hnst-phone-classic')==='1')document.documentElement.setAttribute('data-phone-classic','')}catch(e){}`}
+          </Script>
+        )}
+        {homeScreen && (
+          // Before paint: the home screen's lock (its audit question) shows once
+          // a visit, only on `/`, and never for a prospect's tagged link. The
+          // flag holds no visitor input.
+          <Script id="home-lock" strategy="beforeInteractive">
+            {`try{var k='hnst-home-unlocked';if(location.pathname!=='/'||/[?&]p=/.test(location.search))sessionStorage.setItem(k,'1');if(sessionStorage.getItem(k)==='1')document.documentElement.setAttribute('data-home-unlocked','')}catch(e){}`}
           </Script>
         )}
         {/* On every page, not just home: deep pages are landed on directly far more often. */}
@@ -142,10 +169,23 @@ export default async function AppLayout({
               See: components/layout/wrapper/index.tsx
             */}
               <DeviceTierProvider>
-                {children}
-                {windowSlot}
-                <WindowHost links={siteLinks(phoneContent)} />
-                {PHONE_LAYOUT && <PhoneHost settings={phoneContent.settings} />}
+                <HomeScreenNavProvider items={footerNav}>
+                  {children}
+                  {windowSlot}
+                </HomeScreenNavProvider>
+                <WindowHost
+                  links={siteLinks(phoneContent)}
+                  dock={!homeScreen}
+                />
+                {phoneLayout && <PhoneHost settings={phoneContent.settings} />}
+                <ProspectTracker />
+                {homeScreen && (
+                  <ContactBar
+                    bar={screen.bar}
+                    contact={phoneContent.contact}
+                    titles={titles}
+                  />
+                )}
               </DeviceTierProvider>
             </TransformProvider>
             <ToastViewport />

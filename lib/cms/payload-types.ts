@@ -74,6 +74,9 @@ export interface Config {
   collections: {
     packages: Package
     pages: Page
+    'social-posts': SocialPost
+    prospects: Prospect
+    'prospect-visits': ProspectVisit
     faqs: Faq
     'legal-docs': LegalDoc
     wallPhotos: WallPhoto
@@ -85,10 +88,17 @@ export interface Config {
     'payload-preferences': PayloadPreference
     'payload-migrations': PayloadMigration
   }
-  collectionsJoins: {}
+  collectionsJoins: {
+    prospects: {
+      visits: 'prospect-visits'
+    }
+  }
   collectionsSelect: {
     packages: PackagesSelect<false> | PackagesSelect<true>
     pages: PagesSelect<false> | PagesSelect<true>
+    'social-posts': SocialPostsSelect<false> | SocialPostsSelect<true>
+    prospects: ProspectsSelect<false> | ProspectsSelect<true>
+    'prospect-visits': ProspectVisitsSelect<false> | ProspectVisitsSelect<true>
     faqs: FaqsSelect<false> | FaqsSelect<true>
     'legal-docs': LegalDocsSelect<false> | LegalDocsSelect<true>
     wallPhotos: WallPhotosSelect<false> | WallPhotosSelect<true>
@@ -112,10 +122,12 @@ export interface Config {
   fallbackLocale: null
   globals: {
     homepage: Homepage
+    'home-screen': HomeScreen
     'site-settings': SiteSetting
   }
   globalsSelect: {
     homepage: HomepageSelect<false> | HomepageSelect<true>
+    'home-screen': HomeScreenSelect<false> | HomeScreenSelect<true>
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>
   }
   locale: null
@@ -547,6 +559,225 @@ export interface Page {
             blockName?: string | null
             blockType: 'bookingReceipt'
           }
+        | {
+            title: string
+            handle?: string | null
+            bio?: string | null
+            /**
+             * Followed by the network, e.g. “Follow on Instagram”. One button per profile in Site settings → Social profiles; networks without one are hidden.
+             */
+            followLabel?: string | null
+            postsHeading?: string | null
+            viewLabel?: string | null
+            emptyText?: string | null
+            id?: string | null
+            blockName?: string | null
+            blockType: 'socialProfile'
+          }
+        | {
+            badge?: string | null
+            title: string
+            subheadline?: string | null
+            /**
+             * A blank line starts a new paragraph.
+             */
+            body?: string | null
+            points?:
+              | {
+                  title: string
+                  text?: string | null
+                  id?: string | null
+                }[]
+              | null
+            /**
+             * Call, Text, Email and Get a Price open the visitor’s phone or email with the message from Home screen → Call / Text / Email, naming this page.
+             */
+            actions?:
+              | {
+                  kind: 'call' | 'text' | 'email' | 'price' | 'link'
+                  /**
+                   * Leave empty for the usual word (Call, Text, Email…).
+                   */
+                  label?: string | null
+                  /**
+                   * A page address, e.g. /offers, or #section on this page.
+                   */
+                  href?: string | null
+                  id?: string | null
+                }[]
+              | null
+            id?: string | null
+            blockName?: string | null
+            blockType: 'salesHero'
+          }
+        | {
+            /**
+             * Optional. Lets a button link here, e.g. “payback” for #payback.
+             */
+            anchor?: string | null
+            eyebrow?: string | null
+            title: string
+            subheadline?: string | null
+            /**
+             * A blank line starts a new paragraph.
+             */
+            body?: string | null
+            /**
+             * Cards, steps, tags and so on. “For you” and “Not for you” sit side by side.
+             */
+            groups?:
+              | {
+                  heading?: string | null
+                  style:
+                    | 'cards'
+                    | 'list'
+                    | 'steps'
+                    | 'statements'
+                    | 'tags'
+                    | 'yes'
+                    | 'no'
+                    | 'panel'
+                    | 'apps'
+                    | 'placeholders'
+                  intro?: string | null
+                  items?:
+                    | {
+                        title?: string | null
+                        text?: string | null
+                        /**
+                         * Apps only, e.g. “12,000+”.
+                         */
+                        stat?: string | null
+                        statLabel?: string | null
+                        url?: string | null
+                        id?: string | null
+                      }[]
+                    | null
+                  /**
+                   * Shows “Sample figures” under the list. Untick only when every figure is real.
+                   */
+                  sampleFigures?: boolean | null
+                  id?: string | null
+                }[]
+              | null
+            note?: string | null
+            closing?: string | null
+            /**
+             * Call, Text, Email and Get a Price open the visitor’s phone or email with the message from Home screen → Call / Text / Email, naming this page.
+             */
+            actions?:
+              | {
+                  kind: 'call' | 'text' | 'email' | 'price' | 'link'
+                  /**
+                   * Leave empty for the usual word (Call, Text, Email…).
+                   */
+                  label?: string | null
+                  /**
+                   * A page address, e.g. /offers, or #section on this page.
+                   */
+                  href?: string | null
+                  id?: string | null
+                }[]
+              | null
+            /**
+             * Optional. What this section’s Text, Email and Get a Price messages name, e.g. “Podcast” on the Offers page. Empty: the page’s title.
+             */
+            topic?: string | null
+            /**
+             * Large headline over the background video, big buttons.
+             */
+            closingStyle?: boolean | null
+            id?: string | null
+            blockName?: string | null
+            blockType: 'salesSection'
+          }
+        | {
+            /**
+             * Optional. Lets a button link here, e.g. “payback” for #payback.
+             */
+            anchor?: string | null
+            title: string
+            subheadline?: string | null
+            items?:
+              | {
+                  question: string
+                  answer: string
+                  id?: string | null
+                }[]
+              | null
+            closing?: string | null
+            /**
+             * Call, Text, Email and Get a Price open the visitor’s phone or email with the message from Home screen → Call / Text / Email, naming this page.
+             */
+            actions?:
+              | {
+                  kind: 'call' | 'text' | 'email' | 'price' | 'link'
+                  /**
+                   * Leave empty for the usual word (Call, Text, Email…).
+                   */
+                  label?: string | null
+                  /**
+                   * A page address, e.g. /offers, or #section on this page.
+                   */
+                  href?: string | null
+                  id?: string | null
+                }[]
+              | null
+            id?: string | null
+            blockName?: string | null
+            blockType: 'objections'
+          }
+        | {
+            /**
+             * Optional. Lets a button link here, e.g. “payback” for #payback.
+             */
+            anchor?: string | null
+            title: string
+            subheadline?: string | null
+            columns?:
+              | {
+                  name: string
+                  badge?: string | null
+                  id?: string | null
+                }[]
+              | null
+            rows?:
+              | {
+                  label: string
+                  /**
+                   * One per offer, in the same order.
+                   */
+                  cells?:
+                    | {
+                        text: string
+                        id?: string | null
+                      }[]
+                    | null
+                  id?: string | null
+                }[]
+              | null
+            note?: string | null
+            /**
+             * Call, Text, Email and Get a Price open the visitor’s phone or email with the message from Home screen → Call / Text / Email, naming this page.
+             */
+            actions?:
+              | {
+                  kind: 'call' | 'text' | 'email' | 'price' | 'link'
+                  /**
+                   * Leave empty for the usual word (Call, Text, Email…).
+                   */
+                  label?: string | null
+                  /**
+                   * A page address, e.g. /offers, or #section on this page.
+                   */
+                  href?: string | null
+                  id?: string | null
+                }[]
+              | null
+            id?: string | null
+            blockName?: string | null
+            blockType: 'offerComparison'
+          }
       )[]
     | null
   updatedAt: string
@@ -586,6 +817,70 @@ export interface Media {
       filename?: string | null
     }
   }
+}
+/**
+ * The grid on the Social media page. Each post links out to the original; nothing is embedded.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-posts".
+ */
+export interface SocialPost {
+  id: number
+  /**
+   * Square works best (1080 × 1080).
+   */
+  image: number | Media
+  caption: string
+  network: 'instagram' | 'x' | 'youtube' | 'tiktok' | 'linkedin'
+  url?: string | null
+  postedAt: string
+  updatedAt: string
+  createdAt: string
+  _status?: ('draft' | 'published') | null
+}
+/**
+ * One tagged link per prospect. Put it in the audit email; when they open it, the visit shows here. Their name greets them on the home screen.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prospects".
+ */
+export interface Prospect {
+  id: number
+  /**
+   * As the greeting should say it, e.g. “Sarah”.
+   */
+  name: string
+  company?: string | null
+  greet?: boolean | null
+  /**
+   * Copy this into the email. Any page works: add ?p=… to /podcast, for example.
+   */
+  link?: string | null
+  token?: string | null
+  lastVisit?: string | null
+  note?: string | null
+  visits?: {
+    docs?: (number | ProspectVisit)[]
+    hasNextPage?: boolean
+    totalDocs?: number
+  }
+  updatedAt: string
+  createdAt: string
+}
+/**
+ * Every opened link, and the pages viewed after it.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prospect-visits".
+ */
+export interface ProspectVisit {
+  id: number
+  prospect: number | Prospect
+  kind: 'opened' | 'page'
+  path: string
+  device?: ('phone' | 'computer') | null
+  updatedAt: string
+  createdAt: string
 }
 /**
  * Questions and answers shown on the site.
@@ -737,6 +1032,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pages'
         value: number | Page
+      } | null)
+    | ({
+        relationTo: 'social-posts'
+        value: number | SocialPost
+      } | null)
+    | ({
+        relationTo: 'prospects'
+        value: number | Prospect
+      } | null)
+    | ({
+        relationTo: 'prospect-visits'
+        value: number | ProspectVisit
       } | null)
     | ({
         relationTo: 'faqs'
@@ -1093,10 +1400,194 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T
               blockName?: T
             }
+        socialProfile?:
+          | T
+          | {
+              title?: T
+              handle?: T
+              bio?: T
+              followLabel?: T
+              postsHeading?: T
+              viewLabel?: T
+              emptyText?: T
+              id?: T
+              blockName?: T
+            }
+        salesHero?:
+          | T
+          | {
+              badge?: T
+              title?: T
+              subheadline?: T
+              body?: T
+              points?:
+                | T
+                | {
+                    title?: T
+                    text?: T
+                    id?: T
+                  }
+              actions?:
+                | T
+                | {
+                    kind?: T
+                    label?: T
+                    href?: T
+                    id?: T
+                  }
+              id?: T
+              blockName?: T
+            }
+        salesSection?:
+          | T
+          | {
+              anchor?: T
+              eyebrow?: T
+              title?: T
+              subheadline?: T
+              body?: T
+              groups?:
+                | T
+                | {
+                    heading?: T
+                    style?: T
+                    intro?: T
+                    items?:
+                      | T
+                      | {
+                          title?: T
+                          text?: T
+                          stat?: T
+                          statLabel?: T
+                          url?: T
+                          id?: T
+                        }
+                    sampleFigures?: T
+                    id?: T
+                  }
+              note?: T
+              closing?: T
+              actions?:
+                | T
+                | {
+                    kind?: T
+                    label?: T
+                    href?: T
+                    id?: T
+                  }
+              topic?: T
+              closingStyle?: T
+              id?: T
+              blockName?: T
+            }
+        objections?:
+          | T
+          | {
+              anchor?: T
+              title?: T
+              subheadline?: T
+              items?:
+                | T
+                | {
+                    question?: T
+                    answer?: T
+                    id?: T
+                  }
+              closing?: T
+              actions?:
+                | T
+                | {
+                    kind?: T
+                    label?: T
+                    href?: T
+                    id?: T
+                  }
+              id?: T
+              blockName?: T
+            }
+        offerComparison?:
+          | T
+          | {
+              anchor?: T
+              title?: T
+              subheadline?: T
+              columns?:
+                | T
+                | {
+                    name?: T
+                    badge?: T
+                    id?: T
+                  }
+              rows?:
+                | T
+                | {
+                    label?: T
+                    cells?:
+                      | T
+                      | {
+                          text?: T
+                          id?: T
+                        }
+                    id?: T
+                  }
+              note?: T
+              actions?:
+                | T
+                | {
+                    kind?: T
+                    label?: T
+                    href?: T
+                    id?: T
+                  }
+              id?: T
+              blockName?: T
+            }
       }
   updatedAt?: T
   createdAt?: T
   _status?: T
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-posts_select".
+ */
+export interface SocialPostsSelect<T extends boolean = true> {
+  image?: T
+  caption?: T
+  network?: T
+  url?: T
+  postedAt?: T
+  updatedAt?: T
+  createdAt?: T
+  _status?: T
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prospects_select".
+ */
+export interface ProspectsSelect<T extends boolean = true> {
+  name?: T
+  company?: T
+  greet?: T
+  link?: T
+  token?: T
+  lastVisit?: T
+  note?: T
+  visits?: T
+  updatedAt?: T
+  createdAt?: T
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prospect-visits_select".
+ */
+export interface ProspectVisitsSelect<T extends boolean = true> {
+  prospect?: T
+  kind?: T
+  path?: T
+  device?: T
+  updatedAt?: T
+  createdAt?: T
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1378,6 +1869,157 @@ export interface Homepage {
   createdAt?: string | null
 }
 /**
+ * The first screen visitors see: the background video, the big buttons and the Call / Text / Email bar. Press Publish to put changes live.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-screen".
+ */
+export interface HomeScreen {
+  id: number
+  /**
+   * On: visitors land on this screen, and the old app icons, dock and phone lock screen are hidden. Off: the site is exactly as before.
+   */
+  enabled?: boolean | null
+  background?:
+    | (
+        | 'amber-moon'
+        | 'astronaut-window'
+        | 'canyon'
+        | 'cockpit'
+        | 'desert-planet'
+        | 'frontier-street'
+        | 'lunar-horizon'
+        | 'lunar-walk'
+        | 'pink-mountains'
+        | 'ringed-mist'
+        | 'ringed-orbit'
+        | 'silk'
+      )
+    | null
+  /**
+   * Not shown on the screen (the widgets fill it); read by screen readers and search engines.
+   */
+  title?: string | null
+  /**
+   * The big panels, top to bottom. Each opens its page. Dylan’s layout has four.
+   */
+  buttons?:
+    | {
+        label: string
+        /**
+         * A page on the site, for example /podcast. #homepage shows the cinematic homepage.
+         */
+        href: string
+        style: 'headlines' | 'profile'
+        /**
+         * Optional, e.g. “Our lead offer”.
+         */
+        note?: string | null
+        /**
+         * The page’s selling points, one at a time, a few seconds each. Short lines read best.
+         */
+        lines?:
+          | {
+              text: string
+              id?: string | null
+            }[]
+          | null
+        /**
+         * Shown under the picture, e.g. @hnstmarketing.
+         */
+        handle?: string | null
+        id?: string | null
+      }[]
+    | null
+  /**
+   * The square icons above Call / Text / Email. #homepage opens the cinematic homepage.
+   */
+  links?:
+    | {
+        label: string
+        /**
+         * A page on the site, for example /podcast. #homepage shows the cinematic homepage.
+         */
+        href: string
+        id?: string | null
+      }[]
+    | null
+  /**
+   * {name} becomes the name in Prospects. Shown over the widgets when they come by their link.
+   */
+  greeting?: string | null
+  /**
+   * Shown on the cinematic homepage.
+   */
+  backLabel?: string | null
+  lock?: {
+    enabled?: boolean | null
+    app?: string | null
+    tag?: string | null
+    title?: string | null
+    body?: string | null
+    /**
+     * Opens the widgets.
+     */
+    audit?: string | null
+    /**
+     * Opens the cinematic homepage.
+     */
+    browse?: string | null
+    locked?: string | null
+    hint?: string | null
+  }
+  bar?: {
+    call?: string | null
+    text?: string | null
+    email?: string | null
+    price?: string | null
+    /**
+     * {page} becomes the name of the page the visitor is on.
+     */
+    textMessage?: string | null
+    /**
+     * {page} becomes the name of the page the visitor is on.
+     */
+    emailSubject?: string | null
+    /**
+     * {page} becomes the name of the page the visitor is on.
+     */
+    emailBody?: string | null
+    /**
+     * {page} becomes the name of the page the visitor is on.
+     */
+    priceMessage?: string | null
+    /**
+     * {page} becomes the name of the page the visitor is on.
+     */
+    priceSubject?: string | null
+  }
+  offers?: {
+    eyebrow?: string | null
+    heading?: string | null
+    body?: string | null
+    terms?: string | null
+    priceLabel?: string | null
+    exploreLabel?: string | null
+    items?:
+      | {
+          title: string
+          line: string
+          /**
+           * A page on the site, for example /podcast. #homepage shows the cinematic homepage.
+           */
+          href: string
+          badge?: string | null
+          id?: string | null
+        }[]
+      | null
+  }
+  _status?: ('draft' | 'published') | null
+  updatedAt?: string | null
+  createdAt?: string | null
+}
+/**
  * Contact details, booking, consent text and the phone layout. Press Publish to put changes live.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1591,6 +2233,89 @@ export interface HomepageSelect<T extends boolean = true> {
             }
         ctaHeading?: T
         ctaLabel?: T
+      }
+  _status?: T
+  updatedAt?: T
+  createdAt?: T
+  globalType?: T
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-screen_select".
+ */
+export interface HomeScreenSelect<T extends boolean = true> {
+  enabled?: T
+  background?: T
+  title?: T
+  buttons?:
+    | T
+    | {
+        label?: T
+        href?: T
+        style?: T
+        note?: T
+        lines?:
+          | T
+          | {
+              text?: T
+              id?: T
+            }
+        handle?: T
+        id?: T
+      }
+  links?:
+    | T
+    | {
+        label?: T
+        href?: T
+        id?: T
+      }
+  greeting?: T
+  backLabel?: T
+  lock?:
+    | T
+    | {
+        enabled?: T
+        app?: T
+        tag?: T
+        title?: T
+        body?: T
+        audit?: T
+        browse?: T
+        locked?: T
+        hint?: T
+      }
+  bar?:
+    | T
+    | {
+        call?: T
+        text?: T
+        email?: T
+        price?: T
+        textMessage?: T
+        emailSubject?: T
+        emailBody?: T
+        priceMessage?: T
+        priceSubject?: T
+      }
+  offers?:
+    | T
+    | {
+        eyebrow?: T
+        heading?: T
+        body?: T
+        terms?: T
+        priceLabel?: T
+        exploreLabel?: T
+        items?:
+          | T
+          | {
+              title?: T
+              line?: T
+              href?: T
+              badge?: T
+              id?: T
+            }
       }
   _status?: T
   updatedAt?: T

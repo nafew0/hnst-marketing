@@ -3,11 +3,22 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import { Fragment, type ReactNode } from 'react'
 
 import type { ConsentCopy } from '@/components/forms/lead-form'
+import {
+  HOME_SCREEN_DEFAULTS,
+  type HomeScreenCopy,
+} from '@/components/home-screen/copy'
 import { Wrapper } from '@/components/layout/wrapper'
+import {
+  isSalesBlock,
+  SalesBlock,
+  type SalesContext,
+} from '@/components/sections/sales'
 import { PackageReveal } from '@/components/sections/signature/package-reveal'
 import { packageFacts } from '@/components/sections/standard/package-facts'
 import { Wave3Block } from '@/components/sections/standard/wave3-blocks'
+import { SocialProfile } from '@/components/social/profile'
 import { Heading } from '@/components/ui/heading'
+import { siteContact } from '@/components/ui/phone/registry'
 import { Container, Section } from '@/components/ui/section'
 import {
   type WorldClip,
@@ -172,18 +183,45 @@ export function ContentBlocks({
   packages,
   faqs,
   settings = null,
+  bar = HOME_SCREEN_DEFAULTS.bar,
 }: {
   page: Page
   packages: Package[]
   faqs: Faq[]
   settings?: SiteSetting | null
+  /** The Call / Text / Email words, for the sales sections' buttons. */
+  bar?: HomeScreenCopy['bar']
 }) {
   const world = worldFor(page.slug, page.scenes)
+  const sales: SalesContext = {
+    page: page.title,
+    contact: siteContact({
+      email: settings?.publicEmail,
+      phone: settings?.publicPhone,
+    }),
+    bar,
+    clips: { hero: world.hero, closing: world.closing },
+  }
   // After the first section, on pages with enough sections to want a break.
   const bandAfter = (page.blocks?.length ?? 0) > 3 ? 1 : -1
   return (
     <>
       {page.blocks?.map((block, index) => {
+        if (block.blockType === 'socialProfile')
+          return (
+            <SocialProfile
+              key={block.id}
+              block={block}
+              links={settings?.socialLinks ?? []}
+            />
+          )
+        if (isSalesBlock(block))
+          return (
+            <Fragment key={block.id}>
+              <SalesBlock block={block} context={sales} />
+              {index === bandAfter && <WorldBand clip={world.band} />}
+            </Fragment>
+          )
         if (block.blockType === 'hero')
           return (
             <PageHero

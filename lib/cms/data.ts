@@ -3,6 +3,7 @@ import { draftMode, headers } from 'next/headers'
 import { getPayload } from 'payload'
 import { cache } from 'react'
 
+import { homeScreenFrom } from '@/components/home-screen/copy'
 import {
   PHONE_SETTINGS_DRAFT,
   phoneSettingsSchema,
@@ -195,3 +196,68 @@ export const getPublishedHome = unstable_cache(
   ['honest-home'],
   { tags: ['honest-cms'], revalidate: 3600 }
 )
+
+/**
+ * The home screen for the high-end offers (lib/cms/home-screen.ts), published
+ * only, for the static `/` and the site layout. Never reads draftMode. Also the
+ * published pages' titles, which the Call / Text / Email messages name. A
+ * missing CMS or table gives the defaults, switched off.
+ */
+export const getPublishedHomeScreen = unstable_cache(
+  async () => {
+    const cms = await getCms()
+    if (!cms) return { screen: homeScreenFrom(null), titles: [] }
+    try {
+      const [screen, pages] = await Promise.all([
+        cms.findGlobal({ slug: 'home-screen', overrideAccess: false }),
+        cms.find({
+          collection: 'pages',
+          overrideAccess: false,
+          where: { _status: { equals: 'published' } },
+          select: { slug: true, title: true },
+          limit: 100,
+          depth: 0,
+        }),
+      ])
+      return {
+        // An unpublished first draft isn't the screen yet.
+        screen: homeScreenFrom(screen._status === 'draft' ? null : screen),
+        titles: pages.docs.map((page) => ({
+          path: `/${page.slug}`,
+          title: page.title,
+        })),
+      }
+    } catch (error) {
+      console.error('home screen CMS read failed; it stays off', error)
+      return {
+        screen: homeScreenFrom(null),
+        titles: [],
+      }
+    }
+  },
+  ['honest-home-screen'],
+  { tags: ['honest-cms'], revalidate: 3600 }
+)
+
+/** The social page's own posts, newest first; drafts only in preview. */
+export const getSocialPosts = cache(async () => {
+  const ctx = await readContext()
+  if (!ctx) return []
+  try {
+    return (
+      await ctx.cms.find({
+        collection: 'social-posts',
+        overrideAccess: false,
+        user: ctx.user,
+        draft: ctx.preview,
+        where: ctx.preview ? {} : { _status: { equals: 'published' } },
+        sort: '-postedAt',
+        limit: 60,
+        depth: 1,
+      })
+    ).docs
+  } catch (error) {
+    console.error('social posts CMS read failed; showing none', error)
+    return []
+  }
+})

@@ -1,6 +1,8 @@
 import type { Block, Field } from 'payload'
 
 import { bookingCopyFields, leadCopyFields } from '@/lib/cms/form-copy'
+import { salesBlocks } from '@/lib/cms/sales-blocks'
+
 const title: Field = { name: 'title', type: 'text', required: true }
 export const blocks: Block[] = [
   {
@@ -143,4 +145,5 @@ export const blocks: Block[] = [
     slug: 'bookingReceipt',
     fields: [title, { name: 'copy', type: 'group', fields: bookingCopyFields }],
   },
+  ...salesBlocks,
 ]

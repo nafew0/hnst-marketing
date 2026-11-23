@@ -45,7 +45,8 @@ export function Header() {
           <Logo title={false} className={s.logo} />
         </Link>
 
-        <div className="desktop-only">
+        {/* Hidden while the home screen is on: there is no booking then. */}
+        <div className={cn('desktop-only', s.book)}>
           <Button href={bookCall.href}>{bookCall.label}</Button>
         </div>
       </div>

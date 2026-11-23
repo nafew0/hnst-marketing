@@ -310,10 +310,14 @@
   }
 }
 
-/* The classic website shows the macOS-style title bar on phones too (M5),
-   over \`desktop-only\` by specificity. */
-:global(html[data-phone-classic]) .classicShow {
-  display: contents !important;
+/* The classic website shows the macOS-style title bar on phones too (M5).
+   \`desktop-only\` hides it with \`!important\` in the utilities layer, and an
+   important declaration in an earlier layer wins, so this sits in components:
+   unlayered, it lost, and phones had no way to close a window. */
+@layer components {
+  :global(html[data-phone-classic]) .classicShow {
+    display: contents !important;
+  }
 }
 
 /* A direct visit's body: no box of its own, except as a phone app's scroller. */

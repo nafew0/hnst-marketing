@@ -181,10 +181,10 @@ test.describe('phone home screen', () => {
     }
     const dock = page.getByRole('navigation', { name: 'Dock' })
     await expect(
-      dock.getByRole('link', { name: /^Call HONEST: \+\d+$/u })
+      dock.getByRole('link', { name: /^Call HONEST: \+[\d ()-]+$/u })
     ).toHaveAttribute('href', /^tel:\+\d+$/u)
     await expect(
-      dock.getByRole('link', { name: /^Text HONEST: \+\d+$/u })
+      dock.getByRole('link', { name: /^Text HONEST: \+[\d ()-]+$/u })
     ).toHaveAttribute('href', /^sms:\+\d+$/u)
     await expect(
       dock.getByRole('link', { name: /^Email HONEST: \S+@\S+$/u })
@@ -524,7 +524,10 @@ test.describe('phone apps (M5)', () => {
     await openApp(page, 'About', 'About')
     await expect(windowOf(page).getByRole('article')).not.toHaveCount(0)
     await expect(
-      windowOf(page).getByRole('heading', { name: 'How we got here' })
+      // The CMS timeline's heading: the Wave 3 draft's, or Dylan's (Nov 2026).
+      windowOf(page).getByRole('heading', {
+        name: /^(How we got here|Every launch starts with a fall\.)$/u,
+      })
     ).toBeVisible()
     expect(await seriousViolations(page)).toEqual([])
   })
