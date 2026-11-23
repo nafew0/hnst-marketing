@@ -2,7 +2,6 @@ import type { CollectionConfig } from 'payload'
 import { z } from 'zod'
 
 import { newProspectToken, PROSPECT_PARAM } from '@/components/prospects/token'
-import { NETWORK_OPTIONS } from '@/components/social/networks'
 import { contentAccess, isAdmin, isEditor } from '@/lib/cms/access'
 import { ADMIN_GROUP } from '@/lib/cms/admin-groups'
 import { contentHooks } from '@/lib/cms/revalidate'
@@ -23,9 +22,9 @@ export const SocialPosts: CollectionConfig = {
   admin: {
     useAsTitle: 'caption',
     group: ADMIN_GROUP.site,
-    defaultColumns: ['caption', 'network', 'postedAt', '_status'],
+    defaultColumns: ['caption', 'postedAt', '_status'],
     description:
-      'The grid on the Social media page. Each post links out to the original; nothing is embedded.',
+      'Our own posts, made here, for the grid on the Social media page. They open on our site, like a social profile; nothing comes from or goes to the networks.',
   },
   defaultSort: '-postedAt',
   fields: [
@@ -34,23 +33,12 @@ export const SocialPosts: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       required: true,
-      admin: { description: 'Square works best (1080 × 1080).' },
+      admin: {
+        description:
+          'Square works best (1080 × 1080); the grid crops to a square, the post shows it whole.',
+      },
     },
     { name: 'caption', type: 'textarea', required: true },
-    {
-      name: 'network',
-      type: 'select',
-      required: true,
-      defaultValue: 'instagram',
-      options: NETWORK_OPTIONS,
-    },
-    {
-      name: 'url',
-      type: 'text',
-      label: 'Link to the original post',
-      validate: (value: string | null | undefined) =>
-        !value || value.startsWith('https://') || 'Use a full https:// link',
-    },
     {
       name: 'postedAt',
       type: 'date',

@@ -44,6 +44,10 @@ const envSchema = z.object({
   GHL_STAGE_CALL_BOOKED_ID: z.string().min(1).optional(),
   // Path secret for POST /api/webhooks/ghl-workflow/:key.
   GHL_WORKFLOW_SECRET: z.string().min(24).optional(),
+  // The social page's live Instagram feed (Admin → Pages → Social → Feed).
+  // A long-lived Instagram User token (Instagram API with Instagram Login);
+  // server only, sent as a header, never logged. It lasts 60 days.
+  INSTAGRAM_ACCESS_TOKEN: z.string().min(20).optional(),
   // ALTCHA proof-of-work signing key (self-hosted captcha).
   ALTCHA_HMAC_KEY: z.string().min(32).optional(),
   // Phone layout (docs/phases/M1.md–M9.md): the iPhone-style home screen and

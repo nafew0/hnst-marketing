@@ -267,36 +267,131 @@ const comparison: Block = {
 }
 
 /**
- * The social media page (21 Nov 2026): HONEST's profile and its own post grid,
- * from Social posts. Links go out to the networks; nothing is embedded.
+ * The social media page (20–21 Nov 2026): our own profile, made on our site
+ * and shown like a social profile (cover photo, profile photo, highlights, a
+ * post grid that opens posts here), so visitors don't leave. The networks are
+ * only the follow buttons by the bio. The feed is our own posts, or, if
+ * switched, HONEST's live Instagram, read by our server.
  */
 const socialProfile: Block = {
   slug: 'socialProfile',
   labels: { singular: 'Social profile', plural: 'Social profiles' },
   fields: [
-    { ...heading('title', 'Name', true), defaultValue: 'HONEST Marketing' },
-    { ...heading('handle', 'Handle'), defaultValue: '@hnstmarketing' },
-    paragraphs('bio', 'Bio'),
     {
-      ...heading('followLabel', 'Follow button word'),
-      defaultValue: 'Follow on',
-      admin: {
-        description:
-          'Followed by the network, e.g. “Follow on Instagram”. One button per profile in Site settings → Social profiles; networks without one are hidden.',
-      },
-    },
-    {
-      ...heading('postsHeading', 'Heading over the posts'),
-      defaultValue: 'Posts',
-    },
-    {
-      ...heading('viewLabel', 'Link to the original post'),
-      defaultValue: 'View on',
-    },
-    {
-      ...paragraphs('emptyText', 'When there are no posts yet'),
-      defaultValue:
-        'The first posts are on their way. Until then, the fastest line to us is a call, a text or an email.',
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Profile',
+          fields: [
+            {
+              ...heading('title', 'Name', true),
+              defaultValue: 'HONEST Marketing',
+            },
+            { ...heading('handle', 'Handle'), defaultValue: '@hnstmarketing' },
+            paragraphs('bio', 'Bio'),
+            {
+              name: 'cover',
+              type: 'upload',
+              relationTo: 'media',
+              label: 'Cover photo',
+              admin: {
+                description:
+                  'Wide, about 3 : 1 (e.g. 1500 × 500). Empty: a scene from the site.',
+              },
+            },
+            {
+              name: 'avatar',
+              type: 'upload',
+              relationTo: 'media',
+              label: 'Profile photo',
+              admin: {
+                description:
+                  'Square; shown in a circle. Empty: the H monogram.',
+              },
+            },
+            {
+              ...heading('followLabel', 'Follow button word'),
+              defaultValue: 'Follow on',
+              admin: {
+                description:
+                  'Followed by the network, e.g. “Follow on Instagram”. One button per profile in Site settings → Social profiles; networks without one are hidden.',
+              },
+            },
+          ],
+        },
+        {
+          label: 'Highlights',
+          description:
+            'The circles under the bio, as on Instagram. Each opens its own slides, one after another.',
+          fields: [
+            {
+              name: 'highlights',
+              type: 'array',
+              labels: { singular: 'Highlight', plural: 'Highlights' },
+              maxRows: 12,
+              fields: [
+                heading('title', 'Name under the circle', true),
+                {
+                  name: 'cover',
+                  type: 'upload',
+                  relationTo: 'media',
+                  required: true,
+                  label: 'Circle picture',
+                },
+                {
+                  name: 'slides',
+                  type: 'array',
+                  minRows: 1,
+                  maxRows: 20,
+                  fields: [
+                    {
+                      name: 'image',
+                      type: 'upload',
+                      relationTo: 'media',
+                      required: true,
+                      admin: { description: 'Tall works best (1080 × 1920).' },
+                    },
+                    heading('caption', 'Caption'),
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Feed',
+          fields: [
+            {
+              name: 'source',
+              type: 'select',
+              required: true,
+              defaultValue: 'own',
+              label: 'Posts in the grid',
+              options: [
+                { value: 'own', label: 'Our own posts (Social posts)' },
+                { value: 'instagram', label: 'Live from our Instagram' },
+              ],
+              admin: {
+                description:
+                  'Live needs an Instagram token on the server (INSTAGRAM_ACCESS_TOKEN). Without one, or if Instagram doesn’t answer, the page shows our own posts.',
+              },
+            },
+            {
+              ...heading('postsHeading', 'Heading over the posts'),
+              defaultValue: 'Posts',
+            },
+            {
+              ...heading('viewLabel', 'Link to Instagram (live feed only)'),
+              defaultValue: 'View on Instagram',
+            },
+            {
+              ...paragraphs('emptyText', 'When there are no posts yet'),
+              defaultValue:
+                'The first posts are on their way. Until then, the fastest line to us is a call, a text or an email.',
+            },
+          ],
+        },
+      ],
     },
   ],
 }

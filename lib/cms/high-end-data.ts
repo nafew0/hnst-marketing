@@ -1715,8 +1715,9 @@ const social: Blocks = [
     handle: '@hnstmarketing',
     bio: 'Storytelling-driven marketing for companies doing $10M+ a year. Behind the scenes of every app, show and launch we make, as it happens.',
     followLabel: 'Follow on',
+    source: 'own',
     postsHeading: 'Posts',
-    viewLabel: 'View on',
+    viewLabel: 'View on Instagram',
     emptyText:
       'The first posts are on their way. Until then, the fastest line to us is a call, a text or an email.',
   },

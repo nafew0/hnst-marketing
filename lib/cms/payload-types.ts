@@ -564,9 +564,38 @@ export interface Page {
             handle?: string | null
             bio?: string | null
             /**
+             * Wide, about 3 : 1 (e.g. 1500 × 500). Empty: a scene from the site.
+             */
+            cover?: (number | null) | Media
+            /**
+             * Square; shown in a circle. Empty: the H monogram.
+             */
+            avatar?: (number | null) | Media
+            /**
              * Followed by the network, e.g. “Follow on Instagram”. One button per profile in Site settings → Social profiles; networks without one are hidden.
              */
             followLabel?: string | null
+            highlights?:
+              | {
+                  title: string
+                  cover: number | Media
+                  slides?:
+                    | {
+                        /**
+                         * Tall works best (1080 × 1920).
+                         */
+                        image: number | Media
+                        caption?: string | null
+                        id?: string | null
+                      }[]
+                    | null
+                  id?: string | null
+                }[]
+              | null
+            /**
+             * Live needs an Instagram token on the server (INSTAGRAM_ACCESS_TOKEN). Without one, or if Instagram doesn’t answer, the page shows our own posts.
+             */
+            source: 'own' | 'instagram'
             postsHeading?: string | null
             viewLabel?: string | null
             emptyText?: string | null
@@ -819,7 +848,7 @@ export interface Media {
   }
 }
 /**
- * The grid on the Social media page. Each post links out to the original; nothing is embedded.
+ * Our own posts, made here, for the grid on the Social media page. They open on our site, like a social profile; nothing comes from or goes to the networks.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "social-posts".
@@ -827,12 +856,10 @@ export interface Media {
 export interface SocialPost {
   id: number
   /**
-   * Square works best (1080 × 1080).
+   * Square works best (1080 × 1080); the grid crops to a square, the post shows it whole.
    */
   image: number | Media
   caption: string
-  network: 'instagram' | 'x' | 'youtube' | 'tiktok' | 'linkedin'
-  url?: string | null
   postedAt: string
   updatedAt: string
   createdAt: string
@@ -1406,7 +1433,24 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T
               handle?: T
               bio?: T
+              cover?: T
+              avatar?: T
               followLabel?: T
+              highlights?:
+                | T
+                | {
+                    title?: T
+                    cover?: T
+                    slides?:
+                      | T
+                      | {
+                          image?: T
+                          caption?: T
+                          id?: T
+                        }
+                    id?: T
+                  }
+              source?: T
               postsHeading?: T
               viewLabel?: T
               emptyText?: T
@@ -1554,8 +1598,6 @@ export interface PagesSelect<T extends boolean = true> {
 export interface SocialPostsSelect<T extends boolean = true> {
   image?: T
   caption?: T
-  network?: T
-  url?: T
   postedAt?: T
   updatedAt?: T
   createdAt?: T

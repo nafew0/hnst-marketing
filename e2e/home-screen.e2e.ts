@@ -229,8 +229,21 @@ test('the social page: profile, posts and the footer’s new links', async ({
     await tiles.first().click()
     const viewer = page.getByRole('dialog').filter({ hasText: 'Close' })
     await expect(viewer).toBeVisible()
+    // Our own posts live here: nothing sends the visitor away.
+    await expect(viewer.getByRole('link')).toHaveCount(0)
     await page.keyboard.press('Escape')
     await expect(viewer).toBeHidden()
+  }
+
+  const circles = page
+    .getByRole('list', { name: 'Highlights' })
+    .getByRole('button')
+  if ((await circles.count()) > 0) {
+    await circles.first().click()
+    const story = page.locator('dialog[open]')
+    await expect(story.getByRole('button', { name: 'Next' })).toBeVisible()
+    await story.getByRole('button', { name: 'Close' }).click()
+    await expect(story).toHaveCount(0)
   }
   expect(await seriousViolations(page)).toEqual([])
 

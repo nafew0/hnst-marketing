@@ -151,7 +151,13 @@ const nextConfig: NextConfig = {
     // resizes through a loader (`components/ui/image/sanity-loader.ts`)
     // stays out: the optimizer never fetches from it, and allowing it would
     // let anyone resize any image on that host here, on this project's bill.
-    remotePatterns: [],
+    // Instagram's image hosts, for the social page's live feed: our server
+    // fetches and resizes them, so a visitor's browser never contacts Meta.
+    // Cost: anyone could resize an Instagram-hosted image through this site.
+    remotePatterns: [
+      { protocol: 'https', hostname: '**.cdninstagram.com' },
+      { protocol: 'https', hostname: '**.fbcdn.net' },
+    ],
     minimumCacheTTL: 60 * 60 * 24 * 30,
     // 90: everything the optimizer encodes. 80: images resized by the CDN
     // loader in `components/ui/image`, which sends `quality` to the CDN, not
