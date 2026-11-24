@@ -72,7 +72,7 @@
     "bottleneck": "^2.19.5",
     "clsx": "^2.1.1",
     "detect-gpu": "^5.0.70",
-    "graphql": "^16.8.1",
+    "graphql": "^17.0.2",
     "hamo": "^1.0.3",
     "lenis": "2.0.0-dev.5",
     "next": "16.4.3",
